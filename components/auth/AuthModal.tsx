@@ -1,56 +1,72 @@
 "use client";
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Eye, EyeOff, Mail, Lock, User, Building, X } from 'lucide-react';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { loginUser, registerUser, selectIsLoading } from '@/store/slices/authSlice';
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Eye, EyeOff, Mail, Lock, User, Building } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/store";
+import {
+  loginUser,
+  registerUser,
+  selectIsLoading,
+} from "@/store/slices/authSlice";
+import { RegisterPayload, LoginPayload, UserRole } from "@/types";
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  defaultMode?: 'login' | 'signup';
-  onVerificationNeeded?: (email: string) => void;
-  onAuthSuccess?: (email: string, needsVerification: boolean) => void;
+  defaultMode?: "login" | "signup";
+  onVerificationNeeded: (email: string, tempAccessToken: string) => void;
   title?: string;
   subtitle?: string;
 }
 
-export function AuthModal({ isOpen, onClose, defaultMode = 'login', onVerificationNeeded, onAuthSuccess, title, subtitle }: AuthModalProps) {
-  const [mode, setMode] = useState<'login' | 'signup' | 'userType'>(defaultMode);
+export function AuthModal({
+  isOpen,
+  onClose,
+  defaultMode = "login",
+  onVerificationNeeded,
+  title,
+  subtitle,
+}: AuthModalProps) {
+  const [mode, setMode] = useState<"login" | "signup">(defaultMode);
   const [step, setStep] = useState(1);
-  const [userType, setUserType] = useState<'employee' | 'employer' | 'admin' | null>(null);
+  const [userType, setUserType] = useState<UserRole | null>(null);
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    fullName: '',
-    companyName: '',
-    agreeToTerms: false
+    email: "",
+    password: "",
+    confirmPassword: "",
+    fullName: "",
+    companyName: "",
+    agreeToTerms: false,
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [error, setError] = useState('');
-  
+  const [error, setError] = useState("");
+
   const dispatch = useAppDispatch();
   const isLoading = useAppSelector(selectIsLoading);
   const router = useRouter();
 
   const resetForm = () => {
     setFormData({
-      email: '',
-      password: '',
-      confirmPassword: '',
-      fullName: '',
-      companyName: '',
-      agreeToTerms: false
+      email: "",
+      password: "",
+      confirmPassword: "",
+      fullName: "",
+      companyName: "",
+      agreeToTerms: false,
     });
-    setError('');
+    setError("");
     setStep(1);
     setUserType(null);
     setShowPassword(false);
@@ -62,169 +78,126 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login', onVerificati
     onClose();
   };
 
-  const handleModeSwitch = (newMode: 'login' | 'signup') => {
+  const handleModeSwitch = (newMode: "login" | "signup") => {
     resetForm();
     setMode(newMode);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    
-    const result = await dispatch(loginUser({ email: formData.email, password: formData.password }));
-    
-    if ('payload' in result && result.payload) {
-      if (onAuthSuccess) {
-        onAuthSuccess(formData.email, false);
-      } else {
-        handleClose();
-        setTimeout(() => {
-          if (result.payload && typeof result.payload === 'object' && 'user' in result.payload) {
-            const user = result.payload.user;
-            switch (user.role) {
-              case 'admin':
-                router.push('/admin');
-                break;
-              case 'employer':
-                router.push('/employer');
-                break;
-              case 'employee':
-                router.push('/employee');
-                break;
-              default:
-                router.push('/');
-            }
-          }
-        }, 100);
-      }
-    } else {
-      setError((result as any).error || 'Login failed');
+    setError("");
+
+    const payload: LoginPayload = {
+      email: formData.email,
+      password: formData.password,
+    };
+
+    const result = await dispatch(loginUser(payload));
+
+    if (loginUser.fulfilled.match(result)) {
+      handleClose();
+      setTimeout(() => {
+        const userRole = result.payload?.user.role;
+        switch (userRole) {
+          case "admin":
+            router.push("/admin/dashboard");
+            break;
+          case "employer":
+            router.push("/employer/dashboard");
+            break;
+          case "employee":
+            router.push("/employee/dashboard");
+            break;
+          default:
+            router.push("/");
+        }
+      }, 100);
+    } else if (loginUser.rejected.match(result)) {
+      setError(
+        (result.payload as string) ||
+          "Login failed. Please check your credentials."
+      );
     }
   };
 
   const handleSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (mode === 'signup' && step === 1 && !userType) {
-      setError('Please select a user type');
-      return;
-    }
-    
-    if (mode === 'signup' && step === 1) {
+
+    if (step === 1) {
+      if (!userType) {
+        setError("Please select an account type");
+        return;
+      }
+      setError("");
       setStep(2);
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return;
     }
-
     if (!userType) {
-      setError('Please select a user type');
+      setError("User type not selected. Please go back.");
       return;
     }
+    setError("");
 
-    setError('');
-    
-    const result = await dispatch(registerUser({
+    const payload: RegisterPayload = {
       email: formData.email,
       password: formData.password,
       name: formData.fullName,
       role: userType,
-      companyName: userType === 'employer' ? formData.companyName : undefined
-    }));
-    
-    if ('payload' in result && result.payload) {
-      if (onAuthSuccess) {
-        onAuthSuccess(formData.email, true);
+      ...(userType === "employer" && { companyName: formData.companyName }),
+    };
+
+    const result = await dispatch(registerUser(payload));
+
+    if (registerUser.fulfilled.match(result)) {
+      const tempAccessToken = result.payload?.accessToken;
+      if (tempAccessToken) {
+        // Pass both email and the temporary token
+        onVerificationNeeded(formData.email, tempAccessToken);
       } else {
-        handleClose();
-        if (onVerificationNeeded) {
-          onVerificationNeeded(formData.email);
-        }
+        setError("Could not get verification token. Please try again.");
       }
-    } else {
-      setError((result as any).error || 'Registration failed');
     }
   };
 
-  const quickLogin = async (userType: 'admin' | 'employer' | 'employee') => {
+  const quickLogin = (role: UserRole) => {
     const credentials = {
-      admin: { email: 'admin@giggeni.com', password: 'password123' },
-      employer: { email: 'employer@giggeni.com', password: 'password123' },
-      employee: { email: 'employee@giggeni.com', password: 'password123' }
+      admin: { email: "admin@example.com", password: "password123" },
+      employer: { email: "employer@example.com", password: "password123" },
+      employee: { email: "employee@example.com", password: "password123" },
     };
-    
-    // Auto-fill the form with dummy credentials
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      email: credentials[userType].email,
-      password: credentials[userType].password
+      email: credentials[role].email,
+      password: credentials[role].password,
     }));
-    
-    setError('');
+    setError("");
   };
 
-  const handleDummyLogin = async (userType: 'admin' | 'employer' | 'employee') => {
-    const credentials = {
-      admin: { email: 'admin@giggeni.com', password: 'password123' },
-      employer: { email: 'employer@giggeni.com', password: 'password123' },
-      employee: { email: 'employee@giggeni.com', password: 'password123' }
-    };
-    
-    setError('');
-    const result = await dispatch(loginUser({ email: credentials[userType].email, password: credentials[userType].password }));
-    
-    if ('payload' in result && result.payload) {
-      if (onAuthSuccess) {
-        onAuthSuccess(credentials[userType].email, false);
-      } else {
-        handleClose();
-        setTimeout(() => {
-          if (result.payload && typeof result.payload === 'object' && 'user' in result.payload) {
-            const user = result.payload.user;
-            switch (user.role) {
-              case 'admin':
-                router.push('/admin');
-                break;
-              case 'employer':
-                router.push('/employer');
-                break;
-              case 'employee':
-                router.push('/employee');
-                break;
-              default:
-                router.push('/');
-            }
-          }
-        }, 100);
-      }
-    } else {
-      setError((result as any).error || 'Login failed');
-    }
+  const handleDummyLogin = async () => {
+    await handleLoginSubmit(new Event("submit") as any);
   };
 
   const renderLoginForm = () => (
     <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
       <form onSubmit={handleLoginSubmit} className="space-y-6">
+        {/* Email Input */}
         <div className="space-y-2">
-          <label htmlFor="email" className="text-sm font-medium text-gray-700">
-            Email Address
-          </label>
+          <label htmlFor="email">Email Address</label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <Input
@@ -235,137 +208,103 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login', onVerificati
               value={formData.email}
               onChange={handleChange}
               placeholder="Enter your email"
-              className="pl-10 h-12 border-gray-200 focus:border-orange-500 focus:ring-orange-500"
+              className="pl-10 h-12"
             />
           </div>
         </div>
-
+        {/* Password Input */}
         <div className="space-y-2">
-          <label htmlFor="password" className="text-sm font-medium text-gray-700">
-            Password
-          </label>
+          <label htmlFor="password">Password</label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <Input
               id="password"
               name="password"
-              type={showPassword ? 'text' : 'password'}
+              type={showPassword ? "text" : "password"}
               required
               value={formData.password}
               onChange={handleChange}
               placeholder="Enter your password"
-              className="pl-10 pr-10 h-12 border-gray-200 focus:border-orange-500 focus:ring-orange-500"
+              className="pl-10 pr-10 h-12"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
             >
-              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              {showPassword ? <EyeOff /> : <Eye />}
             </button>
           </div>
         </div>
-
+        {/* Actions */}
         <div className="flex items-center justify-between">
           <label className="flex items-center">
-            <input
-              type="checkbox"
-              className="rounded border-gray-300 text-orange-500 focus:ring-orange-500"
-            />
-            <span className="ml-2 text-sm text-gray-600">Remember me</span>
+            <input type="checkbox" className="rounded" />
+            <span>Remember me</span>
           </label>
-          <button
-            type="button"
-            className="text-sm text-orange-600 hover:text-orange-700 font-medium"
-          >
-            Forgot password?
-          </button>
+          <button type="button">Forgot password?</button>
         </div>
-
+        {/* Error Display */}
         {error && (
-          <Alert className="border-red-200 bg-red-50">
-            <AlertDescription className="text-red-700">
-              {error}
-            </AlertDescription>
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-
-        <Button
-          type="submit"
-          disabled={isLoading}
-          className="w-full h-12 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
-        >
-          {isLoading ? (
-            <div className="flex items-center">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-              Signing in...
-            </div>
-          ) : (
-            'Sign In'
-          )}
+        {/* Submit Button */}
+        <Button type="submit" disabled={isLoading} className="w-full h-12">
+          {isLoading ? "Signing in..." : "Sign In"}
         </Button>
       </form>
-
-      {/* Quick Login Buttons */}
+      {/* Quick Login Section */}
       <div className="mt-6">
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300" />
+            <div className="w-full border-t" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">Quick Login (Demo)</span>
+            <span className="px-2 bg-background text-muted-foreground">
+              Quick Login (Demo)
+            </span>
           </div>
         </div>
         <div className="mt-4 grid grid-cols-3 gap-2">
           <Button
-            type="button"
             variant="outline"
             size="sm"
-            onClick={() => quickLogin('admin')}
-            className="text-xs"
+            onClick={() => quickLogin("admin")}
           >
             Admin
           </Button>
           <Button
-            type="button"
             variant="outline"
             size="sm"
-            onClick={() => quickLogin('employer')}
-            className="text-xs"
+            onClick={() => quickLogin("employer")}
           >
             Employer
           </Button>
           <Button
-            type="button"
             variant="outline"
             size="sm"
-            onClick={() => quickLogin('employee')}
-            className="text-xs"
+            onClick={() => quickLogin("employee")}
           >
             Employee
           </Button>
         </div>
         <div className="mt-2 text-center">
           <Button
-            type="button"
-            variant="ghost"
+            variant="link"
             size="sm"
-            onClick={() => handleDummyLogin(formData.email.includes('admin') ? 'admin' : formData.email.includes('employer') ? 'employer' : 'employee')}
-            className="text-xs text-orange-600 hover:text-orange-700"
+            onClick={handleDummyLogin}
             disabled={!formData.email || !formData.password}
           >
             Auto Login with Filled Credentials
           </Button>
         </div>
       </div>
-
+      {/* Switch to Signup */}
       <div className="text-center">
-        <span className="text-sm text-gray-600">Don't have an account? </span>
-        <button
-          type="button"
-          onClick={() => handleModeSwitch('signup')}
-          className="text-sm text-orange-600 hover:text-orange-700 font-medium"
-        >
+        <span className="text-sm">Don't have an account? </span>
+        <button type="button" onClick={() => handleModeSwitch("signup")}>
           Sign up
         </button>
       </div>
@@ -374,83 +313,71 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login', onVerificati
 
   const renderUserTypeSelection = () => (
     <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
     >
       <h2 className="text-xl font-semibold text-center mb-6">I am a...</h2>
       <div className="space-y-4">
+        {/* Employee Button */}
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => setUserType('employee')}
-          className={`w-full p-6 rounded-lg border-2 transition-all duration-200 ${
-            userType === 'employee'
-              ? 'border-orange-500 bg-orange-50'
-              : 'border-gray-200 hover:border-orange-200'
+          onClick={() => setUserType("employee")}
+          className={`w-full p-6 rounded-lg border-2 ${
+            userType === "employee" ? "border-primary" : ""
           }`}
         >
           <div className="flex items-center">
-            <User className={`w-8 h-8 mr-4 ${
-              userType === 'employee' ? 'text-orange-500' : 'text-gray-400'
-            }`} />
+            <User
+              className={`w-8 h-8 mr-4 ${
+                userType === "employee" ? "text-primary" : ""
+              }`}
+            />
             <div className="text-left">
-              <h3 className="font-semibold text-gray-900">Job Seeker</h3>
-              <p className="text-sm text-gray-600">
-                Looking for opportunities and competitions
-              </p>
+              <h3>Job Seeker</h3>
+              <p>Find opportunities</p>
             </div>
           </div>
         </motion.button>
-
+        {/* Employer Button */}
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => setUserType('employer')}
-          className={`w-full p-6 rounded-lg border-2 transition-all duration-200 ${
-            userType === 'employer'
-              ? 'border-orange-500 bg-orange-50'
-              : 'border-gray-200 hover:border-orange-200'
+          onClick={() => setUserType("employer")}
+          className={`w-full p-6 rounded-lg border-2 ${
+            userType === "employer" ? "border-primary" : ""
           }`}
         >
           <div className="flex items-center">
-            <Building className={`w-8 h-8 mr-4 ${
-              userType === 'employer' ? 'text-orange-500' : 'text-gray-400'
-            }`} />
+            <Building
+              className={`w-8 h-8 mr-4 ${
+                userType === "employer" ? "text-primary" : ""
+              }`}
+            />
             <div className="text-left">
-              <h3 className="font-semibold text-gray-900">Employer</h3>
-              <p className="text-sm text-gray-600">
-                Post competitions and find talent
-              </p>
+              <h3>Employer</h3>
+              <p>Post gigs and find talent</p>
             </div>
           </div>
         </motion.button>
       </div>
-
       {error && (
-        <Alert className="border-red-200 bg-red-50 mt-4">
-          <AlertDescription className="text-red-700">
-            {error}
-          </AlertDescription>
+        <Alert variant="destructive" className="mt-4">
+          <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-
       <Button
         onClick={() => userType && setStep(2)}
         disabled={!userType}
-        className="w-full mt-6 h-12 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full mt-6 h-12"
       >
         Continue
       </Button>
-
       <div className="text-center mt-4">
-        <span className="text-sm text-gray-600">Already have an account? </span>
-        <button
-          type="button"
-          onClick={() => handleModeSwitch('login')}
-          className="text-sm text-orange-600 hover:text-orange-700 font-medium"
-        >
+        <span className="text-sm">Already have an account? </span>
+        <button type="button" onClick={() => handleModeSwitch("login")}>
           Sign in
         </button>
       </div>
@@ -459,24 +386,18 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login', onVerificati
 
   const renderSignupForm = () => (
     <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
     >
       <form onSubmit={handleSignupSubmit} className="space-y-6">
-        <button
-          type="button"
-          onClick={() => setStep(1)}
-          className="text-orange-600 hover:text-orange-700 text-sm font-medium  flex items-center "
-        >
+        <button type="button" onClick={() => setStep(1)}>
           ← Back to account type
         </button>
-
+        {/* Full Name */}
         <div className="space-y-2">
-          <label htmlFor="fullName" className="text-sm font-medium text-gray-700">
-            Full Name
-          </label>
+          <label htmlFor="fullName">Full Name</label>
           <div className="relative">
             <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <Input
@@ -487,16 +408,14 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login', onVerificati
               value={formData.fullName}
               onChange={handleChange}
               placeholder="Enter your full name"
-              className="pl-10 h-12 border-gray-200 focus:border-orange-500 focus:ring-orange-500"
+              className="pl-10 h-12"
             />
           </div>
         </div>
-
-        {userType === 'employer' && (
+        {/* Company Name (Conditional) */}
+        {userType === "employer" && (
           <div className="space-y-2">
-            <label htmlFor="companyName" className="text-sm font-medium text-gray-700">
-              Company Name
-            </label>
+            <label htmlFor="companyName">Company Name</label>
             <div className="relative">
               <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <Input
@@ -507,16 +426,14 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login', onVerificati
                 value={formData.companyName}
                 onChange={handleChange}
                 placeholder="Enter your company name"
-                className="pl-10 h-12 border-gray-200 focus:border-orange-500 focus:ring-orange-500"
+                className="pl-10 h-12"
               />
             </div>
           </div>
         )}
-
+        {/* Email */}
         <div className="space-y-2">
-          <label htmlFor="email" className="text-sm font-medium text-gray-700">
-            Email Address
-          </label>
+          <label htmlFor="email">Email Address</label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <Input
@@ -527,116 +444,94 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login', onVerificati
               value={formData.email}
               onChange={handleChange}
               placeholder="Enter your email"
-              className="pl-10 h-12 border-gray-200 focus:border-orange-500 focus:ring-orange-500"
+              className="pl-10 h-12"
             />
           </div>
         </div>
-
+        {/* Password */}
         <div className="space-y-2">
-          <label htmlFor="password" className="text-sm font-medium text-gray-700">
-            Password
-          </label>
+          <label htmlFor="password">Password</label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <Input
               id="password"
               name="password"
-              type={showPassword ? 'text' : 'password'}
+              type={showPassword ? "text" : "password"}
               required
               value={formData.password}
               onChange={handleChange}
               placeholder="Create a password"
-              className="pl-10 pr-10 h-12 border-gray-200 focus:border-orange-500 focus:ring-orange-500"
+              className="pl-10 pr-10 h-12"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
             >
-              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              {showPassword ? <EyeOff /> : <Eye />}
             </button>
           </div>
         </div>
-
+        {/* Confirm Password */}
         <div className="space-y-2">
-          <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
-            Confirm Password
-          </label>
+          <label htmlFor="confirmPassword">Confirm Password</label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <Input
               id="confirmPassword"
               name="confirmPassword"
-              type={showConfirmPassword ? 'text' : 'password'}
+              type={showConfirmPassword ? "text" : "password"}
               required
               value={formData.confirmPassword}
               onChange={handleChange}
               placeholder="Confirm your password"
-              className="pl-10 pr-10 h-12 border-gray-200 focus:border-orange-500 focus:ring-orange-500"
+              className="pl-10 pr-10 h-12"
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
             >
-              {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              {showConfirmPassword ? <EyeOff /> : <Eye />}
             </button>
           </div>
         </div>
-
+        {/* Terms Agreement */}
         <div className="flex items-center">
           <input
             type="checkbox"
             id="agreeToTerms"
             name="agreeToTerms"
             checked={formData.agreeToTerms}
-            onChange={(e) => setFormData(prev => ({ ...prev, agreeToTerms: e.target.checked }))}
-            className="rounded border-gray-300 text-orange-500 focus:ring-orange-500"
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                agreeToTerms: e.target.checked,
+              }))
+            }
             required
           />
-          <label htmlFor="agreeToTerms" className="ml-2 text-sm text-gray-600">
-            I agree to the{' '}
-            <button type="button" className="text-orange-600 hover:text-orange-700 font-medium">
-              Terms of Service
-            </button>
-            {' '}and{' '}
-            <button type="button" className="text-orange-600 hover:text-orange-700 font-medium">
-              Privacy Policy
-            </button>
+          <label htmlFor="agreeToTerms">
+            I agree to the <button type="button">Terms</button> and{" "}
+            <button type="button">Policy</button>
           </label>
         </div>
-
         {error && (
-          <Alert className="border-red-200 bg-red-50">
-            <AlertDescription className="text-red-700">
-              {error}
-            </AlertDescription>
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-
         <Button
           type="submit"
           disabled={isLoading || !formData.agreeToTerms}
-          className="w-full h-12 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full h-12"
         >
-          {isLoading ? (
-            <div className="flex items-center">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-              Creating account...
-            </div>
-          ) : (
-            'Create Account'
-          )}
+          {isLoading ? "Creating account..." : "Create Account"}
         </Button>
       </form>
-
       <div className="text-center mt-4">
-        <span className="text-sm text-gray-600">Already have an account? </span>
-        <button
-          type="button"
-          onClick={() => handleModeSwitch('login')}
-          className="text-sm text-orange-600 hover:text-orange-700 font-medium"
-        >
+        <span className="text-sm">Already have an account? </span>
+        <button type="button" onClick={() => handleModeSwitch("login")}>
           Sign in
         </button>
       </div>
@@ -645,45 +540,33 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login', onVerificati
 
   const getTitle = () => {
     if (title) return title;
-    if (mode === 'login') return 'Welcome Back';
-    if (mode === 'signup' && step === 1) return 'Join GiG Geni';
-    if (mode === 'signup' && step === 2) return 'Create Your Account';
-    return 'Authentication';
+    if (mode === "login") return "Welcome Back";
+    if (mode === "signup" && step === 1) return "Join the Platform";
+    if (mode === "signup" && step === 2) return "Create Your Account";
+    return "Authentication";
   };
 
   const getSubtitle = () => {
     if (subtitle) return subtitle;
-    if (mode === 'login') return 'Sign in to your GiG Geni account';
-    if (mode === 'signup' && step === 1) return 'Choose your account type';
-    if (mode === 'signup' && step === 2) return 'Complete your registration';
-    return '';
+    if (mode === "login") return "Sign in to continue to your dashboard";
+    if (mode === "signup" && step === 1) return "First, tell us who you are";
+    if (mode === "signup" && step === 2)
+      return "Complete your registration to get started";
+    return "";
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className=" mx-auto p-8 overflow-hidden bg-white">
+      <DialogContent className="max-w-md mx-auto p-8 overflow-hidden">
         <DialogHeader className="text-center mb-8">
-          {/* <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.5 }}
-            className="w-16 h-16 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4"
-          >
-            <span className="text-white font-bold text-xl">GG</span>
-          </motion.div> */}
-          <DialogTitle className="text-3xl font-bold text-gray-900 mb-2">
-            {getTitle()}
-          </DialogTitle>
-          <p className="text-gray-600">{getSubtitle()}</p>
+          <DialogTitle className="text-3xl font-bold">{getTitle()}</DialogTitle>
+          <p className="text-muted-foreground">{getSubtitle()}</p>
         </DialogHeader>
-
-        <div className="bg-white rounded-xl">
-          <AnimatePresence mode="wait">
-            {mode === 'login' && renderLoginForm()}
-            {mode === 'signup' && step === 1 && renderUserTypeSelection()}
-            {mode === 'signup' && step === 2 && renderSignupForm()}
-          </AnimatePresence>
-        </div>
+        <AnimatePresence mode="wait">
+          {mode === "login" && renderLoginForm()}
+          {mode === "signup" && step === 1 && renderUserTypeSelection()}
+          {mode === "signup" && step === 2 && renderSignupForm()}
+        </AnimatePresence>
       </DialogContent>
     </Dialog>
   );

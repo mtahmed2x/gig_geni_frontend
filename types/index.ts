@@ -1,41 +1,115 @@
-// ============================================================================
-// CENTRALIZED TYPES & INTERFACES
-// ============================================================================
-// This file contains all TypeScript interfaces and types used across the application.
-// Keep this file organized and update it when integrating with real APIs.
-
-// ============================================================================
-// AUTH & USER TYPES
-// ============================================================================
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'employer' | 'employee';
-  avatar?: string;
-  company?: string;
-  title?: string;
-  isEmailVerified?: boolean;
-  isProfileComplete?: boolean;
+export interface ApiResponse<T = any> {
+  success: boolean;
+  message?: string;
+  data?: T;
+  error?: string;
+  errors?: Record<string, string[]>;
+  meta?: {
+    page: number;
+    limit: number;
+    total: number;
+  };
 }
 
-export interface RegisterData {
+export type UserRole = "admin" | "employer" | "employee";
+
+export type Gender = "male" | "female" | "other" | "not-stated";
+
+export interface Address {
+  homeAddress?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  zipCode?: string;
+}
+
+export interface Experience {
+  _id?: string;
+  company: string;
+  jobTitle: string;
+  startDate: string;
+  endDate?: string;
+  currentlyWorking: boolean;
+  jobDescription?: string;
+}
+
+export interface Education {
+  _id?: string;
+  institution: string;
+  degree: string;
+  fieldOfStudy?: string;
+  grade?: string;
+  startYear: string;
+  endYear?: string;
+  description?: string;
+}
+
+export interface User {
+  _id: string;
+  email: string;
+  role: UserRole;
+  name: string;
+
+  password?: string;
+
+  verified: boolean;
+
+  companyName?: string;
+  dateOfBirth?: string;
+  gender?: Gender;
+  nationality?: string;
+  aboutMe?: string;
+  languages: string[];
+  skills: string[];
+
+  salaryExpectations?: string;
+  jobPreference?: string;
+
+  phoneNumber?: string;
+  linkedinProfile?: string;
+  personalWebsite?: string;
+
+  address: Address;
+  experience: Experience[];
+  education: Education[];
+
+  deviceTokens: string[];
+
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RegisterPayload {
   email: string;
   password: string;
+  role: UserRole;
   name: string;
-  role: 'admin' | 'employer' | 'employee';
   companyName?: string;
 }
 
-export interface LoginData {
+export interface RegisterResponseData {
+  user: User;
+  accessToken: string;
+  refreshToken: string;
+}
+
+export interface LoginPayload {
   email: string;
   password: string;
 }
 
-export interface AuthTokens {
+export interface LoginResponseData {
+  user: User;
   accessToken: string;
   refreshToken: string;
+}
+
+export interface VerifyOtpPayload {
+  otp: string;
+}
+
+export interface RefreshTokenPayload {
+  token: string;
 }
 
 export interface AuthState {
@@ -46,18 +120,6 @@ export interface AuthState {
   isLoading: boolean;
   pendingEmailVerification: boolean;
   error: string | null;
-}
-
-// ============================================================================
-// API RESPONSE TYPES
-// ============================================================================
-
-export interface ApiResponse<T = any> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  error?: string;
-  errors?: Record<string, string[]>;
 }
 
 export interface LoginResponse {
@@ -77,10 +139,6 @@ export interface RefreshTokenResponse {
   accessToken: string;
   refreshToken: string;
 }
-
-// ============================================================================
-// COMPETITION TYPES
-// ============================================================================
 
 export interface Competition {
   id: string;
@@ -114,7 +172,7 @@ export interface CompetitionHistory {
   totalParticipants: number;
   pointsEarned: number;
   roundScores: RoundScore[];
-  status: 'completed' | 'ongoing' | 'withdrawn';
+  status: "completed" | "ongoing" | "withdrawn";
 }
 
 export interface RoundScore {
@@ -125,10 +183,6 @@ export interface RoundScore {
   evaluatorComments?: string;
   completedDate: Date;
 }
-
-// ============================================================================
-// LEADERBOARD TYPES
-// ============================================================================
 
 export interface LeaderboardParticipant {
   id: string;
@@ -156,41 +210,16 @@ export interface Achievement {
   icon: string;
   earnedDate: Date;
   category: string;
-  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  rarity: "common" | "rare" | "epic" | "legendary";
 }
 
 export interface LeaderboardFilters {
   category?: string;
-  dateRange: '30days' | '90days' | 'alltime';
-  sortBy: 'points' | 'competitions';
-  sortOrder: 'desc' | 'asc';
+  dateRange: "30days" | "90days" | "alltime";
+  sortBy: "points" | "competitions";
+  sortOrder: "desc" | "asc";
   page: number;
   limit: number;
-}
-
-// ============================================================================
-// PROFILE TYPES
-// ============================================================================
-
-export interface Experience {
-  id?: string;
-  company?: string;
-  role?: string;
-  startDate?: Date;
-  endDate?: Date;
-  description?: string;
-  isCurrentRole?: boolean;
-}
-
-export interface Education {
-  id?: string;
-  institution?: string;
-  degree?: string;
-  field?: string;
-  startYear?: number;
-  endYear?: number;
-  grade?: string;
-  description?: string;
 }
 
 export interface Training {
@@ -282,7 +311,7 @@ export interface Notification {
   id: string;
   title: string;
   message: string;
-  type: 'info' | 'success' | 'warning' | 'error' | 'competition' | 'system';
+  type: "info" | "success" | "warning" | "error" | "competition" | "system";
   isRead: boolean;
   createdAt: Date;
   actionUrl?: string;
@@ -310,12 +339,12 @@ export interface NotificationSettings {
 export interface UserSettings {
   notifications: NotificationSettings;
   privacy: {
-    profileVisibility: 'public' | 'private' | 'connections';
+    profileVisibility: "public" | "private" | "connections";
     showEmail: boolean;
     showPhone: boolean;
   };
   preferences: {
-    theme: 'light' | 'dark' | 'system';
+    theme: "light" | "dark" | "system";
     language: string;
     timezone: string;
   };
@@ -351,7 +380,7 @@ export interface RequestConfig {
 // UTILITY TYPES
 // ============================================================================
 
-export type LoadingState = 'idle' | 'pending' | 'succeeded' | 'failed';
+export type LoadingState = "idle" | "pending" | "succeeded" | "failed";
 
 export interface PaginatedResponse<T> {
   data: T[];
@@ -378,7 +407,14 @@ export interface SelectOption {
 export interface FormField {
   name: string;
   label: string;
-  type: 'text' | 'email' | 'password' | 'select' | 'textarea' | 'checkbox' | 'radio';
+  type:
+    | "text"
+    | "email"
+    | "password"
+    | "select"
+    | "textarea"
+    | "checkbox"
+    | "radio";
   required?: boolean;
   placeholder?: string;
   options?: SelectOption[];
