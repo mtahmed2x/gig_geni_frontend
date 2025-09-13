@@ -122,46 +122,79 @@ export interface AuthState {
   error: string | null;
 }
 
-export interface LoginResponse {
-  user: User;
-  accessToken: string;
-  refreshToken: string;
-}
+export type Round1Status = "not_started" | "pending" | "passed" | "failed";
+export type Round2Status = "not_started" | "pending" | "approved" | "rejected";
+export type Round3Status =
+  | "not_started"
+  | "scheduled"
+  | "approved"
+  | "rejected";
+export type Round4Status = "not_started" | "completed" | "failed";
 
-export interface RegisterResponse {
-  user: User;
-  accessToken: string;
-  refreshToken: string;
-  requiresEmailVerification?: boolean;
-}
+export interface Participant {
+  user: string | User;
 
-export interface RefreshTokenResponse {
-  accessToken: string;
-  refreshToken: string;
+  round1: Round1Status;
+  round2: Round2Status;
+  round3: Round3Status;
+  round4: Round4Status;
+
+  joinedAt: string;
 }
 
 export interface Competition {
-  id: string;
+  _id: string;
+  createdBy: string;
+  bannerImage: string;
   title: string;
-  organizer: string;
-  location?: string;
-  rating?: number;
-  categories: string[];
-  prizes?: string;
-  registrationFee?: string;
-  startDate?: Date;
-  endDate?: Date;
-  resultDate?: Date;
-  participantCount?: number;
-  description?: string;
-  skillsTested: string[];
-  projectBrief?: string;
-  termsAndConditions: string[];
+  description: string;
+  category: string;
+  experienceLevel: string;
+  location: string;
+  workType: string;
+  skillsTested: string;
+  projectBrief: string;
+  evaluationCriteria: string;
+  startDate: string;
+  endDate: string;
+  resultDate?: string;
+  prize: string;
+  maxParticipants?: number;
+  registrationFee: "Free" | "Paid";
   submissionFormats: string[];
-  maxFileSize?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  additionalFiles: { link: string; description?: string }[];
+  termsAndConditions: string[];
+  participants: Participant[];
+  createdAt: string;
+  updatedAt: string;
 }
+
+export interface CreateCompetitionPayload {
+  title: string;
+  description: string;
+  category: string;
+  experienceLevel: string;
+  location: string;
+  workType: string;
+  skillsTested: string;
+  projectBrief: string;
+  evaluationCriteria: string;
+  startDate: string;
+  endDate: string;
+  resultDate?: string;
+  prize: string;
+  maxParticipants?: number;
+  registrationFee: "Free" | "Paid";
+  submissionFormats: string[];
+  additionalFiles: { link: string; description?: string }[];
+  termsAndConditions: string[];
+}
+
+export interface CreateCompetitionResponseData {
+  competition: Competition;
+}
+
+export type FetchCompetitionsResponseData = Competition[];
 
 export interface CompetitionHistory {
   competitionId: string;
