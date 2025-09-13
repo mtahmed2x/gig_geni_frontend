@@ -2,6 +2,7 @@ import { api } from "@/lib/apiClient";
 import {
   CreateCompetitionPayload,
   CreateCompetitionResponseData,
+  FetchCompetitionByIdResponseData,
   FetchCompetitionsResponseData,
 } from "@/types";
 
@@ -37,9 +38,19 @@ const fetchMyCompetitions = async (): Promise<
   return response.data.data;
 };
 
+const fetchCompetitionById = async (
+  id: string
+): Promise<FetchCompetitionByIdResponseData | undefined> => {
+  const response = await api.get<FetchCompetitionByIdResponseData>(
+    `/competition/${id}`
+  );
+  return response.data.data;
+};
+
 const competitionService = {
   createCompetition,
   fetchMyCompetitions,
+  fetchCompetitionById,
 };
 
 export default competitionService;

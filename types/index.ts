@@ -142,6 +142,14 @@ export interface Participant {
   joinedAt: string;
 }
 
+export interface CompetitionStats {
+  totalParticipants: number;
+  round1Passed: number;
+  videosPending: number;
+  interviewsScheduled: number;
+  completed: number;
+}
+
 export interface Competition {
   _id: string;
   createdBy: string;
@@ -165,6 +173,7 @@ export interface Competition {
   additionalFiles: { link: string; description?: string }[];
   termsAndConditions: string[];
   participants: Participant[];
+  stats?: CompetitionStats;
   createdAt: string;
   updatedAt: string;
 }
@@ -195,6 +204,7 @@ export interface CreateCompetitionResponseData {
 }
 
 export type FetchCompetitionsResponseData = Competition[];
+export type FetchCompetitionByIdResponseData = Competition;
 
 export interface CompetitionHistory {
   competitionId: string;

@@ -4,12 +4,14 @@ import { Competition, CreateCompetitionPayload } from "@/types";
 
 interface CompetitionState {
   myCompetitions: Competition[];
+  selectedCompetition: Competition | null;
   isLoading: boolean;
   error: string | null;
 }
 
 const initialState: CompetitionState = {
   myCompetitions: [],
+  selectedCompetition: null,
   isLoading: false,
   error: null,
 };
@@ -42,10 +44,27 @@ export const fetchMyCompetitions = createAsyncThunk(
   }
 );
 
+export const fetchCompetitionById = createAsyncThunk(
+  "competition/fetchById",
+  async (id: string, { rejectWithValue }) => {
+    try {
+      return await competitionService.fetchCompetitionById(id);
+    } catch (error: any) {
+      return rejectWithValue(
+        error.message || "Failed to fetch competition details"
+      );
+    }
+  }
+);
+
 const competitionSlice = createSlice({
   name: "competition",
   initialState,
-  reducers: {},
+  reducers: {
+    clearSelectedCompetition: (state) => {
+      state.selectedCompetition = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(createCompetition.pending, (state) => {
@@ -73,9 +92,24 @@ const competitionSlice = createSlice({
       .addCase(fetchMyCompetitions.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
+      })
+      .addCase(fetchCompetitionById.pending, (state) => {
+        state.isLoading = true;
+        state.selectedCompetition = null;
+        state.error = null;
+      })
+      .addCase(fetchCompetitionById.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.selectedCompetition = action.payload || null;
+      })
+      .addCase(fetchCompetitionById.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
       });
   },
 });
+
+export const { clearSelectedCompetition } = competitionSlice.actions;
 
 export const selectCompetitionIsLoading = (state: {
   competition: CompetitionState;
@@ -83,5 +117,8 @@ export const selectCompetitionIsLoading = (state: {
 export const selectMyCompetitions = (state: {
   competition: CompetitionState;
 }) => state.competition.myCompetitions;
+export const selectSelectedCompetition = (state: {
+  competition: CompetitionState;
+}) => state.competition.selectedCompetition;
 
 export default competitionSlice.reducer;
