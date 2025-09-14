@@ -1,12 +1,17 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useAppSelector } from '@/store';
-import { selectUser, selectIsAuthenticated } from '@/store/slices/authSlice';
-import { EmployeeOnly, EmployerOnly, AdminOnly, AuthenticatedOnly } from '@/components/auth/RoleBasedAccess';
-import Link from 'next/link';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useAppSelector } from "@/store";
+import { selectUser, selectIsAuthenticated } from "@/store/slices/authSlice";
+import {
+  EmployeeOnly,
+  EmployerOnly,
+  AdminOnly,
+  AuthenticatedOnly,
+} from "@/components/auth/RoleBasedAccess";
+import Link from "next/link";
 
 export default function TestAuthPage() {
   const user = useAppSelector(selectUser);
@@ -29,11 +34,21 @@ export default function TestAuthPage() {
         <CardContent>
           {isAuthenticated && user ? (
             <div className="space-y-2">
-              <p><span className="font-medium">Name:</span> {user.name}</p>
-              <p><span className="font-medium">Email:</span> {user.email}</p>
-              <p><span className="font-medium">Role:</span> <Badge className="ml-2 capitalize">{user.role}</Badge></p>
-              <p><span className="font-medium">Email Verified:</span> {user.isEmailVerified ? '✅' : '❌'}</p>
-              <p><span className="font-medium">Profile Complete:</span> {user.isProfileComplete ? '✅' : '❌'}</p>
+              <p>
+                <span className="font-medium">Name:</span> {user.name}
+              </p>
+              <p>
+                <span className="font-medium">Email:</span> {user.email}
+              </p>
+              <p>
+                <span className="font-medium">Role:</span>{" "}
+                <Badge className="ml-2 capitalize">{user.role}</Badge>
+              </p>
+              <p>
+                <span className="font-medium">Email Verified:</span>{" "}
+                {user.verified ? "✅" : "❌"}
+              </p>
+              {/* <p><span className="font-medium">Profile Complete:</span> {user.isProfileComplete ? '✅' : '❌'}</p> */}
             </div>
           ) : (
             <p className="text-muted-foreground">Not authenticated</p>
@@ -48,9 +63,17 @@ export default function TestAuthPage() {
             <CardTitle>Employee Only Content</CardTitle>
           </CardHeader>
           <CardContent>
-            <EmployeeOnly fallback={<p className="text-muted-foreground">Only employees can see this content</p>}>
+            <EmployeeOnly
+              fallback={
+                <p className="text-muted-foreground">
+                  Only employees can see this content
+                </p>
+              }
+            >
               <div className="space-y-2">
-                <p className="text-green-600 font-medium">✅ You can see employee content!</p>
+                <p className="text-green-600 font-medium">
+                  ✅ You can see employee content!
+                </p>
                 <Button asChild size="sm">
                   <Link href="/competitions/my">My Competitions</Link>
                 </Button>
@@ -64,9 +87,17 @@ export default function TestAuthPage() {
             <CardTitle>Employer Only Content</CardTitle>
           </CardHeader>
           <CardContent>
-            <EmployerOnly fallback={<p className="text-muted-foreground">Only employers can see this content</p>}>
+            <EmployerOnly
+              fallback={
+                <p className="text-muted-foreground">
+                  Only employers can see this content
+                </p>
+              }
+            >
               <div className="space-y-2">
-                <p className="text-green-600 font-medium">✅ You can see employer content!</p>
+                <p className="text-green-600 font-medium">
+                  ✅ You can see employer content!
+                </p>
                 <Button asChild size="sm">
                   <Link href="/competitions/create">Create Competition</Link>
                 </Button>
@@ -80,9 +111,17 @@ export default function TestAuthPage() {
             <CardTitle>Admin Only Content</CardTitle>
           </CardHeader>
           <CardContent>
-            <AdminOnly fallback={<p className="text-muted-foreground">Only admins can see this content</p>}>
+            <AdminOnly
+              fallback={
+                <p className="text-muted-foreground">
+                  Only admins can see this content
+                </p>
+              }
+            >
               <div className="space-y-2">
-                <p className="text-green-600 font-medium">✅ You can see admin content!</p>
+                <p className="text-green-600 font-medium">
+                  ✅ You can see admin content!
+                </p>
                 <Button asChild size="sm" variant="outline">
                   <Link href="/admin">Admin Panel</Link>
                 </Button>
@@ -96,9 +135,17 @@ export default function TestAuthPage() {
             <CardTitle>Authenticated Only Content</CardTitle>
           </CardHeader>
           <CardContent>
-            <AuthenticatedOnly fallback={<p className="text-muted-foreground">Please log in to see this content</p>}>
+            <AuthenticatedOnly
+              fallback={
+                <p className="text-muted-foreground">
+                  Please log in to see this content
+                </p>
+              }
+            >
               <div className="space-y-2">
-                <p className="text-green-600 font-medium">✅ You are authenticated!</p>
+                <p className="text-green-600 font-medium">
+                  ✅ You are authenticated!
+                </p>
                 <Button asChild size="sm" variant="outline">
                   <Link href="/profile">View Profile</Link>
                 </Button>
@@ -128,16 +175,24 @@ export default function TestAuthPage() {
               <Link href="/competitions/my">My Competitions (Employee)</Link>
             </Button>
             <Button asChild variant="outline" size="sm">
-              <Link href="/competitions/join">Join Competitions (Employee)</Link>
+              <Link href="/competitions/join">
+                Join Competitions (Employee)
+              </Link>
             </Button>
             <Button asChild variant="outline" size="sm">
-              <Link href="/competitions/create">Create Competition (Employer)</Link>
+              <Link href="/competitions/create">
+                Create Competition (Employer)
+              </Link>
             </Button>
             <Button asChild variant="outline" size="sm">
-              <Link href="/competitions/manage">Manage Competitions (Employer)</Link>
+              <Link href="/competitions/manage">
+                Manage Competitions (Employer)
+              </Link>
             </Button>
             <Button asChild variant="outline" size="sm">
-              <Link href="/competitions/1/journey">Competition Journey (Employee)</Link>
+              <Link href="/competitions/1/journey">
+                Competition Journey (Employee)
+              </Link>
             </Button>
           </div>
         </CardContent>

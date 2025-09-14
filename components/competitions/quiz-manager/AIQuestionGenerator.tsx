@@ -85,10 +85,8 @@ export default function AIQuestionGenerator({
     };
 
     try {
-      // Dispatch the thunk and wait for the returned data
       const result = await dispatch(generateQuizQuestions(payload)).unwrap();
 
-      // Store the result in local state for previewing
       if (result && result.length > 0) {
         setAiGeneratedQuestions(result);
         setShowAiPreview(true);
@@ -105,40 +103,37 @@ export default function AIQuestionGenerator({
     }
   };
 
-  const handleApproveAndAdd = () => {
-    // Dispatch the synchronous `setQuestions` action with the previewed data
-    dispatch(setQuestions(aiGeneratedQuestions));
-    toast.success(
-      "Questions have been approved and added to your competition!"
-    );
+  // const handleApproveAndAdd = () => {
+  //   dispatch(setQuestions(aiGeneratedQuestions));
+  //   toast.success(
+  //     "Questions have been approved and added to your competition!"
+  //   );
+  //   setAiGeneratedQuestions([]);
+  //   setShowAiPreview(false);
+  //   setAiQuestionSet({
+  //     category: "",
+  //     difficulty: "medium",
+  //     totalQuestions: 10,
+  //     distribution: {
+  //       single: 2,
+  //       multiple: 2,
+  //       true_false: 2,
+  //       short: 2,
+  //       broad: 2,
+  //     },
+  //     shortWordLimit: 100,
+  //     broadWordLimit: 500,
+  //     pointsPerQuestion: 10,
+  //     description: "",
+  //   });
+  // };
 
-    // Clear the local preview state and reset the form
-    setAiGeneratedQuestions([]);
-    setShowAiPreview(false);
-    setAiQuestionSet({
-      category: "",
-      difficulty: "medium",
-      totalQuestions: 10,
-      distribution: {
-        single: 2,
-        multiple: 2,
-        true_false: 2,
-        short: 2,
-        broad: 2,
-      },
-      shortWordLimit: 100,
-      broadWordLimit: 500,
-      pointsPerQuestion: 10,
-      description: "",
-    });
-  };
-
-  const handleReject = () => {
-    // Simply clear the local preview state
-    setAiGeneratedQuestions([]);
-    setShowAiPreview(false);
-    toast.info("Generated questions have been discarded.");
-  };
+  // const handleReject = () => {
+  //   // Simply clear the local preview state
+  //   setAiGeneratedQuestions([]);
+  //   setShowAiPreview(false);
+  //   toast.info("Generated questions have been discarded.");
+  // };
 
   const totalQuestionsInSet = Object.values(aiQuestionSet.distribution).reduce(
     (a, b) => a + b,
@@ -233,8 +228,6 @@ export default function AIQuestionGenerator({
             {/* Form Part 2: Distribution (JSX Unchanged) */}
             <div className="space-y-4">
               <h3 className="font-medium">Question Type Distribution</h3>
-              {/* --- The form for question type distribution is unchanged --- */}
-              {/* Example for single answer */}
               <div className="flex items-center justify-between">
                 <label className="text-sm">Single Answer (MCQ)</label>
                 <Input

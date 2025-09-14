@@ -243,6 +243,26 @@ export interface CreateQuizQuestionPayload {
 export type CreateQuizQuestionResponseData = QuizQuestion[];
 export type FetchQuizQuestionsResponseData = QuizQuestion[];
 
+export interface GenerateQuizQuestionsPayload {
+  competitionId: string;
+  category: string;
+  description: string;
+  totalQuestions: number;
+  difficulty: QuestionDifficulty;
+  distribution: {
+    single: number;
+    multiple: number;
+    true_false: number;
+    short: number;
+    broad: number;
+  };
+  shortWordLimit: number;
+  broadWordLimit: number;
+  pointsPerQuestion: number;
+}
+
+
+
 export interface CompetitionHistory {
   competitionId: string;
   competitionTitle: string;
