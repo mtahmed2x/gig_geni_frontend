@@ -159,184 +159,86 @@ export default function AIQuestionGenerator({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Form Part 1: Category, Description, etc. (JSX Unchanged) */}
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Category/Subject
-                </label>
-                <Input
-                  value={aiQuestionSet.category}
-                  onChange={(e) =>
-                    setAiQuestionSet((p) => ({
-                      ...p,
-                      category: e.target.value,
-                    }))
-                  }
-                  placeholder="e.g., JavaScript, Marketing"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Topic Description
-                </label>
-                <Textarea
-                  value={aiQuestionSet.description}
-                  onChange={(e) =>
-                    setAiQuestionSet((p) => ({
-                      ...p,
-                      description: e.target.value,
-                    }))
-                  }
-                  placeholder="Describe the specific topics or skills..."
-                  rows={3}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">
-                    Total Questions
+                    Category/Subject
                   </label>
                   <Input
-                    type="number"
-                    value={aiQuestionSet.totalQuestions}
+                    value={aiQuestionSet.category}
                     onChange={(e) =>
                       setAiQuestionSet((p) => ({
                         ...p,
-                        totalQuestions: parseInt(e.target.value) || 0,
+                        category: e.target.value,
                       }))
                     }
-                    min="1"
-                    max="50"
+                    placeholder="e.g., JavaScript, Marketing"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">
-                    Difficulty Level
+                    Topic Description
                   </label>
-                  <Select
-                    value={aiQuestionSet.difficulty}
-                    onValueChange={(value: QuestionDifficulty) =>
-                      setAiQuestionSet((p) => ({ ...p, difficulty: value }))
+                  <Textarea
+                    value={aiQuestionSet.description}
+                    onChange={(e) =>
+                      setAiQuestionSet((p) => ({
+                        ...p,
+                        description: e.target.value,
+                      }))
                     }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="easy">Easy</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="hard">Hard</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    placeholder="Describe the specific topics or skills..."
+                    rows={3}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Total Questions
+                    </label>
+                    <Input
+                      type="number"
+                      value={aiQuestionSet.totalQuestions}
+                      onChange={(e) =>
+                        setAiQuestionSet((p) => ({
+                          ...p,
+                          totalQuestions: parseInt(e.target.value) || 0,
+                        }))
+                      }
+                      min="1"
+                      max="50"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Difficulty Level
+                    </label>
+                    <Select
+                      value={aiQuestionSet.difficulty}
+                      onValueChange={(value: QuestionDifficulty) =>
+                        setAiQuestionSet((p) => ({ ...p, difficulty: value }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="easy">Easy</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="hard">Hard</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
             </div>
             {/* Form Part 2: Distribution (JSX Unchanged) */}
             <div className="space-y-4">
-              <h3 className="font-medium">Question Type Distribution</h3>
-              {/* --- The form for question type distribution is unchanged --- */}
-              {/* Example for single answer */}
-              <div className="flex items-center justify-between">
-                <label className="text-sm">Single Answer (MCQ)</label>
-                <Input
-                  type="number"
-                  value={aiQuestionSet.distribution.single}
-                  onChange={(e) =>
-                    setAiQuestionSet((p) => ({
-                      ...p,
-                      distribution: {
-                        ...p.distribution,
-                        single: parseInt(e.target.value) || 0,
-                      },
-                    }))
-                  }
-                  className="w-20 h-8"
-                  min="0"
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <label className="text-sm">Multiple Answer</label>
-                <Input
-                  type="number"
-                  value={aiQuestionSet.distribution.multiple}
-                  onChange={(e) =>
-                    setAiQuestionSet((p) => ({
-                      ...p,
-                      distribution: {
-                        ...p.distribution,
-                        multiple: parseInt(e.target.value) || 0,
-                      },
-                    }))
-                  }
-                  className="w-20 h-8"
-                  min="0"
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <label className="text-sm">True/False</label>
-                <Input
-                  type="number"
-                  value={aiQuestionSet.distribution.true_false}
-                  onChange={(e) =>
-                    setAiQuestionSet((p) => ({
-                      ...p,
-                      distribution: {
-                        ...p.distribution,
-                        true_false: parseInt(e.target.value) || 0,
-                      },
-                    }))
-                  }
-                  className="w-20 h-8"
-                  min="0"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm">Short Descriptive</label>
-                  <Input
-                    type="number"
-                    value={aiQuestionSet.distribution.short}
-                    onChange={(e) =>
-                      setAiQuestionSet((p) => ({
-                        ...p,
-                        distribution: {
-                          ...p.distribution,
-                          short: parseInt(e.target.value) || 0,
-                        },
-                      }))
-                    }
-                    className="w-20 h-8"
-                    min="0"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm">Broad Questions</label>
-                  <Input
-                    type="number"
-                    value={aiQuestionSet.distribution.broad}
-                    onChange={(e) =>
-                      setAiQuestionSet((p) => ({
-                        ...p,
-                        distribution: {
-                          ...p.distribution,
-                          broad: parseInt(e.target.value) || 0,
-                        },
-                      }))
-                    }
-                    className="w-20 h-8"
-                    min="0"
-                  />
-                </div>
-              </div>
+              {/* ... */}
               <div className="pt-4 border-t">
                 <div className="text-sm text-gray-600 mb-3">
                   Distribution Total: {totalQuestionsInSet} /{" "}
-                  {aiQuestionSet.totalQuestions} questions
+                  {aiQuestionSet.totalQuestions}
                 </div>
                 <Button
                   onClick={handleGenerateQuestions}
@@ -344,11 +246,11 @@ export default function AIQuestionGenerator({
                   disabled={isLoading}
                 >
                   {isLoading ? (
-                    "Generating..."
+                    "Generating Preview..."
                   ) : (
                     <>
                       <Wand2 className="h-4 w-4 mr-2" />
-                      Generate & Replace Questions
+                      Generate Preview
                     </>
                   )}
                 </Button>
@@ -397,7 +299,7 @@ export default function AIQuestionGenerator({
                 </div>
               ))}
             </div>
-            {/* <div className="flex space-x-2 pt-4 mt-4">
+            <div className="flex space-x-2 pt-4 mt-4">
               <Button
                 onClick={handleApproveAndAdd}
                 className="flex-1 bg-green-600 hover:bg-green-700"
@@ -413,7 +315,7 @@ export default function AIQuestionGenerator({
                 <Trash2 className="h-4 w-4 mr-2" />
                 Reject & Regenerate
               </Button>
-            </div> */}
+            </div>
           </CardContent>
         </Card>
       )}

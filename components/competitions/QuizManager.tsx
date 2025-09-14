@@ -56,7 +56,7 @@ export default function QuizManager({ competitionId }: QuizManagerProps) {
         </TabsContent>
 
         <TabsContent value="ai" className="space-y-6">
-          <AIQuestionGenerator questions={[]} onQuestionsUpdate={() => {}} />
+          <AIQuestionGenerator competitionId={competitionId} />
         </TabsContent>
 
         <TabsContent value="google" className="space-y-6">

@@ -2,8 +2,12 @@
 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 // --- FIX: Import the correctly named service ---
-import quizQuestionService from "../services/quizQuestionService"; 
-import { QuizQuestion, CreateQuizQuestionPayload } from "@/types";
+import quizQuestionService from "../services/quizQuestionService";
+import {
+  QuizQuestion,
+  CreateQuizQuestionPayload,
+  GenerateQuizQuestionsPayload,
+} from "@/types";
 import type { RootState } from "..";
 
 interface QuizState {
@@ -43,12 +47,28 @@ export const fetchQuizQuestions = createAsyncThunk(
   }
 );
 
+export const generateQuizQuestions = createAsyncThunk(
+  "quizQuestion/generate",
+  async (payload: GenerateQuizQuestionsPayload, { rejectWithValue }) => {
+    try {
+      return await quizQuestionService.generateQuizQuestions(payload);
+    } catch (error: any) {
+      return rejectWithValue(
+        error.message || "Failed to generate AI questions"
+      );
+    }
+  }
+);
+
 const quizQuestionSlice = createSlice({
   name: "quizQuestion",
   initialState,
   reducers: {
     clearQuizQuestions: (state) => {
       state.questions = [];
+    },
+    setQuestions: (state, action: PayloadAction<QuizQuestion[]>) => {
+      state.questions = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -76,13 +96,28 @@ const quizQuestionSlice = createSlice({
       .addCase(fetchQuizQuestions.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
+      })
+      .addCase(generateQuizQuestions.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(generateQuizQuestions.fulfilled, (state, action) => {
+        state.isLoading = false;
+        // The API returns the full list, so we replace our state with it
+        state.questions = action.payload || [];
+      })
+      .addCase(generateQuizQuestions.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
       });
   },
 });
 
 export const { clearQuizQuestions } = quizQuestionSlice.actions;
 
-export const selectQuizQuestions = (state: RootState) => state.quizQuestion.questions;
-export const selectQuizIsLoading = (state: RootState) => state.quizQuestion.isLoading;
+export const selectQuizQuestions = (state: RootState) =>
+  state.quizQuestion.questions;
+export const selectQuizIsLoading = (state: RootState) =>
+  state.quizQuestion.isLoading;
 
 export default quizQuestionSlice.reducer;

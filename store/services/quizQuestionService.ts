@@ -1,5 +1,9 @@
 import { api } from "@/lib/apiClient";
-import { CreateQuizQuestionPayload, QuizQuestion } from "@/types";
+import {
+  CreateQuizQuestionPayload,
+  GenerateQuizQuestionsPayload,
+  QuizQuestion,
+} from "@/types";
 
 const createQuizQuestion = async (
   payload: CreateQuizQuestionPayload
@@ -20,9 +24,20 @@ const fetchQuizQuestions = async (
   return response.data.data;
 };
 
+const generateQuizQuestions = async (
+  payload: GenerateQuizQuestionsPayload
+): Promise<QuizQuestion[] | undefined> => {
+  const response = await api.post<QuizQuestion[]>(
+    "/quiz-question/generate",
+    payload
+  );
+  return response.data.data;
+};
+
 const quizService = {
   createQuizQuestion,
   fetchQuizQuestions,
+  generateQuizQuestions,
 };
 
 export default quizService;
