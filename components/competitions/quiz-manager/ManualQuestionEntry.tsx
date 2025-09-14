@@ -1,35 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, KeyboardEvent, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Edit } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Plus, Trash2, Edit, FileText, BarChart3 } from "lucide-react";
 
-interface Question {
-  id: string;
-  question: string;
-  type:
-    | "single_answer"
-    | "multiple_answer"
-    | "short_descriptive"
-    | "true_false"
-    | "broad_question";
-  options?: string[];
-  correctAnswer: number | number[] | string;
-  points: number;
-  difficulty: "easy" | "medium" | "hard";
-  category: string;
-  wordLimit?: number;
-}
-
-interface Props {
-  questions: Question[];
-  setQuestions: (qs: Question[]) => void;
-  onQuestionsUpdate?: (questions: Question[]) => void;
-}
+import { useAppDispatch, useAppSelector } from "@/store";
+import {
+  createQuizQuestion,
+  fetchQuizQuestions,
+  clearQuizQuestions,
+  selectQuizQuestions,
+  selectQuizIsLoading,
+} from "@/store/slices/quizQuestionSlice";
+import {
+  QuizQuestion,
+  CreateQuizQuestionPayload,
+  QuestionType,
+  QuestionDifficulty,
+} from "@/types";
+import { toast } from "sonner";
 
 const defaultCategories = [
   "Programming",
@@ -42,48 +42,101 @@ const defaultCategories = [
   "Problem Solving",
 ];
 
-export default function ManualQuestionEntry({
-  questions,
-  setQuestions,
-  onQuestionsUpdate,
-}: Props) {
-  const [newQuestion, setNewQuestion] = useState<Omit<Question, "id">>({
-    question: "",
-    type: "single_answer",
-    options: ["", "", "", ""],
-    correctAnswer: 0,
-    points: 10,
-    difficulty: "medium",
-    category: "Programming",
-    wordLimit: 100,
-  });
+interface ManualQuestionEntryProps {
+  competitionId: string;
+}
 
-  const addQuestion = () => {
-    if (
-      newQuestion.question.trim() &&
-      newQuestion.options?.every((opt) => opt.trim())
-    ) {
-      const q: Question = { ...newQuestion, id: Date.now().toString() };
-      const updated = [...questions, q];
-      setQuestions(updated);
-      onQuestionsUpdate?.(updated);
-      setNewQuestion({
-        question: "",
-        type: "single_answer",
-        options: ["", "", "", ""],
-        correctAnswer: 0,
-        points: 10,
-        difficulty: "medium",
-        category: "Programming",
-        wordLimit: 100,
-      });
+const initialNewQuestionState = {
+  question: "",
+  type: "single" as QuestionType,
+  options: ["", "", "", ""],
+  correctAnswerIndexes: [0] as number[],
+  points: 10,
+  difficulty: "medium" as QuestionDifficulty,
+  category: "Programming",
+  wordLimit: 100,
+};
+
+export default function ManualQuestionEntry({
+  competitionId,
+}: ManualQuestionEntryProps) {
+  const dispatch = useAppDispatch();
+  const questions = useAppSelector(selectQuizQuestions);
+  const isLoading = useAppSelector(selectQuizIsLoading);
+
+  const [newQuestion, setNewQuestion] = useState(initialNewQuestionState);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const stats = useMemo(() => {
+    return {
+      totalQuestions: questions.length,
+      totalPoints: questions.reduce((sum, q) => sum + q.points, 0),
+      difficulty: {
+        easy: questions.filter((q) => q.difficulty === "easy").length,
+        medium: questions.filter((q) => q.difficulty === "medium").length,
+        hard: questions.filter((q) => q.difficulty === "hard").length,
+      },
+    };
+  }, [questions]);
+
+  // --- Fetch initial questions on component mount ---
+  useEffect(() => {
+    if (competitionId) {
+      dispatch(fetchQuizQuestions(competitionId));
+    }
+    // Clean up the questions state when the component unmounts
+    return () => {
+      dispatch(clearQuizQuestions());
+    };
+  }, [dispatch, competitionId]);
+
+  // --- STEP 2: Implement the new handleAddQuestion function ---
+  const handleAddQuestion = async () => {
+    if (!newQuestion.question.trim()) {
+      return toast.error("Question text cannot be empty.");
+    }
+
+    // Prepare the payload based on the question type
+    const payload: CreateQuizQuestionPayload = {
+      competition: competitionId,
+      question: newQuestion.question,
+      type: newQuestion.type,
+      points: newQuestion.points,
+      difficulty: newQuestion.difficulty,
+      category: newQuestion.category,
+    };
+
+    if (["single", "multiple", "true_false"].includes(newQuestion.type)) {
+      const options =
+        newQuestion.type === "true_false"
+          ? ["True", "False"]
+          : newQuestion.options;
+      if (options.some((opt) => !opt.trim())) {
+        return toast.error("All options must be filled out.");
+      }
+      payload.options = options.map((text, index) => ({
+        text,
+        isCorrect: newQuestion.correctAnswerIndexes.includes(index),
+      }));
+    }
+
+    if (["short", "broad"].includes(newQuestion.type)) {
+      payload.wordLimit = newQuestion.wordLimit;
+    }
+
+    try {
+      await dispatch(createQuizQuestion(payload)).unwrap();
+      toast.success("Question added successfully!");
+      setNewQuestion(initialNewQuestionState); // Reset form on success
+    } catch (error: any) {
+      toast.error(error.message || "Failed to add question.");
     }
   };
 
-  const removeQuestion = (id: string) => {
-    const updated = questions.filter((q) => q.id !== id);
-    setQuestions(updated);
-    onQuestionsUpdate?.(updated);
+  // Placeholder for future implementation
+  const handleRemoveQuestion = (questionId: string) => {
+    toast.error("Delete functionality is not yet implemented.");
+    console.log("TODO: Implement delete for question ID:", questionId);
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -100,93 +153,266 @@ export default function ManualQuestionEntry({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Add New Question */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Add New Question</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Textarea
-            value={newQuestion.question}
-            onChange={(e) =>
-              setNewQuestion((prev) => ({ ...prev, question: e.target.value }))
-            }
-            placeholder="Enter your question..."
-            rows={3}
-          />
-
-          {/* Options (only for MCQ) */}
-          {(newQuestion.type === "single_answer" ||
-            newQuestion.type === "multiple_answer") && (
+    <div className="space-y-6">
+      {/* --- STEP 2: Move the statistics cards here --- */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardContent className="p-4 flex items-center justify-between">
             <div>
-              {newQuestion.options?.map((opt, i) => (
-                <div key={i} className="flex items-center space-x-2 mb-2">
-                  <Input
-                    value={opt}
-                    onChange={(e) => {
-                      const newOpts = [...(newQuestion.options || [])];
-                      newOpts[i] = e.target.value;
-                      setNewQuestion((prev) => ({ ...prev, options: newOpts }));
-                    }}
-                    placeholder={`Option ${i + 1}`}
-                  />
-                </div>
-              ))}
+              <p className="text-sm font-medium text-gray-600">
+                Total Questions
+              </p>
+              <p className="text-2xl font-bold text-gray-900">
+                {stats.totalQuestions}
+              </p>
             </div>
-          )}
+            <FileText className="h-8 w-8 text-blue-500" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Points</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {stats.totalPoints}
+              </p>
+            </div>
+            <BarChart3 className="h-8 w-8 text-green-500" />
+          </CardContent>
+        </Card>
+      </div>
 
-          <Input
-            type="number"
-            value={newQuestion.points}
-            onChange={(e) =>
-              setNewQuestion((prev) => ({
-                ...prev,
-                points: parseInt(e.target.value),
-              }))
-            }
-            placeholder="Points"
-          />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* --- ADD NEW QUESTION FORM CARD --- */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Add New Question</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Question</label>
+              <Textarea
+                value={newQuestion.question}
+                onChange={(e) =>
+                  setNewQuestion((p) => ({ ...p, question: e.target.value }))
+                }
+                placeholder="Enter your question..."
+                rows={3}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Question Type
+              </label>
+              <Select
+                value={newQuestion.type}
+                onValueChange={(value: QuestionType) =>
+                  setNewQuestion((p) => ({
+                    ...p,
+                    type: value,
+                    correctAnswerIndexes: value === "multiple" ? [] : [0],
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="single">Single Answer</SelectItem>
+                  <SelectItem value="multiple">Multiple Answer</SelectItem>
+                  <SelectItem value="true_false">True/False</SelectItem>
+                  <SelectItem value="short">Short Descriptive</SelectItem>
+                  <SelectItem value="broad">Broad Question</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          <Button
-            onClick={addQuestion}
-            className="w-full bg-orange-500 hover:bg-orange-600"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Question
-          </Button>
-        </CardContent>
-      </Card>
+            {/* --- Options for Single/Multiple Choice --- */}
+            {["single", "multiple"].includes(newQuestion.type) && (
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Options & Correct Answer
+                </label>
+                {newQuestion.options.map((option, index) => (
+                  <div key={index} className="flex items-center space-x-2 mb-2">
+                    <span className="text-sm font-medium w-6">
+                      {String.fromCharCode(65 + index)}.
+                    </span>
+                    <Input
+                      value={option}
+                      onChange={(e) => {
+                        const newOptions = [...newQuestion.options];
+                        newOptions[index] = e.target.value;
+                        setNewQuestion((p) => ({ ...p, options: newOptions }));
+                      }}
+                      placeholder={`Option ${String.fromCharCode(65 + index)}`}
+                    />
 
-      {/* List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Questions ({questions.length})</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4 max-h-96 overflow-y-auto">
-          {questions.map((q, i) => (
-            <div key={q.id} className="p-4 border rounded-lg">
-              <div className="flex justify-between">
-                <h4 className="font-medium text-sm">
-                  Q{i + 1}: {q.question}
-                </h4>
-                <div className="flex items-center space-x-2">
-                  <Badge className={getDifficultyColor(q.difficulty)}>
-                    {q.difficulty}
-                  </Badge>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => removeQuestion(q.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                    {newQuestion.type === "single" ? (
+                      <input
+                        type="radio"
+                        name="correctAnswer"
+                        checked={newQuestion.correctAnswerIndexes[0] === index}
+                        onChange={() =>
+                          setNewQuestion((p) => ({
+                            ...p,
+                            correctAnswerIndexes: [index],
+                          }))
+                        }
+                      />
+                    ) : (
+                      <input
+                        type="checkbox"
+                        checked={newQuestion.correctAnswerIndexes.includes(
+                          index
+                        )}
+                        onChange={(e) => {
+                          const { checked } = e.target;
+                          const currentIndexes =
+                            newQuestion.correctAnswerIndexes;
+                          const newIndexes = checked
+                            ? [...currentIndexes, index]
+                            : currentIndexes.filter((i) => i !== index);
+                          setNewQuestion((p) => ({
+                            ...p,
+                            correctAnswerIndexes: newIndexes.sort(),
+                          }));
+                        }}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* --- Options for True/False --- */}
+            {newQuestion.type === "true_false" && (
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Correct Answer
+                </label>
+                <Select
+                  value={newQuestion.correctAnswerIndexes[0]?.toString()}
+                  onValueChange={(value) =>
+                    setNewQuestion((p) => ({
+                      ...p,
+                      correctAnswerIndexes: [parseInt(value)],
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select correct answer" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">True</SelectItem>
+                    <SelectItem value="1">False</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* --- Options for Descriptive --- */}
+            {["short", "broad"].includes(newQuestion.type) && (
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Word Limit
+                </label>
+                <Input
+                  type="number"
+                  value={newQuestion.wordLimit}
+                  onChange={(e) =>
+                    setNewQuestion((p) => ({
+                      ...p,
+                      wordLimit: parseInt(e.target.value),
+                    }))
+                  }
+                  min="10"
+                />
+              </div>
+            )}
+
+            <div className="grid grid-cols-3 gap-4">
+              {/* Points, Difficulty, Category Inputs (Unchanged) */}
+            </div>
+            <Button
+              onClick={handleAddQuestion}
+              className="w-full"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                "Adding..."
+              ) : (
+                <>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Question
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* --- DISPLAY QUESTIONS LIST CARD --- */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Questions ({questions.length})</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 max-h-[700px] overflow-y-auto">
+            {isLoading && questions.length === 0 && (
+              <p className="text-center text-gray-500">Loading questions...</p>
+            )}
+            {!isLoading && questions.length === 0 && (
+              <p className="text-center text-gray-500">
+                No questions added yet.
+              </p>
+            )}
+
+            {questions.map((q: QuizQuestion, index) => (
+              <div key={q._id} className="p-4 border rounded-lg bg-white">
+                <div className="flex items-start justify-between mb-2">
+                  <h4 className="font-medium text-sm pr-4">
+                    Q{index + 1}: {q.question}
+                  </h4>
+                  <div className="flex items-center space-x-2 flex-shrink-0">
+                    <Badge className={getDifficultyColor(q.difficulty)}>
+                      {q.difficulty}
+                    </Badge>
+                    <Button variant="ghost" size="icon" className="h-6 w-6">
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 text-red-600 hover:text-red-700"
+                      onClick={() => handleRemoveQuestion(q._id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-1 text-sm">
+                  {q.options?.map((option, optIndex) => (
+                    <div
+                      key={option._id || optIndex}
+                      className={`p-2 rounded text-xs ${
+                        option.isCorrect
+                          ? "bg-green-100 text-green-800 font-semibold"
+                          : "bg-gray-100"
+                      }`}
+                    >
+                      {String.fromCharCode(65 + optIndex)}. {option.text}
+                      {option.isCorrect && " ✓"}
+                    </div>
+                  ))}
+                </div>
+                <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+                  <span>Category: {q.category}</span>
+                  <span>Points: {q.points}</span>
                 </div>
               </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

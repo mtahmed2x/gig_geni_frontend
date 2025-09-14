@@ -206,6 +206,43 @@ export interface CreateCompetitionResponseData {
 export type FetchCompetitionsResponseData = Competition[];
 export type FetchCompetitionByIdResponseData = Competition;
 
+export type QuestionType = 'single' | 'multiple' | 'true_false' | 'short' | 'broad';
+export type QuestionDifficulty = "easy" | "medium" | "hard";
+
+export interface QuizQuestionOption {
+  _id?: string;
+  text: string;
+  isCorrect?: boolean;
+}
+
+export interface QuizQuestion {
+  _id: string;
+  competition: string;
+  question: string;
+  type: QuestionType;
+  options?: QuizQuestionOption[];
+  wordLimit?: number;
+  points: number;
+  difficulty: QuestionDifficulty;
+  category: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateQuizQuestionPayload {
+  competition: string;
+  question: string;
+  type: QuestionType;
+  options?: { text: string; isCorrect?: boolean }[];
+  wordLimit?: number;
+  points: number;
+  difficulty: QuestionDifficulty;
+  category: string;
+}
+
+export type CreateQuizQuestionResponseData = QuizQuestion[];
+export type FetchQuizQuestionsResponseData = QuizQuestion[];
+
 export interface CompetitionHistory {
   competitionId: string;
   competitionTitle: string;
@@ -398,6 +435,7 @@ export interface UserSettings {
 // ============================================================================
 
 export interface RootState {
+  quizQuestion: any;
   auth: AuthState;
   // Add other slices here as they are created
 }

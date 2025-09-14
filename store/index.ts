@@ -2,10 +2,9 @@ import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
-
 import authReducer from "./slices/authSlice";
 import competitionReducer from "./slices/competitionSlice";
-
+import quizQuestionReducer from "./slices/quizQuestionSlice";
 import { injectStore } from "../lib/apiClient";
 
 const persistConfig = {
@@ -17,6 +16,7 @@ const persistConfig = {
 const rootReducer = combineReducers({
   auth: authReducer,
   competition: competitionReducer,
+  quizQuestion: quizQuestionReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -43,7 +43,6 @@ injectStore(store);
 
 export const persistor = persistStore(store);
 
-// --- These types are now correctly defined based on the combined rootReducer ---
 export type AppStore = typeof store;
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

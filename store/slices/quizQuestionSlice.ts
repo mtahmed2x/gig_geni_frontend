@@ -1,48 +1,44 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import quizQuestionService from "../services/quizQuestionService";
-import { QuizQuestion, CreateQuizQuestionPayload } from "@/types";
+// src/store/slices/quizQuestionSlice.ts (RENAMED FILE)
 
-interface QuizQuestionState {
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+// --- FIX: Import the correctly named service ---
+import quizQuestionService from "../services/quizQuestionService"; 
+import { QuizQuestion, CreateQuizQuestionPayload } from "@/types";
+import type { RootState } from "..";
+
+interface QuizState {
   questions: QuizQuestion[];
   isLoading: boolean;
   error: string | null;
 }
 
-const initialState: QuizQuestionState = {
+const initialState: QuizState = {
   questions: [],
   isLoading: false,
   error: null,
 };
 
-export const fetchQuizQuestions = createAsyncThunk(
-  "quiz/fetchAll",
-  async (competitionId: string, { rejectWithValue }) => {
-    try {
-      return await quizQuestionService.fetchQuizQuestions(competitionId);
-    } catch (error: any) {
-      return rejectWithValue(error.message || "Failed to fetch questions");
-    }
-  }
-);
-
+// --- Thunks are correct but rely on the service name ---
 export const createQuizQuestion = createAsyncThunk(
-  "quiz/create",
+  "quizQuestion/create", // Using the slice name for convention
   async (payload: CreateQuizQuestionPayload, { rejectWithValue }) => {
     try {
+      // This will now work
       return await quizQuestionService.createQuizQuestion(payload);
     } catch (error: any) {
-      return rejectWithValue(error.message || "Failed to create question");
+      return rejectWithValue(error.message || "Failed to add question");
     }
   }
 );
 
-export const deleteQuizQuestion = createAsyncThunk(
-  "quiz/delete",
-  async (questionId: string, { rejectWithValue }) => {
+export const fetchQuizQuestions = createAsyncThunk(
+  "quizQuestion/fetchAll", // Using the slice name for convention
+  async (competitionId: string, { rejectWithValue }) => {
     try {
-      return await quizQuestionService.deleteQuizQuestion(questionId);
+      // This will now work
+      return await quizQuestionService.fetchQuizQuestions(competitionId);
     } catch (error: any) {
-      return rejectWithValue(error.message || "Failed to delete question");
+      return rejectWithValue(error.message || "Failed to load questions");
     }
   }
 );
@@ -50,41 +46,43 @@ export const deleteQuizQuestion = createAsyncThunk(
 const quizQuestionSlice = createSlice({
   name: "quizQuestion",
   initialState,
-  reducers: {},
+  reducers: {
+    clearQuizQuestions: (state) => {
+      state.questions = [];
+    },
+  },
   extraReducers: (builder) => {
     builder
-      .addMatcher(
-        (action) =>
-          action.type.startsWith("quiz/") && action.type.endsWith("/pending"),
-        (state) => {
-          state.isLoading = true;
-          state.error = null;
-        }
-      )
-      .addMatcher(
-        (action) =>
-          action.type.startsWith("quiz/") && action.type.endsWith("/fulfilled"),
-        (state, action) => {
-          state.isLoading = false;
-          state.questions = action.payload || [];
-        }
-      )
-      .addMatcher(
-        (action) =>
-          action.type.startsWith("quiz/") && action.type.endsWith("/rejected"),
-        (state, action) => {
-          state.isLoading = false;
-          state.error = action.payload as string;
-        }
-      );
+      .addCase(createQuizQuestion.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(createQuizQuestion.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.questions = action.payload || [];
+      })
+      .addCase(createQuizQuestion.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(fetchQuizQuestions.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchQuizQuestions.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.questions = action.payload || [];
+      })
+      .addCase(fetchQuizQuestions.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      });
   },
 });
 
-export const selectQuizQuestions = (state: {
-  quizQuestion: QuizQuestionState;
-}) => state.quizQuestion.questions;
-export const selectQuizIsLoading = (state: {
-  quizQuestion: QuizQuestionState;
-}) => state.quizQuestion.isLoading;
+export const { clearQuizQuestions } = quizQuestionSlice.actions;
+
+export const selectQuizQuestions = (state: RootState) => state.quizQuestion.questions;
+export const selectQuizIsLoading = (state: RootState) => state.quizQuestion.isLoading;
 
 export default quizQuestionSlice.reducer;

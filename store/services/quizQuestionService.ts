@@ -1,41 +1,28 @@
 import { api } from "@/lib/apiClient";
-import {
-  CreateQuizQuestionPayload,
-  FetchQuizQuestionsResponseData,
-} from "@/types";
-
-const fetchQuizQuestions = async (
-  competitionId: string
-): Promise<FetchQuizQuestionsResponseData | undefined> => {
-  const response = await api.get<FetchQuizQuestionsResponseData>(
-    `/quiz-question/${competitionId}`
-  );
-  return response.data.data;
-};
+import { CreateQuizQuestionPayload, QuizQuestion } from "@/types";
 
 const createQuizQuestion = async (
   payload: CreateQuizQuestionPayload
-): Promise<FetchQuizQuestionsResponseData | undefined> => {
-  const response = await api.post<FetchQuizQuestionsResponseData>(
+): Promise<QuizQuestion[] | undefined> => {
+  const response = await api.post<QuizQuestion[]>(
     "/quiz-question/create",
     payload
   );
   return response.data.data;
 };
 
-const deleteQuizQuestion = async (
-  questionId: string
-): Promise<FetchQuizQuestionsResponseData | undefined> => {
-  const response = await api.delete<FetchQuizQuestionsResponseData>(
-    `/quiz-question/${questionId}`
+const fetchQuizQuestions = async (
+  competitionId: string
+): Promise<QuizQuestion[] | undefined> => {
+  const response = await api.get<QuizQuestion[]>(
+    `/quiz-question?competition=${competitionId}`
   );
   return response.data.data;
 };
 
-const quizQuestionService = {
-  fetchQuizQuestions,
+const quizService = {
   createQuizQuestion,
-  deleteQuizQuestion,
+  fetchQuizQuestions,
 };
 
-export default quizQuestionService;
+export default quizService;
