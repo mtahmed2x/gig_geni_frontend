@@ -4,6 +4,7 @@ import {
   CreateCompetitionResponseData,
   FetchCompetitionByIdResponseData,
   FetchCompetitionsResponseData,
+  JoinCompetitionResponseData,
 } from "@/types";
 
 const createCompetition = async (
@@ -38,6 +39,15 @@ const fetchMyCompetitions = async (): Promise<
   return response.data.data;
 };
 
+const fetchJoinedCompetitions = async (): Promise<
+  FetchCompetitionsResponseData | undefined
+> => {
+  const response = await api.get<FetchCompetitionsResponseData>(
+    "/competition?participant=true"
+  );
+  return response.data.data;
+};
+
 const fetchCompetitionById = async (
   id: string
 ): Promise<FetchCompetitionByIdResponseData | undefined> => {
@@ -54,11 +64,22 @@ const fetchAllCompetitions = async (): Promise<
   return response.data.data;
 };
 
+const joinCompetition = async (
+  id: string
+): Promise<JoinCompetitionResponseData | undefined> => {
+  const response = await api.post<JoinCompetitionResponseData>(
+    `/competition/${id}/join`
+  );
+  return response.data.data;
+};
+
 const competitionService = {
   createCompetition,
   fetchMyCompetitions,
   fetchCompetitionById,
   fetchAllCompetitions,
+  joinCompetition,
+  fetchJoinedCompetitions,
 };
 
 export default competitionService;

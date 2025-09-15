@@ -107,10 +107,10 @@ export function AuthModal({
             router.push("/admin/dashboard");
             break;
           case "employer":
-            router.push("/employer/dashboard");
+            router.push("/competitions/manage");
             break;
           case "employee":
-            router.push("/employee/dashboard");
+            router.push("/competitions/my");
             break;
           default:
             router.push("/");
@@ -238,11 +238,22 @@ export function AuthModal({
         </div>
         {/* Actions */}
         <div className="flex items-center justify-between">
-          <label className="flex items-center">
-            <input type="checkbox" className="rounded" />
-            <span>Remember me</span>
+          {/* --- FIX: Added spacing for "Remember me" --- */}
+          <label className="flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              className="rounded border-gray-300 text-primary focus:ring-primary"
+            />
+            <span className="ml-2 text-sm text-muted-foreground">
+              Remember me
+            </span>
           </label>
-          <button type="button">Forgot password?</button>
+          <button
+            type="button"
+            className="text-sm font-medium text-primary hover:underline"
+          >
+            Forgot password?
+          </button>
         </div>
         {/* Error Display */}
         {error && (
@@ -498,24 +509,40 @@ export function AuthModal({
         </div>
         {/* Terms Agreement */}
         <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="agreeToTerms"
-            name="agreeToTerms"
-            checked={formData.agreeToTerms}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                agreeToTerms: e.target.checked,
-              }))
-            }
-            required
-          />
-          <label htmlFor="agreeToTerms">
-            I agree to the <button type="button">Terms</button> and{" "}
-            <button type="button">Policy</button>
+          <label
+            htmlFor="agreeToTerms"
+            className="flex items-center cursor-pointer"
+          >
+            <input
+              type="checkbox"
+              id="agreeToTerms"
+              name="agreeToTerms"
+              checked={formData.agreeToTerms}
+              onChange={(e) =>
+                setFormData((p) => ({ ...p, agreeToTerms: e.target.checked }))
+              }
+              required
+              className="rounded border-gray-300 text-primary focus:ring-primary"
+            />
+            <span className="ml-2 text-sm text-muted-foreground">
+              I agree to the{" "}
+              <button
+                type="button"
+                className="font-medium text-primary hover:underline"
+              >
+                Terms
+              </button>{" "}
+              and{" "}
+              <button
+                type="button"
+                className="font-medium text-primary hover:underline"
+              >
+                Policy
+              </button>
+            </span>
           </label>
         </div>
+
         {error && (
           <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>

@@ -99,7 +99,7 @@ export default function CompetitionDetailsPage() {
 
   const handleJoin = () => {
     setIsJoined(!isJoined);
-    // Here you would typically make an API call to join/leave the competition
+    router.push(`/competitions/${competitionId}/join`);
   };
 
   const handleSave = () => {

@@ -176,10 +176,7 @@ function CompetitionManagePageContent() {
                 <CardTitle>Participant Overview</CardTitle>
               </CardHeader>
               <CardContent>
-                <p>
-                  Overview content will go here, using
-                  `competition.participants` data.
-                </p>
+                <p>No participants yet</p>
               </CardContent>
             </Card>
           </TabsContent>

@@ -5,6 +5,7 @@ import { Competition, CreateCompetitionPayload } from "@/types";
 interface CompetitionState {
   allCompetitions: Competition[];
   myCompetitions: Competition[];
+  joinedCompetitions: Competition[];
   selectedCompetition: Competition | null;
   isLoading: boolean;
   error: string | null;
@@ -13,6 +14,7 @@ interface CompetitionState {
 const initialState: CompetitionState = {
   allCompetitions: [],
   myCompetitions: [],
+  joinedCompetitions: [],
   selectedCompetition: null,
   isLoading: false,
   error: null,
@@ -65,6 +67,30 @@ export const fetchCompetitionById = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(
         error.message || "Failed to fetch competition details"
+      );
+    }
+  }
+);
+
+export const joinCompetition = createAsyncThunk(
+  "competition/join",
+  async (competitionId: string, { rejectWithValue }) => {
+    try {
+      return await competitionService.joinCompetition(competitionId);
+    } catch (error: any) {
+      return rejectWithValue(error.message || "Failed to join competition");
+    }
+  }
+);
+
+export const fetchJoinedCompetitions = createAsyncThunk(
+  "competition/fetchJoined",
+  async (_, { rejectWithValue }) => {
+    try {
+      return await competitionService.fetchJoinedCompetitions();
+    } catch (error: any) {
+      return rejectWithValue(
+        error.message || "Failed to fetch joined competitions"
       );
     }
   }
@@ -130,6 +156,32 @@ const competitionSlice = createSlice({
       .addCase(fetchAllCompetitions.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
+      })
+      .addCase(joinCompetition.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(joinCompetition.fulfilled, (state, action) => {
+        state.isLoading = false;
+        if (action.payload) {
+          state.selectedCompetition = action.payload;
+        }
+      })
+      .addCase(joinCompetition.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(fetchJoinedCompetitions.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchJoinedCompetitions.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.joinedCompetitions = action.payload || [];
+      })
+      .addCase(fetchJoinedCompetitions.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
       });
   },
 });
@@ -145,6 +197,9 @@ export const selectAllCompetitions = (state: {
 export const selectMyCompetitions = (state: {
   competition: CompetitionState;
 }) => state.competition.myCompetitions;
+export const selectJoinedCompetitions = (state: {
+  competition: CompetitionState;
+}) => state.competition.joinedCompetitions; // <-- Add new selector
 export const selectSelectedCompetition = (state: {
   competition: CompetitionState;
 }) => state.competition.selectedCompetition;

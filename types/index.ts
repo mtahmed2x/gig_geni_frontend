@@ -174,6 +174,13 @@ export interface Competition {
   termsAndConditions: string[];
   participants: Participant[];
   stats?: CompetitionStats;
+  status: "active" | "completed" | "draft" | "paused";
+  currentRound: number;
+  totalRounds: number;
+  totalApplicants: number;
+  totalParticipants: number;
+  completionRate: number;
+  views: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -197,6 +204,13 @@ export interface CreateCompetitionPayload {
   submissionFormats: string[];
   additionalFiles: { link: string; description?: string }[];
   termsAndConditions: string[];
+  status: string;
+  currentRound: number;
+  totalRound: number;
+  totalApplicants: number;
+  totalParticipants: number;
+  completionRate: number;
+  views: number;
 }
 
 export interface CreateCompetitionResponseData {
@@ -206,7 +220,12 @@ export interface CreateCompetitionResponseData {
 export type FetchCompetitionsResponseData = Competition[];
 export type FetchCompetitionByIdResponseData = Competition;
 
-export type QuestionType = 'single' | 'multiple' | 'true_false' | 'short' | 'broad';
+export type QuestionType =
+  | "single"
+  | "multiple"
+  | "true_false"
+  | "short"
+  | "broad";
 export type QuestionDifficulty = "easy" | "medium" | "hard";
 
 export interface QuizQuestionOption {
@@ -261,7 +280,7 @@ export interface GenerateQuizQuestionsPayload {
   pointsPerQuestion: number;
 }
 
-
+export type JoinCompetitionResponseData = Competition;
 
 export interface CompetitionHistory {
   competitionId: string;
