@@ -192,9 +192,9 @@ export interface CreateCompetitionPayload {
   experienceLevel: string;
   location: string;
   workType: string;
-  skillsTested: string;
+  skillsTested: string; // Comma-separated string
   projectBrief: string;
-  evaluationCriteria: string;
+  evaluationCriteria: string; // Comma-separated string
   startDate: string;
   endDate: string;
   resultDate?: string;
@@ -204,13 +204,6 @@ export interface CreateCompetitionPayload {
   submissionFormats: string[];
   additionalFiles: { link: string; description?: string }[];
   termsAndConditions: string[];
-  status: string;
-  currentRound: number;
-  totalRound: number;
-  totalApplicants: number;
-  totalParticipants: number;
-  completionRate: number;
-  views: number;
 }
 
 export interface CreateCompetitionResponseData {

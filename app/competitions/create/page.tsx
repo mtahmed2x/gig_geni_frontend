@@ -227,7 +227,7 @@ function CreateCompetitionPageContent() {
     toast.promise(promise, {
       loading: "Creating your competition...",
       success: () => {
-        router.push("/employer/competitions/my");
+        router.push("/competitions/manage");
         return "Competition created successfully!";
       },
       error: (err) => err.message || "An unknown error occurred.",
