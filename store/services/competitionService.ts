@@ -47,10 +47,18 @@ const fetchCompetitionById = async (
   return response.data.data;
 };
 
+const fetchAllCompetitions = async (): Promise<
+  FetchCompetitionsResponseData | undefined
+> => {
+  const response = await api.get<FetchCompetitionsResponseData>("/competition");
+  return response.data.data;
+};
+
 const competitionService = {
   createCompetition,
   fetchMyCompetitions,
   fetchCompetitionById,
+  fetchAllCompetitions,
 };
 
 export default competitionService;

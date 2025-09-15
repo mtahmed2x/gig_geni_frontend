@@ -1,103 +1,126 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useState, useMemo, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Search,
-  Filter,
+  Trophy,
+  SlidersHorizontal,
+  Eye,
   MapPin,
   Calendar,
-  DollarSign,
   Users,
   Star,
-  Trophy,
-  Clock,
-  Eye,
-  SlidersHorizontal
-} from 'lucide-react';
-import { mockCompetitions, categories } from '@/lib/mock-data';
-import { Competition } from '@/lib/interface';
-import Link from 'next/link';
+} from "lucide-react";
+import { categories } from "@/lib/mock-data";
+import Link from "next/link";
+
+import { useAppDispatch, useAppSelector } from "@/store";
+import {
+  fetchAllCompetitions,
+  selectAllCompetitions,
+  selectCompetitionIsLoading,
+} from "@/store/slices/competitionSlice";
+import { Competition } from "@/types";
+
+const CompetitionCardSkeleton = () => (
+  <Card className="h-full animate-pulse">
+    <CardContent className="p-6 space-y-4">
+      <div className="h-4 w-1/4 bg-gray-200 rounded"></div>
+      <div className="h-6 w-3/4 bg-gray-200 rounded"></div>
+      <div className="h-4 w-1/2 bg-gray-200 rounded"></div>
+      <div className="h-10 w-full bg-gray-200 rounded-lg mt-auto"></div>
+    </CardContent>
+  </Card>
+);
 
 export default function CompetitionsPage() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedLocation, setSelectedLocation] = useState('all');
-  const [priceRange, setPriceRange] = useState('all');
-  const [sortBy, setSortBy] = useState('newest');
-  const [showFilters, setShowFilters] = useState(false);
+  const dispatch = useAppDispatch();
+  const allCompetitions = useAppSelector(selectAllCompetitions);
+  const isLoading = useAppSelector(selectCompetitionIsLoading);
 
-  // Extract unique locations from competitions
-  const locations = useMemo(() => {
-    const uniqueLocations = Array.from(new Set(mockCompetitions.map(comp => comp.location).filter((loc): loc is string => Boolean(loc))));
-    return uniqueLocations;
-  }, []);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [priceRange, setPriceRange] = useState(100);
+  const [selectedLocation, setSelectedLocation] = useState("all");
+  const [sortBy, setSortBy] = useState("newest");
+  const [showFilters, setShowFilters] = useState(true);
 
-  // Filter and sort competitions
-  const filteredCompetitions = useMemo(() => {
-    let filtered = mockCompetitions.filter(competition => {
-      const matchesSearch = competition.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           competition.organizer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           competition.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           competition.skillsTested.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()));
-      
-      const matchesCategory = selectedCategory === 'all' || 
-                             competition.categories.some(cat => cat === selectedCategory);
-      
-      const matchesLocation = selectedLocation === 'all' || competition.location === selectedLocation;
-      
-      const matchesPrice = priceRange === 'all' || 
-                          (priceRange === 'free' && competition.registrationFee === 'Free') ||
-                          (priceRange === 'paid' && competition.registrationFee !== 'Free');
-      
-      return matchesSearch && matchesCategory && matchesLocation && matchesPrice;
+  useEffect(() => {
+    dispatch(fetchAllCompetitions());
+  }, [dispatch]);
+
+  const uniqueLocations = useMemo(() => {
+    return Array.from(
+      new Set(allCompetitions.map((comp) => comp.location).filter(Boolean))
+    );
+  }, [allCompetitions]);
+
+  const filteredAndSortedCompetitions = useMemo(() => {
+    let filtered = allCompetitions.filter((competition) => {
+      const lowerCaseSearch = searchQuery.toLowerCase();
+      const matchesSearch =
+        competition.title.toLowerCase().includes(lowerCaseSearch) ||
+        (competition.description &&
+          competition.description.toLowerCase().includes(lowerCaseSearch)) ||
+        competition.skillsTested.toLowerCase().includes(lowerCaseSearch);
+      const matchesCategory =
+        selectedCategory === "all" || competition.category === selectedCategory;
+      const matchesLocation =
+        selectedLocation === "all" || competition.location === selectedLocation;
+      return matchesSearch && matchesCategory && matchesLocation;
     });
 
-    // Sort competitions
     filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'newest':
-          return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
-        case 'oldest':
-          return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
-        case 'participants':
-          return (b.participantCount || 0) - (a.participantCount || 0);
-        case 'rating':
-          return (b.rating || 0) - (a.rating || 0);
-        case 'prize':
-          // Simple prize comparison (would need more sophisticated logic for real app)
-          return b.prizes?.localeCompare(a.prizes || '') || 0;
-        default:
-          return 0;
+      if (sortBy === "newest") {
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
       }
+      if (sortBy === "participants") {
+        return (b.participants?.length || 0) - (a.participants?.length || 0);
+      }
+      return 0;
     });
 
     return filtered;
-  }, [searchQuery, selectedCategory, selectedLocation, priceRange, sortBy]);
+  }, [
+    searchQuery,
+    selectedCategory,
+    selectedLocation,
+    sortBy,
+    allCompetitions,
+  ]);
 
-  const formatDate = (date: Date | undefined) => {
-    if (!date) return 'TBD';
-    return new Date(date).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return "TBD";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   };
 
   const getStatusBadge = (competition: Competition) => {
     const now = new Date();
-    const startDate = competition.startDate ? new Date(competition.startDate) : null;
-    const endDate = competition.endDate ? new Date(competition.endDate) : null;
-
-    if (!startDate) return { text: 'Coming Soon', variant: 'secondary' as const };
-    if (now < startDate) return { text: 'Upcoming', variant: 'default' as const };
-    if (endDate && now > endDate) return { text: 'Completed', variant: 'outline' as const };
-    return { text: 'Active', variant: 'destructive' as const };
+    const startDate = new Date(competition.startDate);
+    const endDate = new Date(competition.endDate);
+    if (now < startDate)
+      return { text: "Upcoming", variant: "default" as const };
+    if (now > endDate)
+      return { text: "Completed", variant: "outline" as const };
+    return { text: "Active", variant: "destructive" as const };
   };
 
   return (
@@ -110,7 +133,8 @@ export default function CompetitionsPage() {
               Discover Competitions
             </h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Find the perfect competition to showcase your skills and advance your career
+              Find the perfect competition to showcase your skills and advance
+              your career
             </p>
           </div>
         </div>
@@ -144,56 +168,58 @@ export default function CompetitionsPage() {
           {showFilters && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
+              animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-gray-200"
             >
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Category
+                </label>
+                <Select
+                  value={selectedCategory}
+                  onValueChange={setSelectedCategory}
+                >
                   <SelectTrigger className="h-10">
                     <SelectValue placeholder="All Categories" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
-                    {categories.map(category => (
-                      <SelectItem key={category} value={category}>{category}</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
-                <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Location
+                </label>
+                <Select
+                  value={selectedLocation}
+                  onValueChange={setSelectedLocation}
+                >
                   <SelectTrigger className="h-10">
                     <SelectValue placeholder="All Locations" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Locations</SelectItem>
-                    {locations.map(location => (
-                      <SelectItem key={location} value={location}>{location}</SelectItem>
+                    {uniqueLocations.map((location) => (
+                      <SelectItem key={location} value={location}>
+                        {location}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Price</label>
-                <Select value={priceRange} onValueChange={setPriceRange}>
-                  <SelectTrigger className="h-10">
-                    <SelectValue placeholder="All Prices" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Prices</SelectItem>
-                    <SelectItem value="free">Free</SelectItem>
-                    <SelectItem value="paid">Paid</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Sort By
+                </label>
                 <Select value={sortBy} onValueChange={setSortBy}>
                   <SelectTrigger className="h-10">
                     <SelectValue />
@@ -201,7 +227,9 @@ export default function CompetitionsPage() {
                   <SelectContent>
                     <SelectItem value="newest">Newest First</SelectItem>
                     <SelectItem value="oldest">Oldest First</SelectItem>
-                    <SelectItem value="participants">Most Participants</SelectItem>
+                    <SelectItem value="participants">
+                      Most Participants
+                    </SelectItem>
                     <SelectItem value="rating">Highest Rated</SelectItem>
                     <SelectItem value="prize">Prize Amount</SelectItem>
                   </SelectContent>
@@ -214,154 +242,114 @@ export default function CompetitionsPage() {
         {/* Results Summary */}
         <div className="flex justify-between items-center mt-6 mb-4">
           <p className="text-gray-600">
-            {filteredCompetitions.length} competition{filteredCompetitions.length !== 1 ? 's' : ''} found
+            {filteredAndSortedCompetitions.length} competition
+            {filteredAndSortedCompetitions.length !== 1 ? "s" : ""} found
           </p>
         </div>
 
-        {/* Competition Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCompetitions.map((competition, index) => {
-            const status = getStatusBadge(competition);
-            
-            return (
-              <motion.div
-                key={competition.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="h-full"
-              >
-                <Card className="h-full flex flex-col hover:shadow-xl transition-all duration-300 border-gray-200 hover:border-orange-300 group">
-                  <CardContent className="p-6 flex flex-col h-full">
-                    {/* Header */}
-                    <div className="flex justify-between items-start mb-4">
-                      <Badge variant={status.variant} className="text-xs">
-                        {status.text}
-                      </Badge>
-                      {competition.rating && (
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
-                          {competition.rating}
-                        </div>
-                      )}
-                    </div>
+        {/* --- THIS IS THE CORRECTED SEARCH & FILTER SECTION --- */}
 
-                    {/* Title and Organizer */}
-                    <div className="mb-4">
-                      <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-orange-600 transition-colors">
-                        {competition.title}
-                      </h3>
-                      <p className="text-gray-600 font-medium">{competition.organizer}</p>
-                    </div>
-
-                    {/* Categories */}
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {competition.categories.slice(0, 2).map(category => (
-                        <Badge key={category} variant="secondary" className="text-xs">
-                          {category}
-                        </Badge>
-                      ))}
-                      {competition.categories.length > 2 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{competition.categories.length - 2}
-                        </Badge>
-                      )}
-                    </div>
-
-                    {/* Description */}
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-3 flex-grow">
-                      {competition.description}
-                    </p>
-
-                    {/* Skills */}
-                    <div className="mb-4">
-                      <div className="flex flex-wrap gap-1">
-                        {competition.skillsTested.slice(0, 3).map(skill => (
-                          <span key={skill} className="text-xs bg-orange-50 text-orange-700 px-2 py-1 rounded">
-                            {skill}
-                          </span>
-                        ))}
-                        {competition.skillsTested.length > 3 && (
-                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                            +{competition.skillsTested.length - 3}
-                          </span>
-                        )}
+        {/* Competitions Grid */}
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <CompetitionCardSkeleton />
+            <CompetitionCardSkeleton />
+            <CompetitionCardSkeleton />
+          </div>
+        ) : filteredAndSortedCompetitions.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredAndSortedCompetitions.map((competition, index) => {
+              const status = getStatusBadge(competition);
+              return (
+                <motion.div
+                  key={competition._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <Card className="h-full flex flex-col hover:shadow-xl transition-all duration-300">
+                    <CardContent className="p-6 flex flex-col h-full">
+                      <div className="flex justify-between items-start mb-4">
+                        <Badge variant={status.variant}>{status.text}</Badge>
                       </div>
-                    </div>
-
-                    {/* Competition Details */}
-                    <div className="space-y-2 mb-4">
-                      {competition.location && (
-                        <div className="flex items-center text-sm text-gray-600">
+                      <div className="mb-4">
+                        <h3 className="text-xl font-bold line-clamp-2 h-[56px]">
+                          {competition.title}
+                        </h3>
+                        <p className="text-gray-600 font-medium text-sm">
+                          {competition.category}
+                        </p>
+                      </div>
+                      <p className="text-gray-600 text-sm mb-4 line-clamp-3 flex-grow">
+                        {competition.description}
+                      </p>
+                      <div className="mb-4">
+                        <div className="flex flex-wrap gap-1">
+                          {competition.skillsTested
+                            .split(",")
+                            .slice(0, 3)
+                            .map((skill) => (
+                              <span
+                                key={skill}
+                                className="text-xs bg-orange-50 text-orange-700 px-2 py-1 rounded"
+                              >
+                                {skill.trim()}
+                              </span>
+                            ))}
+                        </div>
+                      </div>
+                      <div className="space-y-2 mb-4 text-sm text-gray-600">
+                        <div className="flex items-center">
                           <MapPin className="h-4 w-4 mr-2" />
                           {competition.location}
                         </div>
-                      )}
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Calendar className="h-4 w-4 mr-2" />
-                        {formatDate(competition.startDate)} - {formatDate(competition.endDate)}
-                      </div>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Users className="h-4 w-4 mr-2" />
-                        {competition.participantCount || 0} participants
-                      </div>
-                      {competition.prizes && (
-                        <div className="flex items-center text-sm font-semibold text-green-600">
-                          <Trophy className="h-4 w-4 mr-2" />
-                          {competition.prizes}
+                        <div className="flex items-center">
+                          <Calendar className="h-4 w-4 mr-2" />
+                          Ends on {formatDate(competition.endDate)}
                         </div>
-                      )}
-                    </div>
-
-                    {/* Registration Fee */}
-                    <div className="mb-6">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Registration:</span>
-                        <span className={`font-semibold ${
-                          competition.registrationFee === 'Free' ? 'text-green-600' : 'text-gray-900'
-                        }`}>
-                          {competition.registrationFee}
-                        </span>
+                        <div className="flex items-center">
+                          <Users className="h-4 w-4 mr-2" />
+                          {competition.participants.length} participants
+                        </div>
+                        <div className="flex items-center font-semibold text-green-600">
+                          <Trophy className="h-4 w-4 mr-2" />
+                          {competition.prize}
+                        </div>
                       </div>
-                    </div>
-
-                    {/* Action Button - Always at bottom */}
-                    <div className="mt-auto">
-                      <Link href={`/competitions/${competition.id}`} className="block">
-                        <Button className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white">
-                          <Eye className="h-4 w-4 mr-2" />
-                          View Details
-                        </Button>
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            );
-          })}
-        </div>
-
-        {/* Empty State */}
-        {filteredCompetitions.length === 0 && (
-          <div className="text-center py-12">
-            <div className="max-w-md mx-auto">
-              <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No competitions found</h3>
-              <p className="text-gray-600 mb-4">
-                Try adjusting your search criteria or filters to find more competitions.
-              </p>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSearchQuery('');
-                  setSelectedCategory('all');
-                  setSelectedLocation('all');
-                  setPriceRange('all');
-                }}
-              >
-                Clear Filters
-              </Button>
-            </div>
+                      <div className="mt-auto">
+                        <Link
+                          href={`/competitions/${competition._id}`}
+                          className="block"
+                        >
+                          <Button className="w-full">
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
+                          </Button>
+                        </Link>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-12 bg-white rounded-lg border">
+            <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold">No competitions found</h3>
+            <p className="text-gray-600 mb-4">
+              Try adjusting your search criteria or clearing your filters.
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSearchQuery("");
+                setSelectedCategory("all");
+                setSelectedLocation("all");
+              }}
+            >
+              Clear Filters
+            </Button>
           </div>
         )}
       </div>

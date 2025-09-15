@@ -3,6 +3,7 @@ import competitionService from "../services/competitionService";
 import { Competition, CreateCompetitionPayload } from "@/types";
 
 interface CompetitionState {
+  allCompetitions: Competition[];
   myCompetitions: Competition[];
   selectedCompetition: Competition | null;
   isLoading: boolean;
@@ -10,6 +11,7 @@ interface CompetitionState {
 }
 
 const initialState: CompetitionState = {
+  allCompetitions: [],
   myCompetitions: [],
   selectedCompetition: null,
   isLoading: false,
@@ -38,6 +40,17 @@ export const fetchMyCompetitions = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       return await competitionService.fetchMyCompetitions();
+    } catch (error: any) {
+      return rejectWithValue(error.message || "Failed to fetch competitions");
+    }
+  }
+);
+
+export const fetchAllCompetitions = createAsyncThunk(
+  "competition/fetchAll",
+  async (_, { rejectWithValue }) => {
+    try {
+      return await competitionService.fetchAllCompetitions();
     } catch (error: any) {
       return rejectWithValue(error.message || "Failed to fetch competitions");
     }
@@ -105,6 +118,18 @@ const competitionSlice = createSlice({
       .addCase(fetchCompetitionById.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
+      })
+      .addCase(fetchAllCompetitions.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllCompetitions.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.allCompetitions = action.payload || [];
+      })
+      .addCase(fetchAllCompetitions.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
       });
   },
 });
@@ -114,6 +139,9 @@ export const { clearSelectedCompetition } = competitionSlice.actions;
 export const selectCompetitionIsLoading = (state: {
   competition: CompetitionState;
 }) => state.competition.isLoading;
+export const selectAllCompetitions = (state: {
+  competition: CompetitionState;
+}) => state.competition.allCompetitions;
 export const selectMyCompetitions = (state: {
   competition: CompetitionState;
 }) => state.competition.myCompetitions;
