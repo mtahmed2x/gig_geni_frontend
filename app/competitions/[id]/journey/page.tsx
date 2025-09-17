@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,9 +15,8 @@ import {
   MapPin,
 } from "lucide-react";
 import Link from "next/link";
-import { AuthGuard } from "@/components/auth/AuthGuard"; // <-- Import AuthGuard
+import { AuthGuard } from "@/components/auth/AuthGuard";
 
-// --- STEP 1: Import Redux hooks, actions, and types ---
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
   fetchCompetitionById,
@@ -25,9 +24,9 @@ import {
   selectCompetitionIsLoading,
   clearSelectedCompetition,
 } from "@/store/slices/competitionSlice";
-import { Competition } from "@/types";
+import { selectUser } from "@/store/slices/authSlice";
+import { Competition, Participant } from "@/types";
 
-// We assume this is a real component you have created
 import CompetitionJourney from "@/components/competitions/CompetitionJourney";
 
 function CompetitionJourneyPageContent() {
@@ -35,20 +34,32 @@ function CompetitionJourneyPageContent() {
   const dispatch = useAppDispatch();
   const competitionId = params.id as string;
 
-  // --- STEP 2: Get data from the Redux store ---
   const competition = useAppSelector(selectSelectedCompetition);
   const isLoading = useAppSelector(selectCompetitionIsLoading);
+  const currentUser = useAppSelector(selectUser);
 
-  // --- STEP 3: Fetch data on component mount ---
   useEffect(() => {
     if (competitionId) {
       dispatch(fetchCompetitionById(competitionId));
     }
-    // Clean up when the component unmounts
+    // Clean up the selected competition from Redux state when the component unmounts
     return () => {
       dispatch(clearSelectedCompetition());
     };
   }, [dispatch, competitionId]);
+
+  // Find the current user's specific participant data from the competition object
+  const participantData = useMemo(() => {
+    if (!competition || !currentUser) return undefined;
+    // The `user` field in participants can be a string (ID) or a populated object.
+    // This logic handles both cases.
+    return competition.participants.find((p) => {
+      if (typeof p.user === "string") {
+        return p.user === currentUser._id;
+      }
+      return p.user._id === currentUser._id;
+    });
+  }, [competition, currentUser]);
 
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return "TBD";
@@ -104,9 +115,6 @@ function CompetitionJourneyPageContent() {
   }
 
   const status = getStatusBadge(competition);
-  // NOTE: You will need to get the participant-specific data from the `competition.participants` array
-  // For now, we will use mock data for currentRound and totalRounds.
-  const participantData = { currentRound: 2, totalRounds: 4 };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -120,7 +128,7 @@ function CompetitionJourneyPageContent() {
             <Button asChild variant="ghost">
               <Link href={`/competitions/${competition._id}`}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Competition
+                Back to Details
               </Link>
             </Button>
             <Badge className={status.color}>{status.text}</Badge>
@@ -133,7 +141,6 @@ function CompetitionJourneyPageContent() {
                   <h1 className="text-2xl font-bold mb-2">
                     {competition.title}
                   </h1>
-                  {/* <p className="text-gray-600 mb-4">by {competition.organizer}</p> */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center">
                       <MapPin className="h-4 w-4 mr-2" />
@@ -169,9 +176,7 @@ function CompetitionJourneyPageContent() {
         >
           <CompetitionJourney
             competitionId={competition._id}
-            competitionTitle={competition.title}
-            currentRound={participantData.currentRound}
-            totalRounds={participantData.totalRounds}
+            participantData={participantData}
           />
         </motion.div>
 
@@ -205,7 +210,6 @@ function CompetitionJourneyPageContent() {
   );
 }
 
-// --- STEP 4: Wrap the page with AuthGuard for employees ---
 export default function CompetitionJourneyPage() {
   return (
     <AuthGuard requireAuth={true} allowedRoles={["employee"]}>

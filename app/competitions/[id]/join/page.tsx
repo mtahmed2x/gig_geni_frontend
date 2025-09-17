@@ -42,18 +42,15 @@ function JoinCompetitionPageContent() {
   const isLoading = useAppSelector(selectCompetitionIsLoading);
   const currentUser = useAppSelector(selectUser);
 
-  // Fetch competition details on component mount
   useEffect(() => {
     if (competitionId) {
       dispatch(fetchCompetitionById(competitionId));
     }
-    // Clean up state when the component unmounts
     return () => {
       dispatch(clearSelectedCompetition());
     };
   }, [dispatch, competitionId]);
 
-  // Use useMemo to efficiently check if the user has already joined
   const hasJoined = useMemo(() => {
     if (!competition || !currentUser) return false;
     return competition.participants.some((p) => p.user === currentUser._id);
@@ -65,20 +62,25 @@ function JoinCompetitionPageContent() {
     toast.promise(promise, {
       loading: "Submitting your application...",
       success: () => {
-        // Redirect to a page where employees can see their joined competitions
-        router.push("/employee/competitions/my");
-        return "Successfully joined the competition!";
+        // --- THIS IS THE FIX ---
+        // Redirect the user directly to their journey page for this competition.
+        router.push(`/competitions/${competitionId}/journey`);
+        return "Successfully joined! Starting your journey...";
       },
       error: (err) =>
         err.message || "An error occurred. You may have already joined.",
     });
   };
 
+  // --- The rest of the component's code is unchanged ---
+  // It will correctly handle the loading and not-found states,
+  // and display the confirmation UI.
+
   if (isLoading && !competition) {
     return (
       <div className="text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-        <p className="text-muted-foreground">Loading competition details...</p>
+        <p className="text-muted-foreground">Loading...</p>
       </div>
     );
   }
@@ -110,8 +112,7 @@ function JoinCompetitionPageContent() {
       <CardHeader>
         <CardTitle className="text-2xl">Confirm Your Entry</CardTitle>
         <CardDescription>
-          You are about to join the following competition. Please review the
-          details below.
+          You are about to join: <strong>{competition.title}</strong>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -127,7 +128,6 @@ function JoinCompetitionPageContent() {
             <span className="text-sm text-muted-foreground"> in prizes</span>
           </div>
         </div>
-
         {hasJoined ? (
           <div className="p-4 text-center bg-green-50 text-green-800 rounded-lg border border-green-200 flex items-center justify-center">
             <CheckCircle className="mr-2 h-5 w-5" />
@@ -142,13 +142,11 @@ function JoinCompetitionPageContent() {
               <h4 className="font-semibold">Heads up!</h4>
               <p className="text-sm">
                 By clicking "Confirm & Join", you agree to the competition's
-                terms and conditions. Your profile will be shared with the
-                organizer for evaluation purposes.
+                terms. Your profile will be shared with the organizer.
               </p>
             </div>
           </div>
         )}
-
         <div className="flex flex-col-reverse sm:flex-row items-center gap-4">
           <Button variant="outline" className="w-full" asChild>
             <Link href={`/competitions/${competition._id}`}>
@@ -183,7 +181,6 @@ function JoinCompetitionPageContent() {
 
 export default function JoinCompetitionPage() {
   return (
-    // This page is protected and only accessible by employees
     <AuthGuard requireAuth={true} allowedRoles={["employee"]}>
       <div className="py-12 md:py-20">
         <JoinCompetitionPageContent />

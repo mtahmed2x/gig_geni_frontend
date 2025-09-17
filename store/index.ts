@@ -3,6 +3,7 @@ import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import authReducer from "./slices/authSlice";
+import userReducer from "./slices/userSlice";
 import competitionReducer from "./slices/competitionSlice";
 import quizQuestionReducer from "./slices/quizQuestionSlice";
 import { injectStore } from "../lib/apiClient";
@@ -17,6 +18,7 @@ const rootReducer = combineReducers({
   auth: authReducer,
   competition: competitionReducer,
   quizQuestion: quizQuestionReducer,
+  user: userReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

@@ -152,7 +152,9 @@ export function AuthModal({
       password: formData.password,
       name: formData.fullName,
       role: userType,
-      ...(userType === "employer" && { companyName: formData.companyName }),
+      ...(userType === "employer"
+        ? { company: { name: formData.companyName } }
+        : {}),
     };
 
     const result = await dispatch(registerUser(payload));

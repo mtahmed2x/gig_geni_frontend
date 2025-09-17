@@ -1,91 +1,126 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Save, Plus, X, Building, Users, Globe } from 'lucide-react';
-import { EmployerProfile } from '@/lib/interface';
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Save, Plus, X, Building, Users, Globe } from "lucide-react";
+import { User } from "@/types";
 
 interface CompanyTabProps {
-  profile: EmployerProfile | null;
+  profile: User | null;
   isEditing: boolean;
-  onUpdate: (updates: Partial<EmployerProfile>) => Promise<void>;
+  onUpdate: (updates: Partial<User>) => void;
 }
 
 export function CompanyTab({ profile, isEditing, onUpdate }: CompanyTabProps) {
   const [formData, setFormData] = useState({
-    companyName: profile?.companyName || '',
-    companyDescription: profile?.companyDescription || '',
-    industry: profile?.industry || '',
-    companySize: profile?.companySize || 0,
-    website: profile?.website || '',
-    foundedYear: profile?.foundedYear || new Date().getFullYear(),
-    headquarters: profile?.headquarters || '',
-    teamMembers: profile?.teamMembers || [],
-    newTeamMember: ''
+    companyName: "",
+    companyDescription: "",
+    industry: "",
+    companySize: "",
+    website: "",
+    foundedYear: "",
+    headquarters: "",
+    teamMembers: [] as string[],
+    newTeamMember: "",
   });
-
   const [isSaving, setIsSaving] = useState(false);
 
+  useEffect(() => {
+    if (profile?.company) {
+      setFormData({
+        companyName: profile.company.name || "",
+        companyDescription: profile.company.description || "",
+        industry: profile.company.industry || "",
+        companySize: profile.company.companySze || "",
+        website: profile.company.website || "",
+        foundedYear: profile.company.foundedYear || "",
+        headquarters: profile.company.headQuarters || "",
+        teamMembers: profile.company.teamMembers || [],
+        newTeamMember: "",
+      });
+    }
+  }, [profile]);
+
   const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleAddTeamMember = () => {
-    if (formData.newTeamMember.trim() && !formData.teamMembers.includes(formData.newTeamMember.trim())) {
-      setFormData(prev => ({
+    if (
+      formData.newTeamMember.trim() &&
+      !formData.teamMembers.includes(formData.newTeamMember.trim())
+    ) {
+      setFormData((prev) => ({
         ...prev,
         teamMembers: [...prev.teamMembers, prev.newTeamMember.trim()],
-        newTeamMember: ''
+        newTeamMember: "",
       }));
     }
   };
 
   const handleRemoveTeamMember = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      teamMembers: prev.teamMembers.filter((_, i) => i !== index)
+      teamMembers: prev.teamMembers.filter((_, i) => i !== index),
     }));
   };
 
   const handleSave = async () => {
     setIsSaving(true);
-    try {
-      const updates: Partial<EmployerProfile> = {
-        companyName: formData.companyName,
-        companyDescription: formData.companyDescription,
+    const updates: Partial<User> = {
+      company: {
+        name: formData.companyName,
+        description: formData.companyDescription,
         industry: formData.industry,
-        companySize: formData.companySize,
+        companySze: formData.companySize,
         website: formData.website,
         foundedYear: formData.foundedYear,
-        headquarters: formData.headquarters,
-        teamMembers: formData.teamMembers
-      };
-      
-      await onUpdate(updates);
-    } finally {
-      setIsSaving(false);
-    }
+        headQuarters: formData.headquarters,
+        teamMembers: formData.teamMembers,
+      },
+    };
+    await onUpdate(updates);
+    setIsSaving(false);
   };
 
+  if (!profile) return null;
+
   const industries = [
-    'Technology', 'Healthcare', 'Finance', 'Education', 'Manufacturing',
-    'Retail', 'Consulting', 'Media & Entertainment', 'Real Estate',
-    'Transportation', 'Energy', 'Government', 'Non-profit', 'Other'
+    "Technology",
+    "Healthcare",
+    "Finance",
+    "Education",
+    "Manufacturing",
+    "Retail",
+    "Consulting",
+    "Media & Entertainment",
+    "Real Estate",
+    "Transportation",
+    "Energy",
+    "Government",
+    "Non-profit",
+    "Other",
   ];
 
   const companySizes = [
-    { value: 1, label: '1-10 employees' },
-    { value: 11, label: '11-50 employees' },
-    { value: 51, label: '51-200 employees' },
-    { value: 201, label: '201-500 employees' },
-    { value: 501, label: '501-1000 employees' },
-    { value: 1001, label: '1000+ employees' }
+    { value: 1, label: "1-10 employees" },
+    { value: 11, label: "11-50 employees" },
+    { value: 51, label: "51-200 employees" },
+    { value: 201, label: "201-500 employees" },
+    { value: 501, label: "501-1000 employees" },
+    { value: 1001, label: "1000+ employees" },
   ];
 
   const currentYear = new Date().getFullYear();
@@ -105,7 +140,7 @@ export function CompanyTab({ profile, isEditing, onUpdate }: CompanyTabProps) {
           {isEditing && (
             <Button onClick={handleSave} disabled={isSaving}>
               <Save className="w-4 h-4 mr-2" />
-              {isSaving ? 'Saving...' : 'Save Changes'}
+              {isSaving ? "Saving..." : "Save Changes"}
             </Button>
           )}
         </CardHeader>
@@ -117,18 +152,27 @@ export function CompanyTab({ profile, isEditing, onUpdate }: CompanyTabProps) {
                 <Input
                   id="companyName"
                   value={formData.companyName}
-                  onChange={(e) => handleInputChange('companyName', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("companyName", e.target.value)
+                  }
                   placeholder="Enter company name"
                 />
               ) : (
-                <p className="text-sm p-2 bg-muted rounded">{formData.companyName || 'Not specified'}</p>
+                <p className="text-sm p-2 bg-muted rounded">
+                  {formData.companyName || "Not specified"}
+                </p>
               )}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="industry">Industry</Label>
               {isEditing ? (
-                <Select value={formData.industry} onValueChange={(value) => handleInputChange('industry', value)}>
+                <Select
+                  value={formData.industry}
+                  onValueChange={(value) =>
+                    handleInputChange("industry", value)
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select industry" />
                   </SelectTrigger>
@@ -141,23 +185,30 @@ export function CompanyTab({ profile, isEditing, onUpdate }: CompanyTabProps) {
                   </SelectContent>
                 </Select>
               ) : (
-                <p className="text-sm p-2 bg-muted rounded">{formData.industry || 'Not specified'}</p>
+                <p className="text-sm p-2 bg-muted rounded">
+                  {formData.industry || "Not specified"}
+                </p>
               )}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="companySize">Company Size</Label>
               {isEditing ? (
-                <Select 
-                  value={formData.companySize.toString()} 
-                  onValueChange={(value) => handleInputChange('companySize', parseInt(value))}
+                <Select
+                  value={formData.companySize.toString()}
+                  onValueChange={(value) =>
+                    handleInputChange("companySize", parseInt(value))
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select company size" />
                   </SelectTrigger>
                   <SelectContent>
                     {companySizes.map((size) => (
-                      <SelectItem key={size.value} value={size.value.toString()}>
+                      <SelectItem
+                        key={size.value}
+                        value={size.value.toString()}
+                      >
                         {size.label}
                       </SelectItem>
                     ))}
@@ -165,7 +216,10 @@ export function CompanyTab({ profile, isEditing, onUpdate }: CompanyTabProps) {
                 </Select>
               ) : (
                 <p className="text-sm p-2 bg-muted rounded">
-                  {companySizes.find(size => size.value <= formData.companySize)?.label || 'Not specified'}
+                  {companySizes.find(
+                    (size) =>
+                      size.value <= Number.parseInt(formData.companySize)
+                  )?.label || "Not specified"}
                 </p>
               )}
             </div>
@@ -173,9 +227,11 @@ export function CompanyTab({ profile, isEditing, onUpdate }: CompanyTabProps) {
             <div className="space-y-2">
               <Label htmlFor="foundedYear">Founded Year</Label>
               {isEditing ? (
-                <Select 
-                  value={formData.foundedYear.toString()} 
-                  onValueChange={(value) => handleInputChange('foundedYear', parseInt(value))}
+                <Select
+                  value={formData.foundedYear.toString()}
+                  onValueChange={(value) =>
+                    handleInputChange("foundedYear", parseInt(value))
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select year" />
@@ -189,7 +245,9 @@ export function CompanyTab({ profile, isEditing, onUpdate }: CompanyTabProps) {
                   </SelectContent>
                 </Select>
               ) : (
-                <p className="text-sm p-2 bg-muted rounded">{formData.foundedYear || 'Not specified'}</p>
+                <p className="text-sm p-2 bg-muted rounded">
+                  {formData.foundedYear || "Not specified"}
+                </p>
               )}
             </div>
 
@@ -202,17 +260,22 @@ export function CompanyTab({ profile, isEditing, onUpdate }: CompanyTabProps) {
                 <Input
                   id="website"
                   value={formData.website}
-                  onChange={(e) => handleInputChange('website', e.target.value)}
+                  onChange={(e) => handleInputChange("website", e.target.value)}
                   placeholder="https://yourcompany.com"
                 />
               ) : (
                 <p className="text-sm p-2 bg-muted rounded">
                   {formData.website ? (
-                    <a href={formData.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                    <a
+                      href={formData.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline"
+                    >
                       {formData.website}
                     </a>
                   ) : (
-                    'Not specified'
+                    "Not specified"
                   )}
                 </p>
               )}
@@ -224,11 +287,15 @@ export function CompanyTab({ profile, isEditing, onUpdate }: CompanyTabProps) {
                 <Input
                   id="headquarters"
                   value={formData.headquarters}
-                  onChange={(e) => handleInputChange('headquarters', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("headquarters", e.target.value)
+                  }
                   placeholder="City, State/Country"
                 />
               ) : (
-                <p className="text-sm p-2 bg-muted rounded">{formData.headquarters || 'Not specified'}</p>
+                <p className="text-sm p-2 bg-muted rounded">
+                  {formData.headquarters || "Not specified"}
+                </p>
               )}
             </div>
           </div>
@@ -239,13 +306,15 @@ export function CompanyTab({ profile, isEditing, onUpdate }: CompanyTabProps) {
               <Textarea
                 id="companyDescription"
                 value={formData.companyDescription}
-                onChange={(e) => handleInputChange('companyDescription', e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("companyDescription", e.target.value)
+                }
                 placeholder="Describe your company, mission, values, and what makes it unique..."
                 rows={4}
               />
             ) : (
               <p className="text-sm p-3 bg-muted rounded min-h-[100px]">
-                {formData.companyDescription || 'No description provided'}
+                {formData.companyDescription || "No description provided"}
               </p>
             )}
           </div>
@@ -265,7 +334,11 @@ export function CompanyTab({ profile, isEditing, onUpdate }: CompanyTabProps) {
             <Label>Current Team Members</Label>
             <div className="flex flex-wrap gap-2 min-h-[40px] p-2 border rounded-md">
               {formData.teamMembers.map((member, index) => (
-                <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                <Badge
+                  key={index}
+                  variant="secondary"
+                  className="flex items-center gap-1"
+                >
                   {member}
                   {isEditing && (
                     <button
@@ -278,7 +351,9 @@ export function CompanyTab({ profile, isEditing, onUpdate }: CompanyTabProps) {
                 </Badge>
               ))}
               {formData.teamMembers.length === 0 && (
-                <p className="text-muted-foreground text-sm">No team members added yet</p>
+                <p className="text-muted-foreground text-sm">
+                  No team members added yet
+                </p>
               )}
             </div>
           </div>
@@ -289,9 +364,11 @@ export function CompanyTab({ profile, isEditing, onUpdate }: CompanyTabProps) {
               <div className="flex gap-2">
                 <Input
                   value={formData.newTeamMember}
-                  onChange={(e) => handleInputChange('newTeamMember', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("newTeamMember", e.target.value)
+                  }
                   placeholder="Enter team member name"
-                  onKeyPress={(e) => e.key === 'Enter' && handleAddTeamMember()}
+                  onKeyPress={(e) => e.key === "Enter" && handleAddTeamMember()}
                 />
                 <Button onClick={handleAddTeamMember} size="sm">
                   <Plus className="w-4 h-4" />
@@ -310,16 +387,25 @@ export function CompanyTab({ profile, isEditing, onUpdate }: CompanyTabProps) {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center p-4 bg-muted rounded-lg">
-              <p className="text-2xl font-bold text-primary">{profile.postedCompetitions?.length || 0}</p>
-              <p className="text-sm text-muted-foreground">Competitions Posted</p>
+              <p className="text-2xl font-bold text-primary">
+                {profile.company?.totalCompetitions || 0}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Competitions Posted
+              </p>
             </div>
             <div className="text-center p-4 bg-muted rounded-lg">
-              <p className="text-2xl font-bold text-primary">{formData.teamMembers.length}</p>
+              <p className="text-2xl font-bold text-primary">
+                {formData.teamMembers.length}
+              </p>
               <p className="text-sm text-muted-foreground">Team Members</p>
             </div>
             <div className="text-center p-4 bg-muted rounded-lg">
               <p className="text-2xl font-bold text-primary">
-                {formData.foundedYear ? new Date().getFullYear() - formData.foundedYear : 0}
+                {formData.foundedYear
+                  ? new Date().getFullYear() -
+                    Number.parseInt(formData.foundedYear)
+                  : 0}
               </p>
               <p className="text-sm text-muted-foreground">Years in Business</p>
             </div>

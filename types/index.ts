@@ -44,36 +44,53 @@ export interface Education {
   description?: string;
 }
 
+export interface Company {
+  _id?: string;
+  name?: string;
+  industry?: string;
+  companySze?: string;
+  foundedYear?: string;
+  website?: string;
+  headQuarters?: string;
+  description?: string;
+  teamMembers?: string[];
+  totalCompetitions?: number;
+}
+
 export interface User {
   _id: string;
   email: string;
   role: UserRole;
   name: string;
-
-  password?: string;
-
   verified: boolean;
 
-  companyName?: string;
-  dateOfBirth?: string;
-  gender?: Gender;
-  nationality?: string;
-  aboutMe?: string;
+  // Optional profile details
+  dateOfBirth?: string | null;
+  gender?: Gender | null;
+  nationality?: string | null;
+  aboutMe?: string | null;
+
   languages: string[];
   skills: string[];
 
-  salaryExpectations?: string;
-  jobPreference?: string;
+  salaryExpectations?: string | null;
+  jobPreference?: string | null;
 
-  phoneNumber?: string;
-  linkedinProfile?: string;
-  personalWebsite?: string;
+  phoneNumber?: string | null;
+  linkedinProfile?: string | null;
+  personalWebsite?: string | null;
 
-  address: Address;
+  address?: Address;
+  company?: Company;
+  hiringPreferences?: string[];
+
   experience: Experience[];
   education: Education[];
 
   deviceTokens: string[];
+
+  profileCompletionPercentage: number;
+  isProfileComplete: boolean;
 
   createdAt: string;
   updatedAt: string;
@@ -84,7 +101,9 @@ export interface RegisterPayload {
   password: string;
   role: UserRole;
   name: string;
-  companyName?: string;
+  company?: {
+    name?: string;
+  };
 }
 
 export interface RegisterResponseData {
@@ -111,6 +130,10 @@ export interface VerifyOtpPayload {
 export interface RefreshTokenPayload {
   token: string;
 }
+
+export type UpdateUserProfilePayload = Partial<User>;
+
+export type UserProfileResponseData = User;
 
 export interface AuthState {
   user: User | null;

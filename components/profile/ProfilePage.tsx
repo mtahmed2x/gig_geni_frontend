@@ -1,14 +1,26 @@
+// src/components/profile/ProfilePage.tsx
+
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAppSelector } from "@/store";
+import { useSearchParams } from "next/navigation";
+import { useAppDispatch, useAppSelector } from "@/store";
 import { selectUser } from "@/store/slices/authSlice";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  getUserProfile,
+  updateUserProfile,
+  selectUserProfile,
+  selectUserIsLoading,
+} from "@/store/slices/userSlice";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Edit, Save, X, Camera } from "lucide-react";
+import { Edit, X, Camera } from "lucide-react";
+import { User } from "@/types";
+
+// Import all your tab components
 import { PersonalInfoTab } from "./tabs/PersonalInfoTab";
 import { ExperienceTab } from "./tabs/ExperienceTab";
 import { EducationTab } from "./tabs/EducationTab";
@@ -16,56 +28,46 @@ import { SkillsTab } from "./tabs/SkillsTab";
 import { ContactTab } from "./tabs/ContactTab";
 import { CompanyTab } from "./tabs/CompanyTab";
 import { ProfileCompletionModal } from "./ProfileCompletionModal";
-import { useProfileData } from "@/hooks/useProfileData";
-import { EmployerProfile, UserProfile } from "@/lib/interface";
+import { toast } from "sonner";
 
 export function ProfilePage() {
-  const user = useAppSelector(selectUser);
-  const { profile, updateProfile, isLoading } = useProfileData();
+  const dispatch = useAppDispatch();
+  const authUser = useAppSelector(selectUser);
+  const profile = useAppSelector(selectUserProfile);
+  const isLoading = useAppSelector(selectUserIsLoading);
+
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
   const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const searchParams = useSearchParams();
 
-  // Check if user needs to complete profile (from URL params or auth state)
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const shouldEdit = urlParams.get("edit") === "true";
-    const shouldComplete = urlParams.get("complete") === "true";
+    // Fetch the detailed profile from the backend
+    dispatch(getUserProfile());
 
+    // Check URL params to trigger modals or edit mode
+    const shouldComplete = searchParams.get("complete") === "true";
+    if (shouldComplete && authUser && !authUser.isProfileComplete) {
+      setShowCompletionModal(true);
+    }
+    const shouldEdit = searchParams.get("edit") === "true";
     if (shouldEdit) {
       setIsEditing(true);
     }
+  }, [dispatch, authUser, searchParams]);
 
-    if (shouldComplete || !user?.verified) {
-      setShowCompletionModal(true);
-    }
-  }, [user]);
+  // This single function will be passed to all child tabs
+  const handleUpdateProfile = async (updates: Partial<User>) => {
+    const promise = dispatch(updateUserProfile(updates)).unwrap();
 
-  const handleEditToggle = () => {
-    setIsEditing(!isEditing);
-  };
+    toast.promise(promise, {
+      loading: "Saving changes...",
+      success: "Profile updated successfully!",
+      error: (err) => err.message || "Failed to update profile.",
+    });
 
-  const handleSave = async () => {
-    // Save logic will be handled by individual tab components
+    // We can optimistically turn off editing mode
     setIsEditing(false);
-  };
-
-  const getProfileCompletionPercentage = () => {
-    if (!profile) return 0;
-
-    const fields = [
-      "name" in profile ? profile.name : null,
-      "aboutMe" in profile ? profile.aboutMe : null,
-      "contactInformation" in profile
-        ? profile.contactInformation?.phone
-        : null,
-      "skills" in profile ? profile.skills?.length > 0 : false,
-      "experience" in profile ? profile.experience?.length > 0 : false,
-      "education" in profile ? profile.education?.length > 0 : false,
-    ];
-
-    const completedFields = fields.filter(Boolean).length;
-    return Math.round((completedFields / fields.length) * 100);
   };
 
   const getTabsForRole = () => {
@@ -73,48 +75,49 @@ export function ProfilePage() {
       { value: "personal", label: "Personal Info" },
       { value: "contact", label: "Contact" },
     ];
-
-    if (user?.role === "employee") {
+    if (authUser?.role === "employee") {
       return [
         ...commonTabs,
         { value: "experience", label: "Experience" },
         { value: "education", label: "Education" },
         { value: "skills", label: "Skills" },
       ];
-    } else if (user?.role === "employer") {
-      return [
-        ...commonTabs,
-        { value: "company", label: "Company" },
-        { value: "skills", label: "Skills & Preferences" },
-      ];
     }
-
+    if (authUser?.role === "employer") {
+      return [...commonTabs, { value: "company", label: "Company" }];
+    }
     return commonTabs;
   };
 
-  if (isLoading) {
+  if (isLoading && !profile) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+        <div className="animate-pulse space-y-8">
+          <div className="h-48 bg-gray-200 rounded-lg"></div>
+          <div className="h-96 bg-gray-200 rounded-lg"></div>
         </div>
       </div>
     );
   }
 
+  if (!authUser || !profile) {
+    return (
+      <div className="text-center py-12">Could not load user profile.</div>
+    );
+  }
+
   return (
-    <div className="container mx-auto px-4 py-8 ">
+    <div className="container mx-auto px-4 py-8">
       {/* Profile Header */}
       <div className="mb-8">
         <Card>
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
               <div className="relative">
-                <Avatar className="w-24 h-24">
-                  <AvatarImage src="https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_960_720.png" />
-                  <AvatarFallback className="text-2xl">
-                    {user?.name?.charAt(0) || "U"}
+                <Avatar className="w-24 h-24 border-4 border-white shadow-md">
+                  <AvatarImage src="https://cdn-icons-png.flaticon.com/512/149/149071.png" />
+                  <AvatarFallback className="text-3xl">
+                    {authUser.name?.charAt(0) || "U"}
                   </AvatarFallback>
                 </Avatar>
                 {isEditing && (
@@ -127,45 +130,31 @@ export function ProfilePage() {
                   </Button>
                 )}
               </div>
-
               <div className="flex-1">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
-                    <h1 className="text-3xl font-bold">{user?.name}</h1>
-                    <p className="text-muted-foreground">{user?.role}</p>
-                    {user?.companyName && (
+                    <h1 className="text-3xl font-bold">{authUser.name}</h1>
+                    <p className="text-muted-foreground capitalize">
+                      {authUser.role}
+                    </p>
+                    {authUser.role === "employer" && profile.company?.name && (
                       <p className="text-sm text-muted-foreground">
-                        {user.companyName}
+                        {profile.company.name}
                       </p>
                     )}
-                    <div className="flex items-center gap-2 mt-2">
-                      {user?.role && (
-                        <Badge variant="secondary">
-                          {user.role.charAt(0).toUpperCase() +
-                            user.role.slice(1)}
-                        </Badge>
-                      )}
-                      {/* {user. !== undefined && (
-                        <Badge variant="outline">
-                          ⭐ {profile.rating}/5
-                        </Badge>
-                      )} */}
-                    </div>
                   </div>
-
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-4">
                     <div className="text-right">
                       <p className="text-sm text-muted-foreground">
                         Profile Completion
                       </p>
                       <p className="text-lg font-semibold text-primary">
-                        {getProfileCompletionPercentage()}%
+                        {profile.profileCompletionPercentage}%
                       </p>
                     </div>
                     <Button
-                      onClick={handleEditToggle}
+                      onClick={() => setIsEditing(!isEditing)}
                       variant={isEditing ? "outline" : "default"}
-                      className="ml-4"
                     >
                       {isEditing ? (
                         <>
@@ -193,71 +182,81 @@ export function ProfilePage() {
         onValueChange={setActiveTab}
         className="space-y-6"
       >
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
+        <TabsList
+          className="grid w-full"
+          style={{
+            gridTemplateColumns: `repeat(${
+              getTabsForRole().length
+            }, minmax(0, 1fr))`,
+          }}
+        >
           {getTabsForRole().map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value}>
               {tab.label}
             </TabsTrigger>
           ))}
         </TabsList>
-
         <TabsContent value="personal">
           <PersonalInfoTab
             profile={profile}
             isEditing={isEditing}
-            onUpdate={updateProfile}
+            onUpdate={handleUpdateProfile}
           />
         </TabsContent>
-
         <TabsContent value="contact">
           <ContactTab
             profile={profile}
             isEditing={isEditing}
-            onUpdate={updateProfile}
+            onUpdate={handleUpdateProfile}
           />
         </TabsContent>
-
-        {user?.role === "employee" && (
+        {authUser.role === "employee" && (
           <>
             <TabsContent value="experience">
               <ExperienceTab
                 profile={profile}
                 isEditing={isEditing}
-                onUpdate={updateProfile}
+                onUpdate={handleUpdateProfile}
               />
             </TabsContent>
-
             <TabsContent value="education">
               <EducationTab
-                profile={profile as UserProfile}
+                profile={profile}
                 isEditing={isEditing}
-                onUpdate={updateProfile}
+                onUpdate={handleUpdateProfile}
+              />
+            </TabsContent>
+            <TabsContent value="skills">
+              <SkillsTab
+                profile={profile}
+                isEditing={isEditing}
+                onUpdate={handleUpdateProfile}
+                userRole={authUser.role}
               />
             </TabsContent>
           </>
         )}
-
-        {user?.role === "employer" && (
-          <TabsContent value="company">
-            <CompanyTab
-              profile={profile as EmployerProfile}
-              isEditing={isEditing}
-              onUpdate={updateProfile}
-            />
-          </TabsContent>
+        {authUser.role === "employer" && (
+          <>
+            <TabsContent value="company">
+              <CompanyTab
+                profile={profile}
+                isEditing={isEditing}
+                onUpdate={handleUpdateProfile}
+              />
+            </TabsContent>
+            <TabsContent value="skills">
+              <SkillsTab
+                profile={profile}
+                isEditing={isEditing}
+                onUpdate={handleUpdateProfile}
+                userRole={authUser.role}
+              />
+            </TabsContent>
+          </>
         )}
-
-        <TabsContent value="skills">
-          <SkillsTab
-            profile={profile}
-            isEditing={isEditing}
-            onUpdate={updateProfile}
-            userRole={user?.role}
-          />
-        </TabsContent>
       </Tabs>
 
-      {/* Profile Completion Modal */}
       {showCompletionModal && (
         <ProfileCompletionModal
           isOpen={showCompletionModal}
