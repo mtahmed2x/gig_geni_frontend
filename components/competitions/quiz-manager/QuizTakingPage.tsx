@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -24,13 +24,13 @@ import {
   Shield,
   CheckCircle,
   XCircle,
+  Loader2,
 } from "lucide-react";
-
-import { QuizQuestion, QuestionDifficulty } from "@/types"; // Assuming global types
 import { Progress } from "@/components/ui/progress";
 import {
   AlertDialog,
   AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -38,72 +38,30 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-// --- MOCK DATA (to be replaced by API call) ---
-const mockQuizData = {
-  competitionTitle: "Frontend Developer Challenge",
+import { QuizQuestion } from "@/types";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchQuizQuestions,
+  selectQuizIsLoading,
+  selectQuizQuestions,
+} from "@/store/slices/quizQuestionSlice";
+import { AppDispatch, RootState } from "@/store";
+
+// Mock data for static content until it comes from a Competition API
+const mockCompetitionDetails = {
+  title: "Frontend Developer Challenge",
   timeLimitMinutes: 20,
-  questions: [
-    {
-      _id: "1",
-      question: "What is the primary purpose of React hooks?",
-      type: "single",
-      options: [
-        { text: "State management" },
-        { text: "Styling" },
-        { text: "API calls" },
-      ],
-      points: 10,
-      difficulty: "easy",
-      category: "React",
-    },
-    {
-      _id: "2",
-      question:
-        "Which of the following are valid ways to style a React component?",
-      type: "multiple",
-      options: [
-        { text: "Inline styles" },
-        { text: "CSS Modules" },
-        { text: "Styled-components" },
-      ],
-      points: 10,
-      difficulty: "medium",
-      category: "React",
-    },
-    {
-      _id: "3",
-      question: "The virtual DOM is always faster than the real DOM.",
-      type: "true_false",
-      points: 5,
-      difficulty: "easy",
-      category: "React",
-    },
-    {
-      _id: "4",
-      question: 'Briefly explain the concept of "lifting state up" in React.',
-      type: "short",
-      wordLimit: 100,
-      points: 15,
-      difficulty: "medium",
-      category: "React",
-    },
-    {
-      _id: "5",
-      question:
-        "Describe a use case for the `useReducer` hook over `useState`.",
-      type: "broad",
-      wordLimit: 250,
-      points: 20,
-      difficulty: "hard",
-      category: "React",
-    },
-  ] as QuizQuestion[],
 };
 
 export default function QuizTakingPageContent() {
   const params = useParams();
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
   const competitionId = params.id as string;
+
+  const questionsFromStore = useSelector(selectQuizQuestions);
+  const isLoading = useSelector(selectQuizIsLoading);
+  const error = useSelector((state: RootState) => state.quizQuestion.error);
 
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [timeLimit, setTimeLimit] = useState(0);
@@ -116,6 +74,53 @@ export default function QuizTakingPageContent() {
   const [warningCount, setWarningCount] = useState(0);
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [finalScore, setFinalScore] = useState<number | null>(null);
+
+  const [isSkipConfirmOpen, setIsSkipConfirmOpen] = useState(false);
+
+  // --- Data Fetching from API ---
+  useEffect(() => {
+    if (competitionId) {
+      dispatch(fetchQuizQuestions(competitionId));
+    }
+  }, [dispatch, competitionId]);
+
+  useEffect(() => {
+    if (questionsFromStore && questionsFromStore.length > 0) {
+      setQuestions(questionsFromStore);
+      const timeInSeconds = mockCompetitionDetails.timeLimitMinutes * 60;
+      setTimeLimit(timeInSeconds);
+      setTimeLeft(timeInSeconds);
+    }
+  }, [questionsFromStore]);
+
+  // --- Block browser back navigation during quiz ---
+  useEffect(() => {
+    if (quizState === "active") {
+      window.history.pushState(null, "", window.location.href);
+
+      const handlePopState = (event: PopStateEvent) => {
+        window.history.pushState(null, "", window.location.href);
+        alert(
+          "You cannot go back during the quiz. Use the navigation buttons within the quiz. Leaving the page may result in disqualification."
+        );
+      };
+
+      window.addEventListener("popstate", handlePopState);
+
+      const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+        event.preventDefault();
+        event.returnValue =
+          "Are you sure you want to leave? Your quiz progress will be lost and you may be disqualified.";
+      };
+
+      window.addEventListener("beforeunload", handleBeforeUnload);
+
+      return () => {
+        window.removeEventListener("popstate", handlePopState);
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+      };
+    }
+  }, [quizState]);
 
   // --- Anti-Cheating and Timer Logic ---
   useEffect(() => {
@@ -149,14 +154,6 @@ export default function QuizTakingPageContent() {
     }
   }, [timeLeft, quizState]);
 
-  // --- Data Fetching Simulation ---
-  useEffect(() => {
-    // In a real app, you'd dispatch an action here to fetch quiz data
-    setQuestions(mockQuizData.questions);
-    setTimeLimit(mockQuizData.timeLimitMinutes * 60);
-    setTimeLeft(mockQuizData.timeLimitMinutes * 60);
-  }, [competitionId]);
-
   const handleAnswerChange = (questionId: string, answer: any) => {
     setAnswers((prev) => ({ ...prev, [questionId]: answer }));
   };
@@ -165,23 +162,59 @@ export default function QuizTakingPageContent() {
 
   const handleSubmitQuiz = useCallback(() => {
     setQuizState("finished");
-    // In a real app, you would send `answers` to the backend for scoring.
-    // Here we simulate scoring on the client.
     const score = 75; // Mock score
     setFinalScore(score);
   }, [answers]);
 
-  const currentQuestion = questions[currentQuestionIndex];
-  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
-  const timeProgress = (timeLeft / timeLimit) * 100;
+  const proceedToNextQuestion = () => {
+    if (isSkipConfirmOpen) setIsSkipConfirmOpen(false);
+    setCurrentQuestionIndex((p) => Math.min(questions.length - 1, p + 1));
+  };
 
-  // --- UI RENDER STATES ---
+  const handleNextClick = () => {
+    const currentQuestionId = questions[currentQuestionIndex]._id;
+    const currentAnswer = answers[currentQuestionId];
+
+    const isAnswered =
+      currentAnswer !== undefined &&
+      currentAnswer !== null &&
+      currentAnswer !== "" &&
+      !(Array.isArray(currentAnswer) && currentAnswer.length === 0);
+
+    if (isAnswered) {
+      proceedToNextQuestion();
+    } else {
+      setIsSkipConfirmOpen(true);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-48">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="mt-4 text-muted-foreground">Loading Quiz...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-48 text-destructive">
+        <XCircle className="h-8 w-8" />
+        <p className="mt-4">
+          Failed to load quiz questions. Please try again later.
+        </p>
+        <p className="text-sm text-muted-foreground mt-1">Error: {error}</p>
+      </div>
+    );
+  }
+
   if (quizState === "idle") {
     return (
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle className="text-2xl">
-            Instructions for: {mockQuizData.competitionTitle}
+            Instructions for: {mockCompetitionDetails.title}
           </CardTitle>
           <CardDescription>
             Read the following instructions carefully before you begin.
@@ -193,8 +226,10 @@ export default function QuizTakingPageContent() {
               <Timer className="h-5 w-5" />
               <span>
                 You will have{" "}
-                <strong>{mockQuizData.timeLimitMinutes} minutes</strong> to
-                complete the quiz.
+                <strong>
+                  {mockCompetitionDetails.timeLimitMinutes} minutes
+                </strong>{" "}
+                to complete the quiz.
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -206,15 +241,20 @@ export default function QuizTakingPageContent() {
             <p className="font-bold">Anti-Cheating Measures are active:</p>
             <ul className="list-disc pl-5 text-sm">
               <li>Switching browser tabs or applications will be flagged.</li>
-              <li>Copying and pasting is disabled.</li>
-              <li>Right-clicking is disabled.</li>
+              <li>You cannot go back to previous questions once answered.</li>
               <li>
-                Multiple warnings may result in automatic disqualification.
+                Attempting to leave the page will be flagged and may result in
+                disqualification.
               </li>
             </ul>
           </div>
-          <Button onClick={startQuiz} className="w-full" size="lg">
-            Start Quiz
+          <Button
+            onClick={startQuiz}
+            className="w-full"
+            size="lg"
+            disabled={questions.length === 0}
+          >
+            {questions.length > 0 ? "Start Quiz" : "No Questions Available"}
           </Button>
         </CardContent>
       </Card>
@@ -222,7 +262,7 @@ export default function QuizTakingPageContent() {
   }
 
   if (quizState === "finished") {
-    const passed = finalScore !== null && finalScore >= 80; // Assuming 80 is the passing score
+    const passed = finalScore !== null && finalScore >= 80;
     return (
       <Card className="max-w-2xl mx-auto text-center">
         <CardHeader>
@@ -265,6 +305,12 @@ export default function QuizTakingPageContent() {
       </Card>
     );
   }
+
+  const currentQuestion = questions[currentQuestionIndex];
+  if (!currentQuestion) {
+    return <div>No questions loaded.</div>;
+  }
+  const timeProgress = (timeLeft / timeLimit) * 100;
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -332,34 +378,45 @@ export default function QuizTakingPageContent() {
                     ))}
                   </RadioGroup>
                 )}
+
+                {/* --- MODIFIED: Added instruction for multiple choice --- */}
                 {currentQuestion.type === "multiple" && (
-                  <div className="space-y-2">
-                    {currentQuestion.options?.map((opt, i) => (
-                      <div
-                        key={i}
-                        className="flex items-center space-x-2 p-3 border rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary"
-                      >
-                        <Checkbox
-                          id={`opt-${i}`}
-                          checked={(
-                            answers[currentQuestion._id] || []
-                          ).includes(opt.text)}
-                          onCheckedChange={(checked) => {
-                            const current = answers[currentQuestion._id] || [];
-                            const newAnswers = checked
-                              ? [...current, opt.text]
-                              : current.filter((a: string) => a !== opt.text);
-                            handleAnswerChange(currentQuestion._id, newAnswers);
-                          }}
-                        />
-                        <Label
-                          htmlFor={`opt-${i}`}
-                          className="flex-1 cursor-pointer"
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      Select all that apply.
+                    </p>
+                    <div className="space-y-2">
+                      {currentQuestion.options?.map((opt, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center space-x-2 p-3 border rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary"
                         >
-                          {opt.text}
-                        </Label>
-                      </div>
-                    ))}
+                          <Checkbox
+                            id={`opt-${i}`}
+                            checked={(
+                              answers[currentQuestion._id] || []
+                            ).includes(opt.text)}
+                            onCheckedChange={(checked) => {
+                              const current =
+                                answers[currentQuestion._id] || [];
+                              const newAnswers = checked
+                                ? [...current, opt.text]
+                                : current.filter((a: string) => a !== opt.text);
+                              handleAnswerChange(
+                                currentQuestion._id,
+                                newAnswers
+                              );
+                            }}
+                          />
+                          <Label
+                            htmlFor={`opt-${i}`}
+                            className="flex-1 cursor-pointer"
+                          >
+                            {opt.text}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
                 {currentQuestion.type === "true_false" && (
@@ -407,14 +464,7 @@ export default function QuizTakingPageContent() {
       </AnimatePresence>
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between mt-6">
-        <Button
-          variant="outline"
-          onClick={() => setCurrentQuestionIndex((p) => Math.max(0, p - 1))}
-          disabled={currentQuestionIndex === 0}
-        >
-          Previous
-        </Button>
+      <div className="flex justify-end mt-6">
         {currentQuestionIndex === questions.length - 1 ? (
           <Button
             onClick={handleSubmitQuiz}
@@ -423,15 +473,7 @@ export default function QuizTakingPageContent() {
             Submit Quiz
           </Button>
         ) : (
-          <Button
-            onClick={() =>
-              setCurrentQuestionIndex((p) =>
-                Math.min(questions.length - 1, p + 1)
-              )
-            }
-          >
-            Next
-          </Button>
+          <Button onClick={handleNextClick}>Next</Button>
         )}
       </div>
 
@@ -452,6 +494,27 @@ export default function QuizTakingPageContent() {
           <AlertDialogFooter>
             <AlertDialogAction onClick={() => setShowWarningModal(false)}>
               I Understand
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Skip Question Confirmation Modal */}
+      <AlertDialog open={isSkipConfirmOpen} onOpenChange={setIsSkipConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Are you sure you want to continue?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              You have not answered the current question. You will not be able
+              to return to it later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={proceedToNextQuestion}>
+              Confirm & Continue
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
