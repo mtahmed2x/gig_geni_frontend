@@ -15,7 +15,7 @@ export const injectStore = (store: AppStore) => {
 };
 
 // const API_BASE_URL = "http://localhost:5000/api/v1";
-const API_BASE_URL = "https://gig-geni-backend.onrender.com/api/v1/";
+const API_BASE_URL = "https://api.giggeni.com/api/v1";
 const REQUEST_TIMEOUT = 30000;
 
 const apiClient: AxiosInstance = axios.create({
