@@ -1,10 +1,10 @@
 // components/home/Roadmap.tsx
-'use client';
+"use client";
 
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import React from "react";
+import { motion } from "framer-motion";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Smartphone,
   Globe,
@@ -18,10 +18,8 @@ import {
   Target,
   TrendingUp,
   Star,
-} from 'lucide-react';
-import { ambitions, roadmapFeatures } from '@/lib/mock-data';
-
-
+} from "lucide-react";
+import { ambitions, roadmapFeatures } from "@/lib/mock-data";
 
 export function Roadmap() {
   return (
@@ -35,15 +33,19 @@ export function Roadmap() {
           transition={{ duration: 0.8 }}
           className="text-center space-y-4 mb-16"
         >
-          <Badge variant="outline" className="bg-[#FC5602]/10 text-[#FC5602] border-[#FC5602]/20">
+          <Badge
+            variant="outline"
+            className="bg-[#FC5602]/10 text-[#FC5602] border-[#FC5602]/20"
+          >
             Our Vision
           </Badge>
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
-            GiG Geni <span className="gradient-text">Ambition</span> & Roadmap
+            GigGeni <span className="gradient-text">Ambition</span> & Roadmap
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Building the future of work by revolutionizing how talent connects with opportunity 
-            through innovation, fairness, and continuous improvement.
+            Building the future of work by revolutionizing how talent connects
+            with opportunity through innovation, fairness, and continuous
+            improvement.
           </p>
         </motion.div>
 
@@ -68,18 +70,19 @@ export function Roadmap() {
                   <div className="w-16 h-16 bg-gradient-to-br from-[#FC5602] to-[#FF7B02] rounded-2xl flex items-center justify-center mx-auto">
                     <ambition.icon className="w-8 h-8 text-white" />
                   </div>
-                  
+
                   <div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">
                       {ambition.title}
                     </h3>
-                    <p className="text-gray-600">
-                      {ambition.description}
-                    </p>
+                    <p className="text-gray-600">{ambition.description}</p>
                   </div>
-                  
+
                   <div className="pt-4">
-                    <Badge variant="outline" className="bg-[#FC5602]/10 text-[#FC5602] border-[#FC5602]/20 text-lg px-4 py-2">
+                    <Badge
+                      variant="outline"
+                      className="bg-[#FC5602]/10 text-[#FC5602] border-[#FC5602]/20 text-lg px-4 py-2"
+                    >
                       {ambition.metric}
                     </Badge>
                   </div>
@@ -102,14 +105,15 @@ export function Roadmap() {
               Development <span className="gradient-text">Roadmap</span>
             </h3>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Our journey to transform the hiring landscape with cutting-edge features and innovations.
+              Our journey to transform the hiring landscape with cutting-edge
+              features and innovations.
             </p>
           </div>
 
           <div className="relative">
             {/* Timeline Line */}
             <div className="absolute left-8 md:left-1/2 md:-ml-0.5 top-0 bottom-0 w-0.5 bg-gray-200"></div>
-            
+
             <div className="space-y-12">
               {roadmapFeatures.map((feature, index) => (
                 <motion.div
@@ -118,71 +122,87 @@ export function Roadmap() {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.8, delay: index * 0.2 }}
-                  className={`relative flex ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'} items-center`}
+                  className={`relative flex ${
+                    index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
+                  } items-center`}
                 >
                   {/* Timeline Node */}
                   <div className="absolute left-8 md:left-1/2 md:-ml-4 w-8 h-8 rounded-full border-4 border-white shadow-lg z-10 bg-gradient-to-br from-[#FC5602] to-[#FF7B02]">
                     <div className="w-full h-full rounded-full flex items-center justify-center">
-                      {feature.status === 'completed' && (
+                      {feature.status === "completed" && (
                         <CheckCircle className="w-4 h-4 text-white" />
                       )}
-                      {feature.status === 'in-progress' && (
+                      {feature.status === "in-progress" && (
                         <Clock className="w-4 h-4 text-white animate-spin" />
                       )}
-                      {feature.status === 'planned' && (
+                      {feature.status === "planned" && (
                         <Star className="w-4 h-4 text-white" />
                       )}
                     </div>
                   </div>
 
                   {/* Content Card */}
-                  <div className={`w-full md:w-5/12 ml-20 md:ml-0 ${index % 2 === 0 ? 'md:mr-8' : 'md:ml-8'}`}>
+                  <div
+                    className={`w-full md:w-5/12 ml-20 md:ml-0 ${
+                      index % 2 === 0 ? "md:mr-8" : "md:ml-8"
+                    }`}
+                  >
                     <Card className="card-hover border-0 shadow-lg">
                       <CardContent className="p-6">
                         <div className="flex items-start space-x-4">
-                          <div className={`w-12 h-12 bg-gradient-to-br ${feature.color} rounded-xl flex items-center justify-center shrink-0`}>
-                            {React.createElement(feature.icon, { className: "w-6 h-6 text-white" })}
+                          <div
+                            className={`w-12 h-12 bg-gradient-to-br ${feature.color} rounded-xl flex items-center justify-center shrink-0`}
+                          >
+                            {React.createElement(feature.icon, {
+                              className: "w-6 h-6 text-white",
+                            })}
                           </div>
-                          
+
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-3">
-                              <Badge variant="outline"
+                              <Badge
+                                variant="outline"
                                 className={`${
-                                  feature.status === 'completed' 
-                                    ? 'bg-green-100 text-green-800 border-green-200' 
-                                    : feature.status === 'in-progress'
-                                    ? 'bg-[#FC5602]/10 text-[#FC5602] border-[#FC5602]/20'
-                                    : 'bg-gray-100 text-gray-600 border-gray-200'
+                                  feature.status === "completed"
+                                    ? "bg-green-100 text-green-800 border-green-200"
+                                    : feature.status === "in-progress"
+                                    ? "bg-[#FC5602]/10 text-[#FC5602] border-[#FC5602]/20"
+                                    : "bg-gray-100 text-gray-600 border-gray-200"
                                 }`}
                               >
                                 {feature.phase}
                               </Badge>
-                              <Badge 
-                                variant="outline" 
+                              <Badge
+                                variant="outline"
                                 className={`${
-                                  feature.status === 'completed' 
-                                    ? 'border-green-300 text-green-700' 
-                                    : feature.status === 'in-progress'
-                                    ? 'border-[#FC5602] text-[#FC5602]'
-                                    : 'border-gray-300 text-gray-600'
+                                  feature.status === "completed"
+                                    ? "border-green-300 text-green-700"
+                                    : feature.status === "in-progress"
+                                    ? "border-[#FC5602] text-[#FC5602]"
+                                    : "border-gray-300 text-gray-600"
                                 }`}
                               >
-                                {feature.status.replace('-', ' ').toUpperCase()}
+                                {feature.status.replace("-", " ").toUpperCase()}
                               </Badge>
                             </div>
-                            
+
                             <h4 className="text-xl font-bold text-gray-900 mb-2">
                               {feature.title}
                             </h4>
                             <p className="text-gray-600 mb-4">
                               {feature.description}
                             </p>
-                            
+
                             <div className="grid grid-cols-1 gap-2">
                               {feature.features.map((item, idx) => (
-                                <div key={idx} className="flex items-center space-x-2">
+                                <div
+                                  key={idx}
+                                  className="flex items-center space-x-2"
+                                >
                                   <div className="w-1.5 h-1.5 bg-[#FC5602] rounded-full"></div>
-                                  <span className="text-sm text-gray-600">{item}</span>
+                                  <span className="text-sm text-gray-600">
+                                    {item}
+                                  </span>
                                 </div>
                               ))}
                             </div>
@@ -209,17 +229,18 @@ export function Roadmap() {
             <CardContent className="p-12 relative">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32"></div>
               <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full translate-y-24 -translate-x-24"></div>
-              
+
               <div className="relative text-center space-y-6">
                 <Award className="w-16 h-16 text-white mx-auto" />
                 <h3 className="text-4xl font-bold">
                   Join the Hiring Revolution
                 </h3>
                 <p className="text-xl opacity-90 max-w-3xl mx-auto">
-                  Be part of the movement that&apos;s changing how the world thinks about talent, 
-                  skills, and career opportunities. Together, we&apos;re building a fairer future.
+                  Be part of the movement that&apos;s changing how the world
+                  thinks about talent, skills, and career opportunities.
+                  Together, we&apos;re building a fairer future.
                 </p>
-                
+
                 <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
                   <motion.button
                     whileHover={{ scale: 1.05 }}

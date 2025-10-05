@@ -1,10 +1,11 @@
 # Authentication and Authorization Documentation
 
-This document explains how private routes and role-based authorization work in the GiG Geni application.
+This document explains how private routes and role-based authorization work in the GigGeni application.
 
 ## Overview
 
 The application uses a comprehensive authentication and authorization system that includes:
+
 - JWT token-based authentication
 - Middleware-based route protection
 - Role-based access control (RBAC)
@@ -19,6 +20,7 @@ The Next.js middleware acts as the primary gatekeeper for route protection, runn
 #### Route Categories
 
 **Public Routes** (No authentication required):
+
 - `/` - Home page
 - `/competitions` - Competition listing
 - `/competitions/[id]` - Competition details (public viewing)
@@ -26,18 +28,22 @@ The Next.js middleware acts as the primary gatekeeper for route protection, runn
 - `/contact` - Contact page
 
 **Authentication Required Routes**:
+
 - `/profile` - User profile management
 - `/settings` - User settings
 - `/notifications` - User notifications
 - `/competitions/my` - User's competitions
 
 **Role-Based Protected Routes**:
+
 - **Employer Only**:
+
   - `/competitions/create` - Create new competitions
   - `/competitions/manage` - Manage competitions
   - `/competitions/manage/[id]` - Manage specific competition
 
 - **Employee Only**:
+
   - `/competitions/join` - Join competitions
 
 - **Admin Access**:
@@ -47,15 +53,15 @@ The Next.js middleware acts as the primary gatekeeper for route protection, runn
 
 ```typescript
 // Token extraction from cookies
-const authCookie = request.cookies.get('auth-token');
+const authCookie = request.cookies.get("auth-token");
 const accessToken = authCookie.value; // Direct JWT string
 
 // JWT decoding with URL-safe base64 handling
-const tokenParts = accessToken.split('.');
+const tokenParts = accessToken.split(".");
 let base64Payload = tokenParts[1];
-base64Payload = base64Payload.replace(/-/g, '+').replace(/_/g, '/');
+base64Payload = base64Payload.replace(/-/g, "+").replace(/_/g, "/");
 while (base64Payload.length % 4) {
-  base64Payload += '=';
+  base64Payload += "=";
 }
 
 const payload = JSON.parse(atob(base64Payload));
@@ -64,12 +70,14 @@ const payload = JSON.parse(atob(base64Payload));
 #### Authentication Flow
 
 1. **Token Validation**:
+
    - Extract JWT from `auth-token` cookie
    - Decode and parse JWT payload
    - Check token expiration
    - Extract user information (id, email, role, name)
 
 2. **Route Protection Logic**:
+
    - Check if route is public → Allow access
    - Check if user is authenticated → Redirect to home if not
    - Check role-based permissions → Redirect if unauthorized
@@ -101,23 +109,27 @@ interface AuthState {
 #### JWT Token Management
 
 **Token Creation**:
+
 ```typescript
 const createMockJWT = (user: any) => {
-  const header = { alg: 'HS256', typ: 'JWT' };
+  const header = { alg: "HS256", typ: "JWT" };
   const payload = {
     userId: user.id,
     email: user.email,
     role: user.role,
     name: user.name,
     iat: Math.floor(Date.now() / 1000),
-    exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
+    exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60, // 24 hours
   };
-  
-  return `${btoa(JSON.stringify(header))}.${btoa(JSON.stringify(payload))}.signature`;
+
+  return `${btoa(JSON.stringify(header))}.${btoa(
+    JSON.stringify(payload)
+  )}.signature`;
 };
 ```
 
 **Cookie Management**:
+
 - Tokens stored directly as strings in `auth-token` cookie
 - 24-hour expiration for security
 - Automatic cleanup on logout
@@ -135,17 +147,17 @@ interface AuthGuardProps {
   requireAuth?: boolean;
 }
 
-const AuthGuard: React.FC<AuthGuardProps> = ({ 
-  children, 
-  fallback, 
-  requireAuth = true 
+const AuthGuard: React.FC<AuthGuardProps> = ({
+  children,
+  fallback,
+  requireAuth = true,
 }) => {
   const { isAuthenticated } = useAuthStore();
-  
+
   if (requireAuth && !isAuthenticated) {
     return fallback || <AuthModal />;
   }
-  
+
   return <>{children}</>;
 };
 ```
@@ -164,14 +176,14 @@ interface RoleBasedAccessProps {
 const RoleBasedAccess: React.FC<RoleBasedAccessProps> = ({
   allowedRoles,
   children,
-  fallback
+  fallback,
 }) => {
   const { user } = useAuthStore();
-  
+
   if (!user || !allowedRoles.includes(user.role)) {
     return fallback || <div>Access Denied</div>;
   }
-  
+
   return <>{children}</>;
 };
 ```
@@ -181,12 +193,14 @@ const RoleBasedAccess: React.FC<RoleBasedAccessProps> = ({
 ### Role Hierarchy
 
 1. **Employee**
+
    - Can join competitions
    - Can view own profile and settings
    - Can access notifications
    - Can view public competition details
 
 2. **Employer**
+
    - All employee permissions
    - Can create competitions
    - Can manage own competitions
@@ -200,29 +214,31 @@ const RoleBasedAccess: React.FC<RoleBasedAccessProps> = ({
 
 ### Permission Matrix
 
-| Route | Public | Employee | Employer | Admin |
-|-------|--------|----------|----------|---------|
-| `/` | ✅ | ✅ | ✅ | ✅ |
-| `/competitions` | ✅ | ✅ | ✅ | ✅ |
-| `/competitions/[id]` | ✅ | ✅ | ✅ | ✅ |
-| `/profile` | ❌ | ✅ | ✅ | ✅ |
-| `/settings` | ❌ | ✅ | ✅ | ✅ |
-| `/notifications` | ❌ | ✅ | ✅ | ✅ |
-| `/competitions/my` | ❌ | ✅ | ✅ | ✅ |
-| `/competitions/join` | ❌ | ✅ | ❌ | ✅ |
-| `/competitions/create` | ❌ | ❌ | ✅ | ✅ |
-| `/competitions/manage` | ❌ | ❌ | ✅ | ✅ |
+| Route                  | Public | Employee | Employer | Admin |
+| ---------------------- | ------ | -------- | -------- | ----- |
+| `/`                    | ✅     | ✅       | ✅       | ✅    |
+| `/competitions`        | ✅     | ✅       | ✅       | ✅    |
+| `/competitions/[id]`   | ✅     | ✅       | ✅       | ✅    |
+| `/profile`             | ❌     | ✅       | ✅       | ✅    |
+| `/settings`            | ❌     | ✅       | ✅       | ✅    |
+| `/notifications`       | ❌     | ✅       | ✅       | ✅    |
+| `/competitions/my`     | ❌     | ✅       | ✅       | ✅    |
+| `/competitions/join`   | ❌     | ✅       | ❌       | ✅    |
+| `/competitions/create` | ❌     | ❌       | ✅       | ✅    |
+| `/competitions/manage` | ❌     | ❌       | ✅       | ✅    |
 
 ## Security Features
 
 ### JWT Token Security
 
 1. **Expiration Handling**:
+
    - Tokens expire after 24 hours
    - Automatic logout on token expiration
    - Server-side expiration validation
 
 2. **URL-Safe Base64 Encoding**:
+
    - Handles JWT tokens with URL-safe characters
    - Automatic padding correction
    - Robust decoding with error handling
@@ -235,11 +251,13 @@ const RoleBasedAccess: React.FC<RoleBasedAccessProps> = ({
 ### Route Protection Layers
 
 1. **Middleware Layer** (Server-side):
+
    - First line of defense
    - Runs before page rendering
    - Handles redirects and access control
 
 2. **Component Guards** (Client-side):
+
    - Secondary protection
    - Handles UI state and fallbacks
    - Provides user feedback
@@ -255,7 +273,7 @@ const RoleBasedAccess: React.FC<RoleBasedAccessProps> = ({
 
 ```typescript
 // pages/profile/page.tsx
-import { AuthGuard } from '@/components/auth/AuthGuard';
+import { AuthGuard } from "@/components/auth/AuthGuard";
 
 export default function ProfilePage() {
   return (
@@ -270,16 +288,16 @@ export default function ProfilePage() {
 
 ```typescript
 // components/CompetitionActions.tsx
-import { RoleBasedAccess } from '@/components/auth/RoleBasedAccess';
+import { RoleBasedAccess } from "@/components/auth/RoleBasedAccess";
 
 export default function CompetitionActions() {
   return (
     <div>
-      <RoleBasedAccess allowedRoles={['employer', 'admin']}>
+      <RoleBasedAccess allowedRoles={["employer", "admin"]}>
         <button>Create Competition</button>
       </RoleBasedAccess>
-      
-      <RoleBasedAccess allowedRoles={['employee']}>
+
+      <RoleBasedAccess allowedRoles={["employee"]}>
         <button>Join Competition</button>
       </RoleBasedAccess>
     </div>
@@ -291,21 +309,21 @@ export default function CompetitionActions() {
 
 ```typescript
 // hooks/useAuth.ts
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from "@/store/authStore";
 
 export function useAuth() {
   const { user, isAuthenticated, login, logout } = useAuthStore();
-  
+
   const hasRole = (role: string) => user?.role === role;
   const hasAnyRole = (roles: string[]) => user && roles.includes(user.role);
-  
+
   return {
     user,
     isAuthenticated,
     login,
     logout,
     hasRole,
-    hasAnyRole
+    hasAnyRole,
   };
 }
 ```
@@ -315,11 +333,13 @@ export function useAuth() {
 ### Authentication Errors
 
 1. **Invalid Token**:
+
    - Automatic logout
    - Redirect to login
    - Clear stored state
 
 2. **Expired Token**:
+
    - Show expiration message
    - Redirect to home
    - Prompt for re-authentication

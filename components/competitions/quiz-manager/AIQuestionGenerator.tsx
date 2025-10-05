@@ -9,7 +9,17 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wand2, CheckCircle, Trash2, XCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Wand2, CheckCircle, Trash2, XCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   GenerateQuizQuestionsPayload,
@@ -98,10 +108,7 @@ export default function AIQuestionGenerator({
       return;
     }
 
-    const payload = {
-      competitionId,
-      questions: aiGeneratedQuestions,
-    };
+    const payload = { competitionId, questions: aiGeneratedQuestions };
 
     try {
       await addQuestions(payload).unwrap();
@@ -140,9 +147,172 @@ export default function AIQuestionGenerator({
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="space-y-4">{/* Form Part 1: Unchanged */}</div>
+            {/* --- Form Part 1 --- */}
             <div className="space-y-4">
-              {/* Form Part 2: Unchanged */}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Category/Subject
+                </label>
+                <Input
+                  value={aiQuestionSet.category}
+                  onChange={(e) =>
+                    setAiQuestionSet((p) => ({
+                      ...p,
+                      category: e.target.value,
+                    }))
+                  }
+                  placeholder="e.g., JavaScript, Marketing"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Topic Description
+                </label>
+                <Textarea
+                  value={aiQuestionSet.description}
+                  onChange={(e) =>
+                    setAiQuestionSet((p) => ({
+                      ...p,
+                      description: e.target.value,
+                    }))
+                  }
+                  placeholder="Describe the specific topics or skills..."
+                  rows={3}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Total Questions
+                  </label>
+                  <Input
+                    type="number"
+                    value={aiQuestionSet.totalQuestions}
+                    onChange={(e) =>
+                      setAiQuestionSet((p) => ({
+                        ...p,
+                        totalQuestions: parseInt(e.target.value) || 0,
+                      }))
+                    }
+                    min="1"
+                    max="50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Difficulty Level
+                  </label>
+                  <Select
+                    value={aiQuestionSet.difficulty}
+                    onValueChange={(value: QuestionDifficulty) =>
+                      setAiQuestionSet((p) => ({ ...p, difficulty: value }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="easy">Easy</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="hard">Hard</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+            {/* --- Form Part 2 --- */}
+            <div className="space-y-4">
+              <h3 className="font-medium">Question Type Distribution</h3>
+              <div className="flex items-center justify-between">
+                <label className="text-sm">Single Answer (MCQ)</label>
+                <Input
+                  type="number"
+                  className="w-20 h-8"
+                  min="0"
+                  value={aiQuestionSet.distribution.single}
+                  onChange={(e) =>
+                    setAiQuestionSet((p) => ({
+                      ...p,
+                      distribution: {
+                        ...p.distribution,
+                        single: parseInt(e.target.value) || 0,
+                      },
+                    }))
+                  }
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <label className="text-sm">Multiple Answer</label>
+                <Input
+                  type="number"
+                  className="w-20 h-8"
+                  min="0"
+                  value={aiQuestionSet.distribution.multiple}
+                  onChange={(e) =>
+                    setAiQuestionSet((p) => ({
+                      ...p,
+                      distribution: {
+                        ...p.distribution,
+                        multiple: parseInt(e.target.value) || 0,
+                      },
+                    }))
+                  }
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <label className="text-sm">True/False</label>
+                <Input
+                  type="number"
+                  className="w-20 h-8"
+                  min="0"
+                  value={aiQuestionSet.distribution.true_false}
+                  onChange={(e) =>
+                    setAiQuestionSet((p) => ({
+                      ...p,
+                      distribution: {
+                        ...p.distribution,
+                        true_false: parseInt(e.target.value) || 0,
+                      },
+                    }))
+                  }
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <label className="text-sm">Short Descriptive</label>
+                <Input
+                  type="number"
+                  className="w-20 h-8"
+                  min="0"
+                  value={aiQuestionSet.distribution.short}
+                  onChange={(e) =>
+                    setAiQuestionSet((p) => ({
+                      ...p,
+                      distribution: {
+                        ...p.distribution,
+                        short: parseInt(e.target.value) || 0,
+                      },
+                    }))
+                  }
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <label className="text-sm">Broad Questions</label>
+                <Input
+                  type="number"
+                  className="w-20 h-8"
+                  min="0"
+                  value={aiQuestionSet.distribution.broad}
+                  onChange={(e) =>
+                    setAiQuestionSet((p) => ({
+                      ...p,
+                      distribution: {
+                        ...p.distribution,
+                        broad: parseInt(e.target.value) || 0,
+                      },
+                    }))
+                  }
+                />
+              </div>
               <div className="pt-4 border-t">
                 <div className="text-sm text-gray-600 mb-3">
                   Distribution Total: {totalQuestionsInSet} /{" "}
@@ -154,7 +324,10 @@ export default function AIQuestionGenerator({
                   disabled={isBusy}
                 >
                   {isGenerating ? (
-                    "Generating..."
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                      Generating...
+                    </>
                   ) : (
                     <>
                       <Wand2 className="h-4 w-4 mr-2" />
@@ -188,9 +361,12 @@ export default function AIQuestionGenerator({
                     className="p-3 rounded-lg border flex items-start justify-between gap-4"
                   >
                     <div>
-                      <p className="font-medium text-sm pr-4">
-                        Q{index + 1}: {question.question}
-                      </p>
+                      <div className="flex items-start justify-between mb-2">
+                        <p className="font-medium text-sm pr-4">
+                          Q{index + 1}: {question.question}
+                        </p>
+                        <Badge variant="outline">{question.points} pts</Badge>
+                      </div>
                       {question.options && question.options.length > 0 && (
                         <div className="mt-2 space-y-1 text-xs text-gray-600">
                           {question.options.map((option, optIndex) => (
@@ -209,7 +385,6 @@ export default function AIQuestionGenerator({
                         </div>
                       )}
                     </div>
-                    {/* --- STEP 6: Add the remove button for each question --- */}
                     <Button
                       onClick={() => handleRemovePreviewQuestion(index)}
                       variant="ghost"
@@ -227,7 +402,6 @@ export default function AIQuestionGenerator({
                 </div>
               )}
             </div>
-            {/* --- STEP 7: Update final action buttons --- */}
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 pt-4 mt-4">
               <Button
                 onClick={handleAddSelectedQuestions}
@@ -235,7 +409,9 @@ export default function AIQuestionGenerator({
                 disabled={isBusy || aiGeneratedQuestions.length === 0}
               >
                 {isAdding ? (
-                  "Adding..."
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Adding...
+                  </>
                 ) : (
                   <>
                     <CheckCircle className="h-4 w-4 mr-2" />

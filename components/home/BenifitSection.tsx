@@ -1,12 +1,12 @@
 // components/home/BenefitsSection.tsx
-'use client';
+"use client";
 
-import { motion, useInView } from 'framer-motion';
-import { Badge } from '@/components/ui/badge';
-import { Briefcase, Users, ArrowRight, Star, CheckCircle } from 'lucide-react';
-import { useRef, useEffect, useState } from 'react';
-import { employeeBenefits, employerBenefits } from '@/lib/mock-data';
-import { Card, CardContent } from '@/components/ui/card';
+import { motion, useInView } from "framer-motion";
+import { Badge } from "@/components/ui/badge";
+import { Briefcase, Users, ArrowRight, Star, CheckCircle } from "lucide-react";
+import { useRef, useEffect, useState } from "react";
+import { employeeBenefits, employerBenefits } from "@/lib/mock-data";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface BenefitCardProps {
   benefit: {
@@ -49,75 +49,90 @@ function BenefitCard({ benefit, index }: BenefitCardProps) {
       onClick={handleClick}
     >
       <div className="w-full h-full border-0 shadow-none transition-all duration-500 overflow-hidden group relative rounded-xl bg-white">
-          {/* Background gradient */}
-           <div className={`absolute inset-0 w-full h-full bg-gradient-to-br ${benefit.color} opacity-5 group-hover:opacity-10 transition-opacity duration-500`} />
-          
-          {/* Default content */}
-           <motion.div
-              className="absolute inset-0 z-10 p-6 w-full h-full flex flex-col justify-between"
-              animate={{ opacity: isActive ? 0 : 1, y: isActive ? -20 : 0 }}
-              transition={{ duration: 0.3 }}
-            >
-            <div>
-              <div className={`w-20 h-20 bg-gradient-to-br ${benefit.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
-                <benefit.icon className="w-10 h-10 text-white" />
-              </div>
-              <h4 className="text-xl font-bold text-gray-900 mb-3">
-                {benefit.title}
-              </h4>
-              <p className="text-gray-600 text-sm leading-relaxed">
-                {benefit.description.substring(0, 80)}...
-              </p>
-            </div>
-            <div className="flex items-center text-gray-500 mt-4">
-              <span className="text-sm font-medium">Hover for details</span>
-              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-            </div>
-          </motion.div>
+        {/* Background gradient */}
+        <div
+          className={`absolute inset-0 w-full h-full bg-gradient-to-br ${benefit.color} opacity-5 group-hover:opacity-10 transition-opacity duration-500`}
+        />
 
-          {/* Hover content */}
-           <motion.div
-              className="absolute inset-0 p-6 w-full h-full flex flex-col justify-between"
-              animate={{ opacity: isActive ? 1 : 0, y: isActive ? 0 : 20 }}
-              transition={{ duration: 0.3 }}
-              style={{ pointerEvents: isActive ? 'auto' : 'none' }}
+        {/* Default content */}
+        <motion.div
+          className="absolute inset-0 z-10 p-6 w-full h-full flex flex-col justify-between"
+          animate={{ opacity: isActive ? 0 : 1, y: isActive ? -20 : 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <div>
+            <div
+              className={`w-20 h-20 bg-gradient-to-br ${benefit.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}
             >
-             <div className={`absolute inset-0 w-full h-full bg-gradient-to-br ${benefit.color} opacity-95`} />
-            <div className="relative z-10 text-white">
-              <div className="flex items-center mb-4">
-                <benefit.icon className="w-8 h-8 mr-3" />
-                <h4 className="text-lg font-bold">{benefit.title}</h4>
+              <benefit.icon className="w-10 h-10 text-white" />
+            </div>
+            <h4 className="text-xl font-bold text-gray-900 mb-3">
+              {benefit.title}
+            </h4>
+            <p className="text-gray-600 text-sm leading-relaxed">
+              {benefit.description.substring(0, 80)}...
+            </p>
+          </div>
+          <div className="flex items-center text-gray-500 mt-4">
+            <span className="text-sm font-medium">Hover for details</span>
+            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+          </div>
+        </motion.div>
+
+        {/* Hover content */}
+        <motion.div
+          className="absolute inset-0 p-6 w-full h-full flex flex-col justify-between"
+          animate={{ opacity: isActive ? 1 : 0, y: isActive ? 0 : 20 }}
+          transition={{ duration: 0.3 }}
+          style={{ pointerEvents: isActive ? "auto" : "none" }}
+        >
+          <div
+            className={`absolute inset-0 w-full h-full bg-gradient-to-br ${benefit.color} opacity-95`}
+          />
+          <div className="relative z-10 text-white">
+            <div className="flex items-center mb-4">
+              <benefit.icon className="w-8 h-8 mr-3" />
+              <h4 className="text-lg font-bold">{benefit.title}</h4>
+            </div>
+            <p className="text-white/90 leading-relaxed mb-6">
+              {benefit.description}
+            </p>
+            <div className="space-y-2">
+              <div className="flex items-center">
+                <CheckCircle className="w-4 h-4 mr-2" />
+                <span className="text-sm">Proven Results</span>
               </div>
-              <p className="text-white/90 leading-relaxed mb-6">
-                {benefit.description}
-              </p>
-              <div className="space-y-2">
-                <div className="flex items-center">
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  <span className="text-sm">Proven Results</span>
-                </div>
-                <div className="flex items-center">
-                  <Star className="w-4 h-4 mr-2 fill-current" />
-                  <span className="text-sm">Premium Feature</span>
-                </div>
+              <div className="flex items-center">
+                <Star className="w-4 h-4 mr-2 fill-current" />
+                <span className="text-sm">Premium Feature</span>
               </div>
             </div>
-            <div className="relative z-10 flex items-center justify-between">
-              <span className="text-white/80 text-sm font-medium">Learn More</span>
-              <motion.div
-                animate={{ scale: isActive ? 1.1 : 1 }}
-                className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center"
-              >
-                <ArrowRight className="w-4 h-4 text-white" />
-              </motion.div>
-            </div>
-          </motion.div>
-       </div>
+          </div>
+          <div className="relative z-10 flex items-center justify-between">
+            <span className="text-white/80 text-sm font-medium">
+              Learn More
+            </span>
+            <motion.div
+              animate={{ scale: isActive ? 1.1 : 1 }}
+              className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center"
+            >
+              <ArrowRight className="w-4 h-4 text-white" />
+            </motion.div>
+          </div>
+        </motion.div>
+      </div>
     </motion.div>
   );
 }
 
-function HorizontalScrollSection({ title, subtitle, icon: Icon, iconColor, benefits, delay = 0 }: HorizontalScrollSectionProps) {
+function HorizontalScrollSection({
+  title,
+  subtitle,
+  icon: Icon,
+  iconColor,
+  benefits,
+  delay = 0,
+}: HorizontalScrollSectionProps) {
   const sectionRef = useRef(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
@@ -126,22 +141,24 @@ function HorizontalScrollSection({ title, subtitle, icon: Icon, iconColor, benef
 
   const checkScrollButtons = () => {
     if (scrollContainerRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+      const { scrollLeft, scrollWidth, clientWidth } =
+        scrollContainerRef.current;
       setCanScrollLeft(scrollLeft > 0);
       setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
     }
   };
 
-  const scroll = (direction: 'left' | 'right') => {
+  const scroll = (direction: "left" | "right") => {
     if (scrollContainerRef.current) {
       const scrollAmount = window.innerWidth < 640 ? 288 : 320; // Responsive scroll amount
-      const newScrollLeft = direction === 'left' 
-        ? scrollContainerRef.current.scrollLeft - scrollAmount
-        : scrollContainerRef.current.scrollLeft + scrollAmount;
-      
+      const newScrollLeft =
+        direction === "left"
+          ? scrollContainerRef.current.scrollLeft - scrollAmount
+          : scrollContainerRef.current.scrollLeft + scrollAmount;
+
       scrollContainerRef.current.scrollTo({
         left: newScrollLeft,
-        behavior: 'smooth'
+        behavior: "smooth",
       });
     }
   };
@@ -162,7 +179,9 @@ function HorizontalScrollSection({ title, subtitle, icon: Icon, iconColor, benef
       {/* Section Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center space-x-4">
-          <div className={`w-16 h-16 bg-gradient-to-br ${iconColor} rounded-xl flex items-center justify-center`}>
+          <div
+            className={`w-16 h-16 bg-gradient-to-br ${iconColor} rounded-xl flex items-center justify-center`}
+          >
             <Icon className="w-8 h-8 text-white" />
           </div>
           <div>
@@ -170,27 +189,27 @@ function HorizontalScrollSection({ title, subtitle, icon: Icon, iconColor, benef
             <p className="text-gray-600">{subtitle}</p>
           </div>
         </div>
-        
+
         {/* Scroll Controls */}
         <div className="flex space-x-2">
           <button
-            onClick={() => scroll('left')}
+            onClick={() => scroll("left")}
             disabled={!canScrollLeft}
             className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all ${
-              canScrollLeft 
-                ? 'border-gray-300 hover:border-gray-400 text-gray-600 hover:text-gray-800' 
-                : 'border-gray-200 text-gray-300 cursor-not-allowed'
+              canScrollLeft
+                ? "border-gray-300 hover:border-gray-400 text-gray-600 hover:text-gray-800"
+                : "border-gray-200 text-gray-300 cursor-not-allowed"
             }`}
           >
             <ArrowRight className="w-4 h-4 rotate-180" />
           </button>
           <button
-            onClick={() => scroll('right')}
+            onClick={() => scroll("right")}
             disabled={!canScrollRight}
             className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all ${
-              canScrollRight 
-                ? 'border-gray-300 hover:border-gray-400 text-gray-600 hover:text-gray-800' 
-                : 'border-gray-200 text-gray-300 cursor-not-allowed'
+              canScrollRight
+                ? "border-gray-300 hover:border-gray-400 text-gray-600 hover:text-gray-800"
+                : "border-gray-200 text-gray-300 cursor-not-allowed"
             }`}
           >
             <ArrowRight className="w-4 h-4" />
@@ -201,11 +220,11 @@ function HorizontalScrollSection({ title, subtitle, icon: Icon, iconColor, benef
       {/* Scrollable Cards Container */}
       <div className="relative overflow-hidden">
         <div
-            ref={scrollContainerRef}
-            className="flex overflow-x-auto overflow-y-hidden hide-scrollbar"
-            onScroll={checkScrollButtons}
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
+          ref={scrollContainerRef}
+          className="flex overflow-x-auto overflow-y-hidden hide-scrollbar"
+          onScroll={checkScrollButtons}
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
           <div className="flex space-x-4 min-w-max">
             {benefits.map((benefit, index) => (
               <BenefitCard
@@ -221,13 +240,11 @@ function HorizontalScrollSection({ title, subtitle, icon: Icon, iconColor, benef
   );
 }
 
-
-
 export function BenefitsSection() {
-   useEffect(() => {
-     // Add scrollbar hiding styles
-     const style = document.createElement('style');
-     style.textContent = `
+  useEffect(() => {
+    // Add scrollbar hiding styles
+    const style = document.createElement("style");
+    style.textContent = `
        .hide-scrollbar {
          -ms-overflow-style: none;
          scrollbar-width: none;
@@ -236,15 +253,15 @@ export function BenefitsSection() {
          display: none;
        }
      `;
-     document.head.appendChild(style);
-     
-     return () => {
-       document.head.removeChild(style);
-     };
-   }, []);
+    document.head.appendChild(style);
 
-   return (
-     <section className="section-padding bg-gray-50">
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
+  return (
+    <section className="section-padding bg-gray-50">
       <div className="container-width">
         {/* Section Header */}
         <motion.div
@@ -254,16 +271,18 @@ export function BenefitsSection() {
           transition={{ duration: 0.8 }}
           className="text-center space-y-4 mb-16"
         >
-          <Badge variant="outline" className="bg-[#FC5602]/10 text-[#FC5602] border-[#FC5602]/20">
-            Why Choose GiG Geni?
+          <Badge
+            variant="outline"
+            className="bg-[#FC5602]/10 text-[#FC5602] border-[#FC5602]/20"
+          >
+            Why Choose GigGeni?
           </Badge>
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
-            Benefits for{' '}
-            <span className="gradient-text">Everyone</span>
+            Benefits for <span className="gradient-text">Everyone</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Our platform revolutionizes hiring by creating win-win situations for both 
-            job seekers and employers through competitive challenges.
+            Our platform revolutionizes hiring by creating win-win situations
+            for both job seekers and employers through competitive challenges.
           </p>
         </motion.div>
 
@@ -300,7 +319,7 @@ export function BenefitsSection() {
             <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-32 translate-x-32" />
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24" />
-            
+
             <div className="relative z-10">
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
@@ -313,14 +332,15 @@ export function BenefitsSection() {
                   <Star className="w-8 h-8 text-white fill-current" />
                 </div>
               </motion.div>
-              
+
               <h3 className="text-3xl lg:text-4xl font-bold text-white mb-4">
                 Ready to Transform Your Career?
               </h3>
               <p className="text-white/90 text-lg mb-8 max-w-2xl mx-auto">
-                Join thousands of professionals who have already discovered the power of competitive hiring.
+                Join thousands of professionals who have already discovered the
+                power of competitive hiring.
               </p>
-              
+
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <motion.button
                   whileHover={{ scale: 1.05, y: -2 }}

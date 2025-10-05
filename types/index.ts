@@ -229,9 +229,7 @@ export interface CreateCompetitionPayload {
   termsAndConditions: string[];
 }
 
-export interface CreateCompetitionResponseData {
-  competition: Competition;
-}
+export type CreateCompetitionResponseData = Competition;
 
 export type FetchCompetitionsResponseData = Competition[];
 export type FetchCompetitionByIdResponseData = Competition;

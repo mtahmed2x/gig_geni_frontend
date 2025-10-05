@@ -11,7 +11,6 @@ import {
   Plus,
   Trophy,
   MessageCircle,
-  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +20,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { NavLink } from "./NavLink";
-// --- STEP 1: Import the useAuth hook ---
 import { useAuth } from "@/contexts/AuthProvider";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { logout, selectCurrentUser } from "@/store/features/auth/authSlice";
@@ -30,12 +28,11 @@ export function DesktopNav() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector(selectCurrentUser);
-
-  // --- STEP 2: Get the modal control functions from the context ---
   const { openLoginModal, openSignupModal } = useAuth();
 
   const handleLogout = () => {
     dispatch(logout());
+    // Optionally redirect to home page after logout for a better user experience
     router.push("/");
   };
 
@@ -45,7 +42,7 @@ export function DesktopNav() {
         {/* Logo */}
         <div className="flex items-center">
           <Link href="/" className="text-2xl font-bold text-primary">
-            GiG Geni
+            GigGeni
           </Link>
         </div>
 
@@ -113,7 +110,7 @@ export function DesktopNav() {
                   </DropdownMenuItem>
                 </>
               ) : (
-                // --- Logged-in user view (RESTORED) ---
+                // --- Logged-in user view (Corrected) ---
                 <>
                   <div className="px-3 py-3 border-b mb-2">
                     <div className="flex items-center gap-3">
@@ -148,11 +145,10 @@ export function DesktopNav() {
                     </Link>
                   </DropdownMenuItem>
 
-                  <div className="border-t my-2"></div>
-
                   {/* Role-specific links for Employer */}
                   {user.role === "employer" && (
                     <>
+                      <div className="border-t my-2"></div>
                       <DropdownMenuItem asChild className="p-0">
                         <Link
                           href="/competitions/manage"
@@ -179,13 +175,13 @@ export function DesktopNav() {
                           </span>
                         </Link>
                       </DropdownMenuItem>
-                      <div className="border-t my-2"></div>
                     </>
                   )}
 
                   {/* Role-specific links for Employee */}
                   {user.role === "employee" && (
                     <>
+                      <div className="border-t my-2"></div>
                       <DropdownMenuItem asChild className="p-0">
                         <Link
                           href="/competitions/my"
@@ -197,7 +193,6 @@ export function DesktopNav() {
                           <span className="font-medium">My Competitions</span>
                         </Link>
                       </DropdownMenuItem>
-                      <div className="border-t my-2"></div>
                     </>
                   )}
 
@@ -241,6 +236,9 @@ export function DesktopNav() {
                   </DropdownMenuItem>
                 </>
               )}
+
+              <div className="border-t my-2"></div>
+
               <DropdownMenuItem asChild className="p-0">
                 <Link
                   href="/contact"

@@ -227,7 +227,7 @@ function CreateCompetitionPageContent() {
       loading: "Creating your competition...",
       success: (data) => {
         // Redirect on success, using the ID from the response if needed
-        router.push(`/competitions/manage/${data.competition._id}`);
+        router.push(`/competitions/${data._id}/manage`);
         return "Competition created successfully!";
       },
       error: (err) => err.data?.message || "An unknown error occurred.",

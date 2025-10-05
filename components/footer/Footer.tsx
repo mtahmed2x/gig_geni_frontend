@@ -1,11 +1,11 @@
 // components/navigation/Footer.tsx
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import {
   Facebook,
   Twitter,
@@ -16,50 +16,58 @@ import {
   ArrowRight,
   Heart,
   Linkedin,
-} from 'lucide-react';
+} from "lucide-react";
 
 const footerLinks = {
   company: [
-    { label: 'About Us', href: '/about' },
-    { label: 'How It Works', href: '/how-it-works' },
-    { label: 'Careers', href: '/careers' },
-    { label: 'Press', href: '/press' },
+    { label: "About Us", href: "/about" },
+    { label: "How It Works", href: "/how-it-works" },
+    { label: "Careers", href: "/careers" },
+    { label: "Press", href: "/press" },
   ],
   forJobSeekers: [
-    { label: 'Browse Competitions', href: '/competitions' },
-    { label: 'Leaderboards', href: '/leaderboards' },
-    { label: 'Success Stories', href: '/success-stories' },
-    { label: 'Career Resources', href: '/resources' },
+    { label: "Browse Competitions", href: "/competitions" },
+    { label: "Leaderboards", href: "/leaderboards" },
+    { label: "Success Stories", href: "/success-stories" },
+    { label: "Career Resources", href: "/resources" },
   ],
   forEmployers: [
-    { label: 'Post a Competition', href: '/employer/create' },
-    { label: 'Pricing', href: '/pricing' },
-    { label: 'Employer Dashboard', href: '/employer/dashboard' },
-    { label: 'Hiring Guide', href: '/hiring-guide' },
+    { label: "Post a Competition", href: "/employer/create" },
+    { label: "Pricing", href: "/pricing" },
+    { label: "Employer Dashboard", href: "/employer/dashboard" },
+    { label: "Hiring Guide", href: "/hiring-guide" },
   ],
   support: [
-    { label: 'Help Center', href: '/help' },
-    { label: 'Contact Us', href: '/contact' },
-    { label: 'Terms of Service', href: '/terms' },
-    { label: 'Privacy Policy', href: '/privacy' },
+    { label: "Help Center", href: "/help" },
+    { label: "Contact Us", href: "/contact" },
+    { label: "Terms of Service", href: "/terms" },
+    { label: "Privacy Policy", href: "/privacy" },
   ],
 };
 
 const socialLinks = [
-  { icon: Facebook, href: 'https://facebook.com/gigGeni', label: 'Facebook' },
-  { icon: Twitter, href: 'https://twitter.com/gigGeni', label: 'Twitter' },
-  { icon: Linkedin, href: 'https://linkedin.com/company/gigGeni', label: 'LinkedIn' },
-  { icon: Instagram, href: 'https://instagram.com/gigGeni', label: 'Instagram' },
+  { icon: Facebook, href: "https://facebook.com/gigGeni", label: "Facebook" },
+  { icon: Twitter, href: "https://twitter.com/gigGeni", label: "Twitter" },
+  {
+    icon: Linkedin,
+    href: "https://linkedin.com/company/gigGeni",
+    label: "LinkedIn",
+  },
+  {
+    icon: Instagram,
+    href: "https://instagram.com/gigGeni",
+    label: "Instagram",
+  },
 ];
 
 export function Footer() {
   const handleNewsletterSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
-    
+    const email = formData.get("email") as string;
+
     // Handle newsletter subscription
-    console.log('Newsletter subscription:', email);
+    console.log("Newsletter subscription:", email);
     // You would implement the actual subscription logic here
   };
 
@@ -75,13 +83,14 @@ export function Footer() {
             className="max-w-4xl mx-auto text-center"
           >
             <h3 className="text-3xl font-bold mb-4">
-              Stay Updated with <span className="gradient-text">GiG Geni</span>
+              Stay Updated with <span className="gradient-text">GigGeni</span>
             </h3>
             <p className="text-gray-400 mb-8 text-lg">
-              Get the latest competitions, career tips, and platform updates delivered to your inbox.
+              Get the latest competitions, career tips, and platform updates
+              delivered to your inbox.
             </p>
-            
-            <form 
+
+            <form
               onSubmit={handleNewsletterSubmit}
               className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto"
             >
@@ -92,10 +101,7 @@ export function Footer() {
                 required
                 className="flex-1 bg-gray-800 border-gray-700 text-white placeholder:text-gray-400 focus:border-[#FC5602]"
               />
-              <Button 
-                type="submit"
-                className="btn-primary shrink-0"
-              >
+              <Button type="submit" className="btn-primary shrink-0">
                 Subscribe
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -119,14 +125,17 @@ export function Footer() {
                 <div className="h-10 w-10 rounded-lg bg-[#FC5602] flex items-center justify-center">
                   <span className="text-white font-bold text-xl">G</span>
                 </div>
-                <span className="text-2xl font-bold gradient-text">GiG Geni</span>
+                <span className="text-2xl font-bold gradient-text">
+                  GigGeni
+                </span>
               </div>
-              
+
               <p className="text-gray-400 leading-relaxed">
-                Revolutionizing hiring through competitive challenges. Where talent meets opportunity 
-                in the most engaging and fair way possible.
+                Revolutionizing hiring through competitive challenges. Where
+                talent meets opportunity in the most engaging and fair way
+                possible.
               </p>
-              
+
               <div className="space-y-3">
                 <div className="flex items-center space-x-3 text-sm text-gray-400">
                   <MapPin className="h-4 w-4 text-[#FC5602]" />
@@ -266,23 +275,32 @@ export function Footer() {
           className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0"
         >
           <div className="text-gray-400 text-sm">
-            © {new Date().getFullYear()} GiG Geni. All rights reserved.
+            © {new Date().getFullYear()} GigGeni. All rights reserved.
           </div>
-          
+
           <div className="flex items-center space-x-1 text-gray-400 text-sm">
             <span>Made with</span>
             <Heart className="h-4 w-4 text-[#FC5602] fill-current" />
             <span>for the future of hiring</span>
           </div>
-          
+
           <div className="flex items-center space-x-6 text-sm">
-            <Link href="/cookies" className="text-gray-400 hover:text-white transition-colors">
+            <Link
+              href="/cookies"
+              className="text-gray-400 hover:text-white transition-colors"
+            >
               Cookie Policy
             </Link>
-            <Link href="/accessibility" className="text-gray-400 hover:text-white transition-colors">
+            <Link
+              href="/accessibility"
+              className="text-gray-400 hover:text-white transition-colors"
+            >
               Accessibility
             </Link>
-            <Link href="/sitemap" className="text-gray-400 hover:text-white transition-colors">
+            <Link
+              href="/sitemap"
+              className="text-gray-400 hover:text-white transition-colors"
+            >
               Sitemap
             </Link>
           </div>

@@ -1,1 +1,1 @@
-export const BASE_URL = "https://api.gigeni.com/api/v1";
+export const BASE_URL = "https://api.giggeni.com/api/v1";

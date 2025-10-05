@@ -290,7 +290,7 @@ function ManageCompetitionsPageContent() {
                         </Link>
                       </Button>
                       <Button asChild>
-                        <Link href={`/competitions/manage/${competition._id}`}>
+                        <Link href={`/competitions/${competition._id}/manage/`}>
                           <Settings className="h-4 w-4 mr-2" />
                           Manage
                         </Link>

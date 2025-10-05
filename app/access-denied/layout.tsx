@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Access Denied - GiG Geni",
+  title: "Access Denied - GigGeni",
   description: "You do not have permission to access this page",
 };
 

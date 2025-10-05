@@ -1,9 +1,9 @@
 // components/layout/Footer.tsx
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { motion } from "framer-motion";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import {
   Trophy,
   Users,
@@ -16,46 +16,46 @@ import {
   Github,
   Instagram,
   ArrowRight,
-} from 'lucide-react';
+} from "lucide-react";
 
 const footerLinks = {
   platform: [
-    { name: 'Browse Competitions', href: '/competitions' },
-    { name: 'Leaderboards', href: '/leaderboards' },
-    { name: 'How It Works', href: '/how-it-works' },
-    { name: 'Success Stories', href: '/success-stories' },
+    { name: "Browse Competitions", href: "/competitions" },
+    { name: "Leaderboards", href: "/leaderboards" },
+    { name: "How It Works", href: "/how-it-works" },
+    { name: "Success Stories", href: "/success-stories" },
   ],
   forJobSeekers: [
-    { name: 'Find Competitions', href: '/competitions' },
-    { name: 'Profile Setup', href: '/profile' },
-    { name: 'Skill Assessment', href: '/skills' },
-    { name: 'Career Resources', href: '/resources' },
+    { name: "Find Competitions", href: "/competitions" },
+    { name: "Profile Setup", href: "/profile" },
+    { name: "Skill Assessment", href: "/skills" },
+    { name: "Career Resources", href: "/resources" },
   ],
   forEmployers: [
-    { name: 'Post Competition', href: '/employer/competitions/create' },
-    { name: 'Manage Competitions', href: '/employer/dashboard' },
-    { name: 'Talent Pool', href: '/employer/talent' },
-    { name: 'Pricing', href: '/pricing' },
+    { name: "Post Competition", href: "/employer/competitions/create" },
+    { name: "Manage Competitions", href: "/employer/dashboard" },
+    { name: "Talent Pool", href: "/employer/talent" },
+    { name: "Pricing", href: "/pricing" },
   ],
   company: [
-    { name: 'About Us', href: '/about' },
-    { name: 'Contact', href: '/contact' },
-    { name: 'Careers', href: '/careers' },
-    { name: 'Press', href: '/press' },
+    { name: "About Us", href: "/about" },
+    { name: "Contact", href: "/contact" },
+    { name: "Careers", href: "/careers" },
+    { name: "Press", href: "/press" },
   ],
   legal: [
-    { name: 'Privacy Policy', href: '/privacy' },
-    { name: 'Terms of Service', href: '/terms' },
-    { name: 'Cookie Policy', href: '/cookies' },
-    { name: 'GDPR', href: '/gdpr' },
+    { name: "Privacy Policy", href: "/privacy" },
+    { name: "Terms of Service", href: "/terms" },
+    { name: "Cookie Policy", href: "/cookies" },
+    { name: "GDPR", href: "/gdpr" },
   ],
 };
 
 const socialLinks = [
-  { name: 'Twitter', href: '#', icon: Twitter },
-  { name: 'LinkedIn', href: '#', icon: Linkedin },
-  { name: 'GitHub', href: '#', icon: Github },
-  { name: 'Instagram', href: '#', icon: Instagram },
+  { name: "Twitter", href: "#", icon: Twitter },
+  { name: "LinkedIn", href: "#", icon: Linkedin },
+  { name: "GitHub", href: "#", icon: Github },
+  { name: "Instagram", href: "#", icon: Instagram },
 ];
 
 export function Footer() {
@@ -76,13 +76,15 @@ export function Footer() {
                 <div className="w-10 h-10 bg-gradient-to-br from-[#FC5602] to-[#FF7B02] rounded-xl flex items-center justify-center">
                   <Trophy className="w-6 h-6 text-white" />
                 </div>
-                <span className="text-2xl font-bold gradient-text">GiG Geni</span>
+                <span className="text-2xl font-bold gradient-text">
+                  GigGeni
+                </span>
               </Link>
               <p className="text-gray-600 leading-relaxed max-w-sm">
-                Where talent meets opportunity through competitive challenges. 
+                Where talent meets opportunity through competitive challenges.
                 Prove your skills, get hired, and win amazing prizes.
               </p>
-              
+
               {/* Contact Info */}
               <div className="space-y-3 text-sm text-gray-600">
                 <div className="flex items-center space-x-3">
@@ -230,10 +232,11 @@ export function Footer() {
         >
           <div className="max-w-2xl mx-auto text-center space-y-4">
             <h3 className="text-2xl font-bold text-gray-900">
-              Stay Updated with <span className="gradient-text">GiG Geni</span>
+              Stay Updated with <span className="gradient-text">GigGeni</span>
             </h3>
             <p className="text-gray-600">
-              Get the latest updates on new competitions, features, and success stories.
+              Get the latest updates on new competitions, features, and success
+              stories.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
               <input
@@ -258,9 +261,9 @@ export function Footer() {
           className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-gray-200"
         >
           <div className="text-gray-600 text-sm mb-4 md:mb-0">
-            © 2024 GiG Geni. All rights reserved.
+            © 2024 GigGeni. All rights reserved.
           </div>
-          
+
           {/* Social Links */}
           <div className="flex items-center space-x-4">
             {socialLinks.map((social) => (

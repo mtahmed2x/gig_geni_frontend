@@ -11,7 +11,7 @@ import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "GiG Geni - Competition Platform",
+  title: "GigGeni - Competition Platform",
   description: "Navigate your career through competitions and leaderboards",
   keywords: ["competitions", "leaderboards", "career", "gig economy"],
 };

@@ -63,7 +63,6 @@ export default function QuizTakingPageContent() {
   const [submitAnswer] = useSubmitAnswerMutation();
   const [evaluateQuiz, { isLoading: isEvaluating }] = useEvaluateQuizMutation();
 
-  // Local UI state remains the same
   const [timeLimit, setTimeLimit] = useState(0);
   const [timeLeft, setTimeLeft] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
@@ -77,47 +76,22 @@ export default function QuizTakingPageContent() {
   const [isSkipConfirmOpen, setIsSkipConfirmOpen] = useState(false);
   const [passMessage, setPassMessage] = useState("");
 
-  // --- STEP 3: Streamline useEffects to use fetched data ---
-  useEffect(() => {
-    // This now depends on both questions and settings being successfully fetched
-    if (questions.length > 0 && settings) {
-      const timeInSeconds = settings.timeLimit * 60; // Assuming timeLimit is in minutes
-      setTimeLimit(timeInSeconds);
-      setTimeLeft(timeInSeconds);
-    }
-  }, [questions, settings]);
-
-  // Anti-cheating, timer countdown, and browser navigation blocking useEffects remain unchanged...
-
-  // --- STEP 4: Refactor handleAnswerChange to save progress automatically ---
-  const handleAnswerChange = (questionId: string, answer: any) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: answer }));
-
-    // Fire-and-forget the answer submission to the backend
-    submitAnswer({
-      competitionId,
-      questionId,
-      answer,
-    })
-      .unwrap()
-      .catch((err) => {
-        // This is a background save, so we don't need to show a blocking error
-        console.error("Failed to save answer progress:", err);
-        toast.error(
-          "Connection issue: Could not save your last answer. Please check your network."
-        );
-      });
-  };
-
-  const startQuiz = () => setQuizState("active");
-
-  // --- STEP 5: Refactor handleSubmitQuiz to use the evaluate mutation ---
   const handleSubmitQuiz = useCallback(async () => {
     if (isEvaluating) return;
+
+    const finalQuestionId = questions[currentQuestionIndex]?._id;
+    if (finalQuestionId) {
+      await submitAnswer({
+        competitionId,
+        questionId: finalQuestionId,
+        answer: answers[finalQuestionId] || null,
+      });
+    }
+
     try {
       const result = await evaluateQuiz({ competitionId }).unwrap();
       setFinalScore(result.totalPoints);
-      setPassMessage(result.message); // Use the message from the backend
+      setPassMessage(result.message);
       setQuizState("finished");
       toast.success("Quiz submitted successfully!");
     } catch (err: any) {
@@ -125,37 +99,105 @@ export default function QuizTakingPageContent() {
         err.data?.message ||
           "A network error occurred while submitting the quiz."
       );
-      setQuizState("finished"); // Still finish the quiz even on error
+      setQuizState("finished");
       setFinalScore(0);
       setPassMessage(
         "There was an error submitting your quiz. Please contact support."
       );
     }
-  }, [competitionId, evaluateQuiz, isEvaluating]);
+  }, [
+    competitionId,
+    evaluateQuiz,
+    isEvaluating,
+    questions,
+    currentQuestionIndex,
+    answers,
+    submitAnswer,
+  ]);
 
-  const proceedToNextQuestion = () => {
+  useEffect(() => {
+    if (questions.length > 0 && settings) {
+      const timeInSeconds = settings.timeLimit * 60;
+      setTimeLimit(timeInSeconds);
+      setTimeLeft(timeInSeconds);
+    }
+  }, [questions, settings]);
+
+  useEffect(() => {
+    if (quizState !== "active") return;
+    if (timeLeft <= 0) {
+      toast.info("Time's up! Submitting your quiz automatically.");
+      handleSubmitQuiz();
+      return;
+    }
+    const timerInterval = setInterval(() => {
+      setTimeLeft((prevTime) => prevTime - 1);
+    }, 1000);
+    return () => clearInterval(timerInterval);
+  }, [quizState, timeLeft, handleSubmitQuiz]);
+
+  useEffect(() => {
+    if (quizState !== "active") return;
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        setWarningCount((prev) => prev + 1);
+        setShowWarningModal(true);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [quizState]);
+
+  const handleAnswerChange = (questionId: string, answer: any) => {
+    setAnswers((prev) => ({ ...prev, [questionId]: answer }));
+  };
+
+  const startQuiz = () => setQuizState("active");
+
+  const moveToNextQuestion = (options = { isSkipping: false }) => {
+    const { isSkipping } = options;
+    const currentQuestionId = questions[currentQuestionIndex]._id;
+
+    const answerToSubmit = isSkipping
+      ? null
+      : answers[currentQuestionId] || null;
+
+    if (isSkipping) {
+      setAnswers((prev) => {
+        const newAnswers = { ...prev };
+        delete newAnswers[currentQuestionId];
+        return newAnswers;
+      });
+    }
+
+    submitAnswer({
+      competitionId,
+      questionId: currentQuestionId,
+      answer: answerToSubmit,
+    })
+      .unwrap()
+      .catch((err) => {
+        console.error("Failed to save answer on navigation:", err);
+        toast.error("Failed to save progress. Please check your connection.");
+      });
+
     if (isSkipConfirmOpen) setIsSkipConfirmOpen(false);
     setCurrentQuestionIndex((p) => Math.min(questions.length - 1, p + 1));
   };
 
   const handleNextClick = () => {
-    const currentQuestionId = questions[currentQuestionIndex]._id;
-    const currentAnswer = answers[currentQuestionId];
-
-    const isAnswered =
-      currentAnswer !== undefined &&
-      currentAnswer !== null &&
-      currentAnswer !== "" &&
-      !(Array.isArray(currentAnswer) && currentAnswer.length === 0);
-
-    if (isAnswered) {
-      proceedToNextQuestion();
-    } else {
-      setIsSkipConfirmOpen(true);
-    }
+    moveToNextQuestion();
   };
 
-  // --- STEP 6: Update JSX with new loading and error states ---
+  const handleSkipClick = () => {
+    setIsSkipConfirmOpen(true);
+  };
+
   if (isLoadingQuestions || isLoadingSettings) {
     return (
       <div className="flex flex-col items-center justify-center h-48">
@@ -250,12 +292,17 @@ export default function QuizTakingPageContent() {
             {finalScore ?? 0} / {settings?.passingScore ?? 100}
           </p>
           <p className="text-muted-foreground">{passMessage}</p>
+          {/* --- MODIFIED: This button is now conditional --- */}
           <Button
-            onClick={() =>
-              router.push(`/competitions/${competitionId}/journey`)
-            }
+            onClick={() => {
+              if (passed) {
+                router.push(`/competitions/${competitionId}/journey`);
+              } else {
+                router.push("/"); // Navigate to home page on failure
+              }
+            }}
           >
-            Return to Journey
+            {passed ? "Return to Journey" : "Return to Home"}
           </Button>
         </CardContent>
       </Card>
@@ -266,11 +313,18 @@ export default function QuizTakingPageContent() {
   if (!currentQuestion) {
     return <div>No questions loaded or you have finished the quiz.</div>;
   }
+
   const timeProgress = (timeLeft / timeLimit) * 100;
+
+  const currentAnswer = answers[currentQuestion._id];
+  const isAnswered =
+    currentAnswer !== undefined &&
+    currentAnswer !== null &&
+    currentAnswer !== "" &&
+    !(Array.isArray(currentAnswer) && currentAnswer.length === 0);
 
   return (
     <div className="max-w-4xl mx-auto">
-      {/* Header with Timer and Progress */}
       <Card className="sticky top-4 z-10 mb-6">
         <CardContent className="p-4 space-y-3">
           <div className="flex justify-between items-center">
@@ -288,7 +342,6 @@ export default function QuizTakingPageContent() {
         </CardContent>
       </Card>
 
-      {/* Question Card */}
       <AnimatePresence mode="wait">
         <motion.div
           key={currentQuestionIndex}
@@ -309,7 +362,6 @@ export default function QuizTakingPageContent() {
               </div>
             </CardHeader>
             <CardContent>
-              {/* Answer Area */}
               <div className="space-y-4">
                 {currentQuestion.type === "single" && (
                   <RadioGroup
@@ -335,7 +387,6 @@ export default function QuizTakingPageContent() {
                   </RadioGroup>
                 )}
 
-                {/* --- MODIFIED: Added instruction for multiple choice --- */}
                 {currentQuestion.type === "multiple" && (
                   <div className="space-y-3">
                     <p className="text-sm text-muted-foreground">
@@ -419,21 +470,34 @@ export default function QuizTakingPageContent() {
         </motion.div>
       </AnimatePresence>
 
-      {/* Navigation Buttons */}
-      <div className="flex justify-end mt-6">
-        {currentQuestionIndex === questions.length - 1 ? (
-          <Button
-            onClick={handleSubmitQuiz}
-            className="bg-green-600 hover:bg-green-700"
-          >
-            Submit Quiz
-          </Button>
-        ) : (
-          <Button onClick={handleNextClick}>Next</Button>
-        )}
+      <div className="flex justify-between items-center mt-6">
+        <div>
+          {currentQuestionIndex < questions.length - 1 && (
+            <Button onClick={handleSkipClick} variant="outline">
+              Skip
+            </Button>
+          )}
+        </div>
+        <div>
+          {currentQuestionIndex === questions.length - 1 ? (
+            <Button
+              onClick={handleSubmitQuiz}
+              className="bg-green-600 hover:bg-green-700"
+              disabled={isEvaluating}
+            >
+              {isEvaluating && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Submit Quiz
+            </Button>
+          ) : (
+            <Button onClick={handleNextClick} disabled={!isAnswered}>
+              Next
+            </Button>
+          )}
+        </div>
       </div>
 
-      {/* Anti-cheat Warning Modal */}
       <AlertDialog open={showWarningModal} onOpenChange={setShowWarningModal}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -455,22 +519,21 @@ export default function QuizTakingPageContent() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Skip Question Confirmation Modal */}
       <AlertDialog open={isSkipConfirmOpen} onOpenChange={setIsSkipConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              Are you sure you want to continue?
-            </AlertDialogTitle>
+            <AlertDialogTitle>Are you sure you want to skip?</AlertDialogTitle>
             <AlertDialogDescription>
-              You have not answered the current question. You will not be able
-              to return to it later.
+              Any answer you have selected for this question will be cleared.
+              You cannot return to it later.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={proceedToNextQuestion}>
-              Confirm & Continue
+            <AlertDialogAction
+              onClick={() => moveToNextQuestion({ isSkipping: true })}
+            >
+              Confirm & Skip
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
