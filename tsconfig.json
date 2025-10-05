@@ -20,15 +20,15 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": [
     "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
     ".next/types/**/*.ts",
-    "components/competitions/ParticipantTracker.tsx.bak"
+    "src/components/competitions/ParticipantTracker.tsx.bak"
   ],
   "exclude": ["node_modules"]
 }
