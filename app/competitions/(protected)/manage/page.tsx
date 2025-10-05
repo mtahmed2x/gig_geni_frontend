@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { AuthGuard } from "@/components/auth/AuthGuard";
 import {
   Search,
   Calendar,
@@ -328,9 +327,5 @@ function ManageCompetitionsPageContent() {
 }
 
 export default function ManageCompetitionsPage() {
-  return (
-    <AuthGuard requireAuth={true} allowedRoles={["employer"]}>
-      <ManageCompetitionsPageContent />
-    </AuthGuard>
-  );
+  return <ManageCompetitionsPageContent />;
 }

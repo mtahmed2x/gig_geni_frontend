@@ -1,5 +1,5 @@
 import { SettingsPage } from "@/components/settings/SettingsPage";
-import { AuthGuard } from "@/components/auth/AuthGuard";
+
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -8,9 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function Settings() {
-  return (
-    <AuthGuard requireAuth={true}>
-      <SettingsPage />
-    </AuthGuard>
-  );
+  return <SettingsPage />;
 }

@@ -1,281 +1,307 @@
-// components/layout/Footer.tsx
 "use client";
 
-import { motion } from "framer-motion";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import {
-  Trophy,
-  Users,
-  Building2,
-  Mail,
-  Phone,
-  MapPin,
+  Facebook,
   Twitter,
-  Linkedin,
-  Github,
   Instagram,
+  Mail,
+  MapPin,
+  Phone,
   ArrowRight,
+  Heart,
+  Linkedin,
 } from "lucide-react";
 
 const footerLinks = {
-  platform: [
-    { name: "Browse Competitions", href: "/competitions" },
-    { name: "Leaderboards", href: "/leaderboards" },
-    { name: "How It Works", href: "/how-it-works" },
-    { name: "Success Stories", href: "/success-stories" },
+  company: [
+    { label: "About Us", href: "/about" },
+    { label: "How It Works", href: "/how-it-works" },
+    { label: "Careers", href: "/careers" },
+    { label: "Press", href: "/press" },
   ],
   forJobSeekers: [
-    { name: "Find Competitions", href: "/competitions" },
-    { name: "Profile Setup", href: "/profile" },
-    { name: "Skill Assessment", href: "/skills" },
-    { name: "Career Resources", href: "/resources" },
+    { label: "Browse Competitions", href: "/competitions" },
+    { label: "Leaderboards", href: "/leaderboards" },
+    { label: "Success Stories", href: "/success-stories" },
+    { label: "Career Resources", href: "/resources" },
   ],
   forEmployers: [
-    { name: "Post Competition", href: "/employer/competitions/create" },
-    { name: "Manage Competitions", href: "/employer/dashboard" },
-    { name: "Talent Pool", href: "/employer/talent" },
-    { name: "Pricing", href: "/pricing" },
+    { label: "Post a Competition", href: "/employer/create" },
+    { label: "Pricing", href: "/pricing" },
+    { label: "Employer Dashboard", href: "/employer/dashboard" },
+    { label: "Hiring Guide", href: "/hiring-guide" },
   ],
-  company: [
-    { name: "About Us", href: "/about" },
-    { name: "Contact", href: "/contact" },
-    { name: "Careers", href: "/careers" },
-    { name: "Press", href: "/press" },
-  ],
-  legal: [
-    { name: "Privacy Policy", href: "/privacy" },
-    { name: "Terms of Service", href: "/terms" },
-    { name: "Cookie Policy", href: "/cookies" },
-    { name: "GDPR", href: "/gdpr" },
+  support: [
+    { label: "Help Center", href: "/help" },
+    { label: "Contact Us", href: "/contact" },
+    { label: "Terms of Service", href: "/terms" },
+    { label: "Privacy Policy", href: "/privacy" },
   ],
 };
 
 const socialLinks = [
-  { name: "Twitter", href: "#", icon: Twitter },
-  { name: "LinkedIn", href: "#", icon: Linkedin },
-  { name: "GitHub", href: "#", icon: Github },
-  { name: "Instagram", href: "#", icon: Instagram },
+  { icon: Facebook, href: "https://facebook.com/gigGeni", label: "Facebook" },
+  { icon: Twitter, href: "https://twitter.com/gigGeni", label: "Twitter" },
+  {
+    icon: Linkedin,
+    href: "https://linkedin.com/company/gigGeni",
+    label: "LinkedIn",
+  },
+  {
+    icon: Instagram,
+    href: "https://instagram.com/gigGeni",
+    label: "Instagram",
+  },
 ];
 
 export function Footer() {
+  const handleNewsletterSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+
+    // Handle newsletter subscription
+    console.log("Newsletter subscription:", email);
+    // You would implement the actual subscription logic here
+  };
+
   return (
-    <footer className="bg-gradient-to-br from-slate-50 via-orange-50/40 to-blue-50/30 border-t border-gray-200">
-      <div className="container mx-auto px-4 py-16">
-        {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 mb-12">
-          {/* Brand Section */}
-          <div className="lg:col-span-2 space-y-6">
+    <footer className="bg-gray-900 text-white">
+      {/* Newsletter Section */}
+      <div className="border-b border-gray-800">
+        <div className="container-width section-padding">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="max-w-4xl mx-auto text-center"
+          >
+            <h3 className="text-3xl font-bold mb-4">
+              Stay Updated with <span className="gradient-text">GigGeni</span>
+            </h3>
+            <p className="text-gray-400 mb-8 text-lg">
+              Get the latest competitions, career tips, and platform updates
+              delivered to your inbox.
+            </p>
+
+            <form
+              onSubmit={handleNewsletterSubmit}
+              className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto"
+            >
+              <Input
+                type="email"
+                name="email"
+                placeholder="Enter your email address"
+                required
+                className="flex-1 bg-gray-800 border-gray-700 text-white placeholder:text-gray-400 focus:border-[#FC5602]"
+              />
+              <Button type="submit" className="btn-primary shrink-0">
+                Subscribe
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </form>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Main Footer Content */}
+      <div className="container-width section-padding">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
+          {/* Company Info */}
+          <div className="lg:col-span-2">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
+              className="space-y-6"
             >
-              <Link href="/" className="flex items-center space-x-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-[#FC5602] to-[#FF7B02] rounded-xl flex items-center justify-center">
-                  <Trophy className="w-6 h-6 text-white" />
+              <div className="flex items-center space-x-3">
+                <div className="h-10 w-10 rounded-lg bg-[#FC5602] flex items-center justify-center">
+                  <span className="text-white font-bold text-xl">G</span>
                 </div>
                 <span className="text-2xl font-bold gradient-text">
                   GigGeni
                 </span>
-              </Link>
-              <p className="text-gray-600 leading-relaxed max-w-sm">
-                Where talent meets opportunity through competitive challenges.
-                Prove your skills, get hired, and win amazing prizes.
+              </div>
+
+              <p className="text-gray-400 leading-relaxed">
+                Revolutionizing hiring through competitive challenges. Where
+                talent meets opportunity in the most engaging and fair way
+                possible.
               </p>
 
-              {/* Contact Info */}
-              <div className="space-y-3 text-sm text-gray-600">
-                <div className="flex items-center space-x-3">
-                  <Mail className="w-4 h-4 text-[#FC5602]" />
-                  <span>hello@giggeni.com</span>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3 text-sm text-gray-400">
+                  <MapPin className="h-4 w-4 text-[#FC5602]" />
+                  <span>123 Innovation Drive, Tech City, TC 12345</span>
                 </div>
-                <div className="flex items-center space-x-3">
-                  <Phone className="w-4 h-4 text-[#FC5602]" />
+                <div className="flex items-center space-x-3 text-sm text-gray-400">
+                  <Phone className="h-4 w-4 text-[#FC5602]" />
                   <span>+1 (555) 123-4567</span>
                 </div>
-                <div className="flex items-center space-x-3">
-                  <MapPin className="w-4 h-4 text-[#FC5602]" />
-                  <span>San Francisco, CA</span>
+                <div className="flex items-center space-x-3 text-sm text-gray-400">
+                  <Mail className="h-4 w-4 text-[#FC5602]" />
+                  <span>hello@gigGeni.com</span>
                 </div>
+              </div>
+
+              {/* Social Links */}
+              <div className="flex space-x-4">
+                {socialLinks.map((social) => (
+                  <motion.a
+                    key={social.label}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white hover:bg-[#FC5602] transition-all duration-200"
+                    aria-label={social.label}
+                  >
+                    <social.icon className="h-5 w-5" />
+                  </motion.a>
+                ))}
               </div>
             </motion.div>
           </div>
 
-          {/* Platform Links */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="space-y-4"
-          >
-            <h3 className="font-semibold text-gray-900 text-lg">Platform</h3>
-            <ul className="space-y-3">
-              {footerLinks.platform.map((link) => (
-                <li key={link.name}>
-                  <Link
-                    href={link.href}
-                    className="text-gray-600 hover:text-[#FC5602] transition-colors duration-200 text-sm"
-                  >
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-
-          {/* For Job Seekers */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="space-y-4"
-          >
-            <h3 className="font-semibold text-gray-900 text-lg flex items-center">
-              <Users className="w-4 h-4 mr-2 text-[#FC5602]" />
-              Job Seekers
-            </h3>
-            <ul className="space-y-3">
-              {footerLinks.forJobSeekers.map((link) => (
-                <li key={link.name}>
-                  <Link
-                    href={link.href}
-                    className="text-gray-600 hover:text-[#FC5602] transition-colors duration-200 text-sm"
-                  >
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-
-          {/* For Employers */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="space-y-4"
-          >
-            <h3 className="font-semibold text-gray-900 text-lg flex items-center">
-              <Building2 className="w-4 h-4 mr-2 text-[#FC5602]" />
-              Employers
-            </h3>
-            <ul className="space-y-3">
-              {footerLinks.forEmployers.map((link) => (
-                <li key={link.name}>
-                  <Link
-                    href={link.href}
-                    className="text-gray-600 hover:text-[#FC5602] transition-colors duration-200 text-sm"
-                  >
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-
-          {/* Company & Legal */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="space-y-6"
-          >
-            {/* Company */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-gray-900 text-lg">Company</h3>
+          {/* Footer Links */}
+          <div className="lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {/* Company Links */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+            >
+              <h4 className="font-semibold text-white mb-4">Company</h4>
               <ul className="space-y-3">
                 {footerLinks.company.map((link) => (
-                  <li key={link.name}>
+                  <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="text-gray-600 hover:text-[#FC5602] transition-colors duration-200 text-sm"
+                      className="text-gray-400 hover:text-white transition-colors duration-200"
                     >
-                      {link.name}
+                      {link.label}
                     </Link>
                   </li>
                 ))}
               </ul>
-            </div>
+            </motion.div>
 
-            {/* Legal */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-gray-900 text-lg">Legal</h3>
+            {/* For Job Seekers */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+            >
+              <h4 className="font-semibold text-white mb-4">For Job Seekers</h4>
               <ul className="space-y-3">
-                {footerLinks.legal.map((link) => (
-                  <li key={link.name}>
+                {footerLinks.forJobSeekers.map((link) => (
+                  <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="text-gray-600 hover:text-[#FC5602] transition-colors duration-200 text-sm"
+                      className="text-gray-400 hover:text-white transition-colors duration-200"
                     >
-                      {link.name}
+                      {link.label}
                     </Link>
                   </li>
                 ))}
               </ul>
-            </div>
-          </motion.div>
+            </motion.div>
+
+            {/* For Employers */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3 }}
+            >
+              <h4 className="font-semibold text-white mb-4">For Employers</h4>
+              <ul className="space-y-3">
+                {footerLinks.forEmployers.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
+                      className="text-gray-400 hover:text-white transition-colors duration-200"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+
+            {/* Support */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.4 }}
+            >
+              <h4 className="font-semibold text-white mb-4">Support</h4>
+              <ul className="space-y-3">
+                {footerLinks.support.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
+                      className="text-gray-400 hover:text-white transition-colors duration-200"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          </div>
         </div>
+      </div>
 
-        {/* Newsletter Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-          className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-8"
-        >
-          <div className="max-w-2xl mx-auto text-center space-y-4">
-            <h3 className="text-2xl font-bold text-gray-900">
-              Stay Updated with <span className="gradient-text">GigGeni</span>
-            </h3>
-            <p className="text-gray-600">
-              Get the latest updates on new competitions, features, and success
-              stories.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-[#FC5602]/20 focus:border-[#FC5602] transition-colors"
-              />
-              <Button className="btn-primary px-6 py-3 rounded-xl">
-                Subscribe
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </motion.div>
+      <Separator className="bg-gray-800" />
 
-        {/* Bottom Section */}
+      {/* Bottom Footer */}
+      <div className="container-width py-6">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-gray-200"
+          className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0"
         >
-          <div className="text-gray-600 text-sm mb-4 md:mb-0">
-            © 2024 GigGeni. All rights reserved.
+          <div className="text-gray-400 text-sm">
+            © {new Date().getFullYear()} GigGeni. All rights reserved.
           </div>
 
-          {/* Social Links */}
-          <div className="flex items-center space-x-4">
-            {socialLinks.map((social) => (
-              <Link
-                key={social.name}
-                href={social.href}
-                className="w-10 h-10 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 flex items-center justify-center text-gray-600 hover:text-[#FC5602] hover:bg-[#FC5602]/10 hover:border-[#FC5602]/20 transition-all duration-200"
-                aria-label={social.name}
-              >
-                <social.icon className="w-4 h-4" />
-              </Link>
-            ))}
+          <div className="flex items-center space-x-1 text-gray-400 text-sm">
+            <span>Made with</span>
+            <Heart className="h-4 w-4 text-[#FC5602] fill-current" />
+            <span>for the future of hiring</span>
+          </div>
+
+          <div className="flex items-center space-x-6 text-sm">
+            <Link
+              href="/cookies"
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              Cookie Policy
+            </Link>
+            <Link
+              href="/accessibility"
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              Accessibility
+            </Link>
+            <Link
+              href="/sitemap"
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              Sitemap
+            </Link>
           </div>
         </motion.div>
       </div>

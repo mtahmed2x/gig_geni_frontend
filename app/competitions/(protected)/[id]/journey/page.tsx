@@ -16,7 +16,6 @@ import {
   Loader2,
 } from "lucide-react";
 import Link from "next/link";
-import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Competition, Participant } from "@/types";
 import CompetitionJourney from "@/components/competitions/CompetitionJourney";
 import { useFetchCompetitionByIdQuery } from "@/store/api/competitionApi";
@@ -202,11 +201,6 @@ function CompetitionJourneyPageContent() {
   );
 }
 
-// The parent component with the AuthGuard remains unchanged
 export default function CompetitionJourneyPage() {
-  return (
-    <AuthGuard requireAuth={true} allowedRoles={["employee"]}>
-      <CompetitionJourneyPageContent />
-    </AuthGuard>
-  );
+  return <CompetitionJourneyPageContent />;
 }

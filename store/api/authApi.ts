@@ -7,7 +7,7 @@ import {
   RefreshTokenPayload,
 } from "@/types";
 import { baseApi } from "../baseApi";
-import { userLoggedIn } from "@/store/features/auth/authSlice"; // Import the action we need to dispatch
+import { userLoggedIn } from "@/store/features/auth/authSlice";
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -30,14 +30,11 @@ export const authApi = baseApi.injectEndpoints({
         body: payload,
         headers: { Authorization: `Bearer ${tempToken}` },
       }),
-      // --- THIS IS THE FIX ---
-      // When the query succeeds, dispatch the userLoggedIn action with the response data.
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
           dispatch(userLoggedIn(data));
         } catch (error) {
-          // You can dispatch an error action here if needed
           console.error("OTP Verification failed:", error);
         }
       },
@@ -50,8 +47,6 @@ export const authApi = baseApi.injectEndpoints({
         method: "POST",
         body: credentials,
       }),
-      // --- THIS IS THE FIX ---
-      // Do the same for the login endpoint.
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;

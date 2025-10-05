@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Loader2 } from "lucide-react";
 
 function JoinCompetitionPageContent() {
@@ -29,13 +28,10 @@ function JoinCompetitionPageContent() {
   );
 }
 
-// The parent component with AuthGuard remains to protect the route.
 export default function JoinCompetitionPage() {
   return (
-    <AuthGuard requireAuth={true} allowedRoles={["employee"]}>
-      <div className="py-12 md:py-20">
-        <JoinCompetitionPageContent />
-      </div>
-    </AuthGuard>
+    <div className="py-12 md:py-20">
+      <JoinCompetitionPageContent />
+    </div>
   );
 }

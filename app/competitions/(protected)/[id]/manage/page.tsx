@@ -5,19 +5,7 @@ import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AuthGuard } from "@/components/auth/AuthGuard";
-import {
-  ArrowLeft,
-  Users,
-  Trophy,
-  CheckCircle,
-  Video,
-  Calendar,
-  Award,
-  Eye,
-  AlertCircle,
-  Loader2,
-} from "lucide-react";
+import { ArrowLeft, Eye, AlertCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 
 import QuizManager from "@/components/competitions/QuizManager";
@@ -210,9 +198,5 @@ function CompetitionManagePageContent() {
 
 // The parent component with the AuthGuard remains unchanged
 export default function CompetitionManagePage() {
-  return (
-    <AuthGuard requireAuth={true} allowedRoles={["employer", "admin"]}>
-      <CompetitionManagePageContent />
-    </AuthGuard>
-  );
+  return <CompetitionManagePageContent />;
 }

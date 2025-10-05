@@ -3,10 +3,10 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { DesktopNav } from "@/components/layout/DesktopNav";
 import { MobileDock } from "@/components/layout/MobileDock";
-import { Footer } from "@/components/footer/Footer";
 import { AuthProvider } from "@/contexts/AuthProvider";
 import ReduxProvider from "@/components/providers/ReduxProvider";
 import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
+import { Footer } from "@/components/layout/Footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
