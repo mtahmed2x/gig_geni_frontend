@@ -1,70 +1,78 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Checkbox } from '@/components/ui/checkbox';
-import { AlertTriangle, Trash2 } from 'lucide-react';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { logout, selectUser } from '@/store/slices/authSlice';
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
+import { AlertTriangle, Trash2 } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/store/store";
+import { logout, selectCurrentUser } from "@/store/features/auth/authSlice";
 
 interface DeleteAccountDialogProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function DeleteAccountDialog({ isOpen, onClose }: DeleteAccountDialogProps) {
+export function DeleteAccountDialog({
+  isOpen,
+  onClose,
+}: DeleteAccountDialogProps) {
   const dispatch = useAppDispatch();
-  const user = useAppSelector(selectUser);
-  
+  const user = useAppSelector(selectCurrentUser);
+
   const handleLogout = () => {
     dispatch(logout());
   };
-  const [confirmText, setConfirmText] = useState('');
-  const [password, setPassword] = useState('');
+  const [confirmText, setConfirmText] = useState("");
+  const [password, setPassword] = useState("");
   const [confirmations, setConfirmations] = useState({
     dataLoss: false,
     noRecovery: false,
-    finalDecision: false
+    finalDecision: false,
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
-  const requiredText = 'DELETE MY ACCOUNT';
+  const requiredText = "DELETE MY ACCOUNT";
   const isConfirmTextValid = confirmText === requiredText;
   const allConfirmationsChecked = Object.values(confirmations).every(Boolean);
   const canDelete = isConfirmTextValid && allConfirmationsChecked && password;
 
   const handleConfirmationChange = (key: string, checked: boolean) => {
-    setConfirmations(prev => ({ ...prev, [key]: checked }));
+    setConfirmations((prev) => ({ ...prev, [key]: checked }));
   };
 
   const handleDelete = async () => {
     if (!canDelete) return;
 
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
       // Simulate password validation
-      if (password !== 'password123') {
-        throw new Error('Incorrect password');
+      if (password !== "password123") {
+        throw new Error("Incorrect password");
       }
 
       // In a real app, you would call the delete account API here
-      console.log('Account deletion requested');
-      
+      console.log("Account deletion requested");
+
       // Logout and redirect
       handleLogout();
-      window.location.href = '/';
+      window.location.href = "/";
     } catch (err: any) {
-      setError(err.message || 'Failed to delete account');
+      setError(err.message || "Failed to delete account");
     } finally {
       setIsLoading(false);
     }
@@ -73,10 +81,14 @@ export function DeleteAccountDialog({ isOpen, onClose }: DeleteAccountDialogProp
   const handleClose = () => {
     if (!isLoading) {
       onClose();
-      setConfirmText('');
-      setPassword('');
-      setConfirmations({ dataLoss: false, noRecovery: false, finalDecision: false });
-      setError('');
+      setConfirmText("");
+      setPassword("");
+      setConfirmations({
+        dataLoss: false,
+        noRecovery: false,
+        finalDecision: false,
+      });
+      setError("");
     }
   };
 
@@ -94,8 +106,9 @@ export function DeleteAccountDialog({ isOpen, onClose }: DeleteAccountDialogProp
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              <strong>Warning:</strong> This action is permanent and cannot be undone. 
-              All your data, including profile information, competition history, and achievements will be permanently deleted.
+              <strong>Warning:</strong> This action is permanent and cannot be
+              undone. All your data, including profile information, competition
+              history, and achievements will be permanently deleted.
             </AlertDescription>
           </Alert>
 
@@ -126,7 +139,9 @@ export function DeleteAccountDialog({ isOpen, onClose }: DeleteAccountDialogProp
                   <Checkbox
                     id="dataLoss"
                     checked={confirmations.dataLoss}
-                    onCheckedChange={(checked) => handleConfirmationChange('dataLoss', checked as boolean)}
+                    onCheckedChange={(checked) =>
+                      handleConfirmationChange("dataLoss", checked as boolean)
+                    }
                     disabled={isLoading}
                   />
                   <Label htmlFor="dataLoss" className="text-sm leading-5">
@@ -138,11 +153,14 @@ export function DeleteAccountDialog({ isOpen, onClose }: DeleteAccountDialogProp
                   <Checkbox
                     id="noRecovery"
                     checked={confirmations.noRecovery}
-                    onCheckedChange={(checked) => handleConfirmationChange('noRecovery', checked as boolean)}
+                    onCheckedChange={(checked) =>
+                      handleConfirmationChange("noRecovery", checked as boolean)
+                    }
                     disabled={isLoading}
                   />
                   <Label htmlFor="noRecovery" className="text-sm leading-5">
-                    I understand that this action cannot be reversed or recovered
+                    I understand that this action cannot be reversed or
+                    recovered
                   </Label>
                 </div>
 
@@ -150,7 +168,12 @@ export function DeleteAccountDialog({ isOpen, onClose }: DeleteAccountDialogProp
                   <Checkbox
                     id="finalDecision"
                     checked={confirmations.finalDecision}
-                    onCheckedChange={(checked) => handleConfirmationChange('finalDecision', checked as boolean)}
+                    onCheckedChange={(checked) =>
+                      handleConfirmationChange(
+                        "finalDecision",
+                        checked as boolean
+                      )
+                    }
                     disabled={isLoading}
                   />
                   <Label htmlFor="finalDecision" className="text-sm leading-5">
@@ -170,7 +193,7 @@ export function DeleteAccountDialog({ isOpen, onClose }: DeleteAccountDialogProp
                 onChange={(e) => setConfirmText(e.target.value)}
                 placeholder={requiredText}
                 disabled={isLoading}
-                className={isConfirmTextValid ? 'border-green-500' : ''}
+                className={isConfirmTextValid ? "border-green-500" : ""}
               />
             </div>
 
@@ -195,7 +218,7 @@ export function DeleteAccountDialog({ isOpen, onClose }: DeleteAccountDialogProp
               className="flex-1"
             >
               <Trash2 className="w-4 h-4 mr-2" />
-              {isLoading ? 'Deleting Account...' : 'Delete My Account'}
+              {isLoading ? "Deleting Account..." : "Delete My Account"}
             </Button>
             <Button
               variant="outline"

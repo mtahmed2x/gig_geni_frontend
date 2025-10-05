@@ -3,8 +3,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useAppSelector } from "@/store";
-import { selectUser, selectIsAuthenticated } from "@/store/slices/authSlice";
+import { useAppSelector } from "@/store/store";
+
 import {
   EmployeeOnly,
   EmployerOnly,
@@ -12,9 +12,13 @@ import {
   AuthenticatedOnly,
 } from "@/components/auth/RoleBasedAccess";
 import Link from "next/link";
+import {
+  selectCurrentUser,
+  selectIsAuthenticated,
+} from "@/store/features/auth/authSlice";
 
 export default function TestAuthPage() {
-  const user = useAppSelector(selectUser);
+  const user = useAppSelector(selectCurrentUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
 
   return (

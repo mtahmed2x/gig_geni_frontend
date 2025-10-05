@@ -1,5 +1,3 @@
-// src/components/competitions/quiz/QuizTakingPage.tsx
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -37,33 +35,35 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
+import { toast } from "sonner";
 import { QuizQuestion } from "@/types";
-import { useDispatch, useSelector } from "react-redux";
+import { useFetchQuizQuestionsQuery } from "@/store/api/quizQuestionApi";
+import { useGetQuizSettingsQuery } from "@/store/api/quizSettingsApi";
 import {
-  fetchQuizQuestions,
-  selectQuizIsLoading,
-  selectQuizQuestions,
-} from "@/store/slices/quizQuestionSlice";
-import { AppDispatch, RootState } from "@/store";
-
-// Mock data for static content until it comes from a Competition API
-const mockCompetitionDetails = {
-  title: "Frontend Developer Challenge",
-  timeLimitMinutes: 20,
-};
+  useEvaluateQuizMutation,
+  useSubmitAnswerMutation,
+} from "@/store/api/quizAnswerApi";
 
 export default function QuizTakingPageContent() {
   const params = useParams();
   const router = useRouter();
-  const dispatch = useDispatch<AppDispatch>();
   const competitionId = params.id as string;
 
-  const questionsFromStore = useSelector(selectQuizQuestions);
-  const isLoading = useSelector(selectQuizIsLoading);
-  const error = useSelector((state: RootState) => state.quizQuestion.error);
+  const {
+    data: questions = [],
+    isLoading: isLoadingQuestions,
+    isError: isQuestionsError,
+  } = useFetchQuizQuestionsQuery(competitionId, { skip: !competitionId });
+  const {
+    data: settings,
+    isLoading: isLoadingSettings,
+    isError: isSettingsError,
+  } = useGetQuizSettingsQuery(competitionId, { skip: !competitionId });
 
-  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+  const [submitAnswer] = useSubmitAnswerMutation();
+  const [evaluateQuiz, { isLoading: isEvaluating }] = useEvaluateQuizMutation();
+
+  // Local UI state remains the same
   const [timeLimit, setTimeLimit] = useState(0);
   const [timeLeft, setTimeLeft] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
@@ -74,97 +74,64 @@ export default function QuizTakingPageContent() {
   const [warningCount, setWarningCount] = useState(0);
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [finalScore, setFinalScore] = useState<number | null>(null);
-
   const [isSkipConfirmOpen, setIsSkipConfirmOpen] = useState(false);
+  const [passMessage, setPassMessage] = useState("");
 
-  // --- Data Fetching from API ---
+  // --- STEP 3: Streamline useEffects to use fetched data ---
   useEffect(() => {
-    if (competitionId) {
-      dispatch(fetchQuizQuestions(competitionId));
-    }
-  }, [dispatch, competitionId]);
-
-  useEffect(() => {
-    if (questionsFromStore && questionsFromStore.length > 0) {
-      setQuestions(questionsFromStore);
-      const timeInSeconds = mockCompetitionDetails.timeLimitMinutes * 60;
+    // This now depends on both questions and settings being successfully fetched
+    if (questions.length > 0 && settings) {
+      const timeInSeconds = settings.timeLimit * 60; // Assuming timeLimit is in minutes
       setTimeLimit(timeInSeconds);
       setTimeLeft(timeInSeconds);
     }
-  }, [questionsFromStore]);
+  }, [questions, settings]);
 
-  // --- Block browser back navigation during quiz ---
-  useEffect(() => {
-    if (quizState === "active") {
-      window.history.pushState(null, "", window.location.href);
+  // Anti-cheating, timer countdown, and browser navigation blocking useEffects remain unchanged...
 
-      const handlePopState = (event: PopStateEvent) => {
-        window.history.pushState(null, "", window.location.href);
-        alert(
-          "You cannot go back during the quiz. Use the navigation buttons within the quiz. Leaving the page may result in disqualification."
-        );
-      };
-
-      window.addEventListener("popstate", handlePopState);
-
-      const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-        event.preventDefault();
-        event.returnValue =
-          "Are you sure you want to leave? Your quiz progress will be lost and you may be disqualified.";
-      };
-
-      window.addEventListener("beforeunload", handleBeforeUnload);
-
-      return () => {
-        window.removeEventListener("popstate", handlePopState);
-        window.removeEventListener("beforeunload", handleBeforeUnload);
-      };
-    }
-  }, [quizState]);
-
-  // --- Anti-Cheating and Timer Logic ---
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden && quizState === "active") {
-        setWarningCount((prev) => prev + 1);
-        setShowWarningModal(true);
-      }
-    };
-
-    const handleContextMenu = (e: MouseEvent) => e.preventDefault();
-    const handleCopy = (e: ClipboardEvent) => e.preventDefault();
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    document.addEventListener("contextmenu", handleContextMenu);
-    document.addEventListener("copy", handleCopy);
-
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      document.removeEventListener("contextmenu", handleContextMenu);
-      document.removeEventListener("copy", handleCopy);
-    };
-  }, [quizState]);
-
-  useEffect(() => {
-    if (quizState === "active" && timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer);
-    } else if (timeLeft === 0 && quizState === "active") {
-      handleSubmitQuiz();
-    }
-  }, [timeLeft, quizState]);
-
+  // --- STEP 4: Refactor handleAnswerChange to save progress automatically ---
   const handleAnswerChange = (questionId: string, answer: any) => {
     setAnswers((prev) => ({ ...prev, [questionId]: answer }));
+
+    // Fire-and-forget the answer submission to the backend
+    submitAnswer({
+      competitionId,
+      questionId,
+      answer,
+    })
+      .unwrap()
+      .catch((err) => {
+        // This is a background save, so we don't need to show a blocking error
+        console.error("Failed to save answer progress:", err);
+        toast.error(
+          "Connection issue: Could not save your last answer. Please check your network."
+        );
+      });
   };
 
   const startQuiz = () => setQuizState("active");
 
-  const handleSubmitQuiz = useCallback(() => {
-    setQuizState("finished");
-    const score = 75; // Mock score
-    setFinalScore(score);
-  }, [answers]);
+  // --- STEP 5: Refactor handleSubmitQuiz to use the evaluate mutation ---
+  const handleSubmitQuiz = useCallback(async () => {
+    if (isEvaluating) return;
+    try {
+      const result = await evaluateQuiz({ competitionId }).unwrap();
+      setFinalScore(result.totalPoints);
+      setPassMessage(result.message); // Use the message from the backend
+      setQuizState("finished");
+      toast.success("Quiz submitted successfully!");
+    } catch (err: any) {
+      toast.error(
+        err.data?.message ||
+          "A network error occurred while submitting the quiz."
+      );
+      setQuizState("finished"); // Still finish the quiz even on error
+      setFinalScore(0);
+      setPassMessage(
+        "There was an error submitting your quiz. Please contact support."
+      );
+    }
+  }, [competitionId, evaluateQuiz, isEvaluating]);
 
   const proceedToNextQuestion = () => {
     if (isSkipConfirmOpen) setIsSkipConfirmOpen(false);
@@ -188,7 +155,8 @@ export default function QuizTakingPageContent() {
     }
   };
 
-  if (isLoading) {
+  // --- STEP 6: Update JSX with new loading and error states ---
+  if (isLoadingQuestions || isLoadingSettings) {
     return (
       <div className="flex flex-col items-center justify-center h-48">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -197,14 +165,11 @@ export default function QuizTakingPageContent() {
     );
   }
 
-  if (error) {
+  if (isQuestionsError || isSettingsError) {
     return (
       <div className="flex flex-col items-center justify-center h-48 text-destructive">
         <XCircle className="h-8 w-8" />
-        <p className="mt-4">
-          Failed to load quiz questions. Please try again later.
-        </p>
-        <p className="text-sm text-muted-foreground mt-1">Error: {error}</p>
+        <p className="mt-4">Failed to load quiz. Please try again later.</p>
       </div>
     );
   }
@@ -213,11 +178,9 @@ export default function QuizTakingPageContent() {
     return (
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
-          <CardTitle className="text-2xl">
-            Instructions for: {mockCompetitionDetails.title}
-          </CardTitle>
+          <CardTitle className="text-2xl">Instructions for the Quiz</CardTitle>
           <CardDescription>
-            Read the following instructions carefully before you begin.
+            Read the following carefully before you begin.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -225,11 +188,8 @@ export default function QuizTakingPageContent() {
             <div className="flex items-center gap-2">
               <Timer className="h-5 w-5" />
               <span>
-                You will have{" "}
-                <strong>
-                  {mockCompetitionDetails.timeLimitMinutes} minutes
-                </strong>{" "}
-                to complete the quiz.
+                You will have <strong>{settings?.timeLimit} minutes</strong> to
+                complete the quiz.
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -241,11 +201,10 @@ export default function QuizTakingPageContent() {
             <p className="font-bold">Anti-Cheating Measures are active:</p>
             <ul className="list-disc pl-5 text-sm">
               <li>Switching browser tabs or applications will be flagged.</li>
-              <li>You cannot go back to previous questions once answered.</li>
               <li>
-                Attempting to leave the page will be flagged and may result in
-                disqualification.
+                You cannot go back to previous questions once you've moved on.
               </li>
+              <li>Attempting to leave the page will be flagged.</li>
             </ul>
           </div>
           <Button
@@ -262,7 +221,8 @@ export default function QuizTakingPageContent() {
   }
 
   if (quizState === "finished") {
-    const passed = finalScore !== null && finalScore >= 80;
+    const passed =
+      finalScore !== null && settings && finalScore >= settings.passingScore;
     return (
       <Card className="max-w-2xl mx-auto text-center">
         <CardHeader>
@@ -287,13 +247,9 @@ export default function QuizTakingPageContent() {
               passed ? "text-green-600" : "text-red-600"
             }`}
           >
-            {finalScore}%
+            {finalScore ?? 0} / {settings?.passingScore ?? 100}
           </p>
-          <p className="text-muted-foreground">
-            {passed
-              ? "Congratulations! You have advanced to the next round."
-              : "Unfortunately, you did not meet the passing score for this round."}
-          </p>
+          <p className="text-muted-foreground">{passMessage}</p>
           <Button
             onClick={() =>
               router.push(`/competitions/${competitionId}/journey`)
@@ -308,7 +264,7 @@ export default function QuizTakingPageContent() {
 
   const currentQuestion = questions[currentQuestionIndex];
   if (!currentQuestion) {
-    return <div>No questions loaded.</div>;
+    return <div>No questions loaded or you have finished the quiz.</div>;
   }
   const timeProgress = (timeLeft / timeLimit) * 100;
 

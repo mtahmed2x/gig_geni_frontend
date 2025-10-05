@@ -1,6 +1,5 @@
 "use client";
-
-import { useEffect, useState, KeyboardEvent, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,15 +13,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus, Trash2, Edit, FileText, BarChart3 } from "lucide-react";
-
-import { useAppDispatch, useAppSelector } from "@/store";
-import {
-  createQuizQuestion,
-  fetchQuizQuestions,
-  clearQuizQuestions,
-  selectQuizQuestions,
-  selectQuizIsLoading,
-} from "@/store/slices/quizQuestionSlice";
 import {
   QuizQuestion,
   CreateQuizQuestionPayload,
@@ -30,6 +20,10 @@ import {
   QuestionDifficulty,
 } from "@/types";
 import { toast } from "sonner";
+import {
+  useCreateQuizQuestionMutation,
+  useFetchQuizQuestionsQuery,
+} from "@/store/api/quizQuestionApi";
 
 const defaultCategories = [
   "Programming",
@@ -60,9 +54,16 @@ const initialNewQuestionState = {
 export default function ManualQuestionEntry({
   competitionId,
 }: ManualQuestionEntryProps) {
-  const dispatch = useAppDispatch();
-  const questions = useAppSelector(selectQuizQuestions);
-  const isLoading = useAppSelector(selectQuizIsLoading);
+  const {
+    data: questions = [],
+    isLoading: isFetchingQuestions,
+    isError,
+  } = useFetchQuizQuestionsQuery(competitionId, {
+    skip: !competitionId,
+  });
+
+  const [createQuestion, { isLoading: isCreatingQuestion }] =
+    useCreateQuizQuestionMutation();
 
   const [newQuestion, setNewQuestion] = useState(initialNewQuestionState);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -79,24 +80,11 @@ export default function ManualQuestionEntry({
     };
   }, [questions]);
 
-  // --- Fetch initial questions on component mount ---
-  useEffect(() => {
-    if (competitionId) {
-      dispatch(fetchQuizQuestions(competitionId));
-    }
-    // Clean up the questions state when the component unmounts
-    return () => {
-      dispatch(clearQuizQuestions());
-    };
-  }, [dispatch, competitionId]);
-
-  // --- STEP 2: Implement the new handleAddQuestion function ---
   const handleAddQuestion = async () => {
     if (!newQuestion.question.trim()) {
       return toast.error("Question text cannot be empty.");
     }
 
-    // Prepare the payload based on the question type
     const payload: CreateQuizQuestionPayload = {
       competition: competitionId,
       question: newQuestion.question,
@@ -125,16 +113,16 @@ export default function ManualQuestionEntry({
     }
 
     try {
-      await dispatch(createQuizQuestion(payload)).unwrap();
+      await createQuestion(payload).unwrap();
       toast.success("Question added successfully!");
-      setNewQuestion(initialNewQuestionState); // Reset form on success
+      setNewQuestion(initialNewQuestionState);
     } catch (error: any) {
-      toast.error(error.message || "Failed to add question.");
+      toast.error(error.data?.message || "Failed to add question.");
     }
   };
 
-  // Placeholder for future implementation
   const handleRemoveQuestion = (questionId: string) => {
+    // In the future, this would call a trigger from a useDeleteQuizQuestionMutation hook
     toast.error("Delete functionality is not yet implemented.");
     console.log("TODO: Implement delete for question ID:", questionId);
   };
@@ -154,7 +142,6 @@ export default function ManualQuestionEntry({
 
   return (
     <div className="space-y-6">
-      {/* --- STEP 2: Move the statistics cards here --- */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardContent className="p-4 flex items-center justify-between">
@@ -183,7 +170,6 @@ export default function ManualQuestionEntry({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* --- ADD NEW QUESTION FORM CARD --- */}
         <Card>
           <CardHeader>
             <CardTitle>Add New Question</CardTitle>
@@ -227,7 +213,6 @@ export default function ManualQuestionEntry({
               </Select>
             </div>
 
-            {/* --- Options for Single/Multiple Choice --- */}
             {["single", "multiple"].includes(newQuestion.type) && (
               <div>
                 <label className="block text-sm font-medium mb-2">
@@ -247,7 +232,6 @@ export default function ManualQuestionEntry({
                       }}
                       placeholder={`Option ${String.fromCharCode(65 + index)}`}
                     />
-
                     {newQuestion.type === "single" ? (
                       <input
                         type="radio"
@@ -284,8 +268,6 @@ export default function ManualQuestionEntry({
                 ))}
               </div>
             )}
-
-            {/* --- Options for True/False --- */}
             {newQuestion.type === "true_false" && (
               <div>
                 <label className="block text-sm font-medium mb-2">
@@ -310,8 +292,6 @@ export default function ManualQuestionEntry({
                 </Select>
               </div>
             )}
-
-            {/* --- Options for Descriptive --- */}
             {["short", "broad"].includes(newQuestion.type) && (
               <div>
                 <label className="block text-sm font-medium mb-2">
@@ -330,16 +310,12 @@ export default function ManualQuestionEntry({
                 />
               </div>
             )}
-
-            <div className="grid grid-cols-3 gap-4">
-              {/* Points, Difficulty, Category Inputs (Unchanged) */}
-            </div>
             <Button
               onClick={handleAddQuestion}
               className="w-full"
-              disabled={isLoading}
+              disabled={isCreatingQuestion}
             >
-              {isLoading ? (
+              {isCreatingQuestion ? (
                 "Adding..."
               ) : (
                 <>
@@ -351,16 +327,20 @@ export default function ManualQuestionEntry({
           </CardContent>
         </Card>
 
-        {/* --- DISPLAY QUESTIONS LIST CARD --- */}
         <Card>
           <CardHeader>
             <CardTitle>Questions ({questions.length})</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 max-h-[700px] overflow-y-auto">
-            {isLoading && questions.length === 0 && (
+            {isFetchingQuestions && (
               <p className="text-center text-gray-500">Loading questions...</p>
             )}
-            {!isLoading && questions.length === 0 && (
+            {isError && (
+              <p className="text-center text-red-500">
+                Failed to load questions.
+              </p>
+            )}
+            {!isFetchingQuestions && questions.length === 0 && (
               <p className="text-center text-gray-500">
                 No questions added yet.
               </p>

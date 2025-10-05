@@ -1,32 +1,33 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Settings, 
-  Lock, 
-  Bell, 
-  Mail, 
-  Trash2, 
-  Shield, 
-  Eye, 
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Settings,
+  Lock,
+  Bell,
+  Mail,
+  Trash2,
+  Shield,
+  Eye,
   EyeOff,
   AlertTriangle,
-  Save
-} from 'lucide-react';
-import { useAppSelector } from '@/store';
-import { selectUser } from '@/store/slices/authSlice';
-import { ChangePasswordDialog } from './ChangePasswordDialog';
-import { DeleteAccountDialog } from './DeleteAccountDialog';
+  Save,
+} from "lucide-react";
+import { useAppSelector } from "@/store/store";
+
+import { ChangePasswordDialog } from "./ChangePasswordDialog";
+import { DeleteAccountDialog } from "./DeleteAccountDialog";
+import { selectCurrentUser } from "@/store/features/auth/authSlice";
 
 export function SettingsPage() {
-  const user = useAppSelector(selectUser);
+  const user = useAppSelector(selectCurrentUser);
   const [settings, setSettings] = useState({
     notifications: {
       emailNotifications: true,
@@ -37,15 +38,15 @@ export function SettingsPage() {
       weeklyDigest: true,
     },
     privacy: {
-      profileVisibility: 'public' as 'public' | 'private' | 'connections',
+      profileVisibility: "public" as "public" | "private" | "connections",
       showEmail: false,
       showPhone: false,
     },
     preferences: {
-      theme: 'system' as 'light' | 'dark' | 'system',
-      language: 'en',
-      timezone: 'UTC',
-    }
+      theme: "system" as "light" | "dark" | "system",
+      language: "en",
+      timezone: "UTC",
+    },
   });
 
   const [showChangePassword, setShowChangePassword] = useState(false);
@@ -53,29 +54,29 @@ export function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
 
   const handleNotificationChange = (key: string, value: boolean) => {
-    setSettings(prev => ({
+    setSettings((prev) => ({
       ...prev,
       notifications: {
         ...prev.notifications,
-        [key]: value
-      }
+        [key]: value,
+      },
     }));
   };
 
   const handlePrivacyChange = (key: string, value: any) => {
-    setSettings(prev => ({
+    setSettings((prev) => ({
       ...prev,
       privacy: {
         ...prev.privacy,
-        [key]: value
-      }
+        [key]: value,
+      },
     }));
   };
 
   const handleSaveSettings = async () => {
     setIsSaving(true);
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     setIsSaving(false);
     // Show success message or handle error
   };
@@ -109,8 +110,8 @@ export function SettingsPage() {
                   Change your account password
                 </p>
               </div>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setShowChangePassword(true)}
               >
                 Change Password
@@ -128,7 +129,9 @@ export function SettingsPage() {
               </div>
               <Button variant="outline" disabled>
                 Enable 2FA
-                <span className="ml-2 text-xs bg-muted px-2 py-1 rounded">Coming Soon</span>
+                <span className="ml-2 text-xs bg-muted px-2 py-1 rounded">
+                  Coming Soon
+                </span>
               </Button>
             </div>
           </CardContent>
@@ -143,14 +146,16 @@ export function SettingsPage() {
             </CardTitle>
             <Button onClick={handleSaveSettings} disabled={isSaving}>
               <Save className="w-4 h-4 mr-2" />
-              {isSaving ? 'Saving...' : 'Save Changes'}
+              {isSaving ? "Saving..." : "Save Changes"}
             </Button>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="emailNotifications">Email Notifications</Label>
+                  <Label htmlFor="emailNotifications">
+                    Email Notifications
+                  </Label>
                   <p className="text-sm text-muted-foreground">
                     Receive notifications via email
                   </p>
@@ -158,7 +163,9 @@ export function SettingsPage() {
                 <Switch
                   id="emailNotifications"
                   checked={settings.notifications.emailNotifications}
-                  onCheckedChange={(checked) => handleNotificationChange('emailNotifications', checked)}
+                  onCheckedChange={(checked) =>
+                    handleNotificationChange("emailNotifications", checked)
+                  }
                 />
               </div>
 
@@ -172,7 +179,9 @@ export function SettingsPage() {
                 <Switch
                   id="pushNotifications"
                   checked={settings.notifications.pushNotifications}
-                  onCheckedChange={(checked) => handleNotificationChange('pushNotifications', checked)}
+                  onCheckedChange={(checked) =>
+                    handleNotificationChange("pushNotifications", checked)
+                  }
                 />
               </div>
 
@@ -180,7 +189,9 @@ export function SettingsPage() {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="competitionUpdates">Competition Updates</Label>
+                  <Label htmlFor="competitionUpdates">
+                    Competition Updates
+                  </Label>
                   <p className="text-sm text-muted-foreground">
                     Get notified about competition status changes
                   </p>
@@ -188,13 +199,17 @@ export function SettingsPage() {
                 <Switch
                   id="competitionUpdates"
                   checked={settings.notifications.competitionUpdates}
-                  onCheckedChange={(checked) => handleNotificationChange('competitionUpdates', checked)}
+                  onCheckedChange={(checked) =>
+                    handleNotificationChange("competitionUpdates", checked)
+                  }
                 />
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="leaderboardUpdates">Leaderboard Updates</Label>
+                  <Label htmlFor="leaderboardUpdates">
+                    Leaderboard Updates
+                  </Label>
                   <p className="text-sm text-muted-foreground">
                     Get notified when your ranking changes
                   </p>
@@ -202,7 +217,9 @@ export function SettingsPage() {
                 <Switch
                   id="leaderboardUpdates"
                   checked={settings.notifications.leaderboardUpdates}
-                  onCheckedChange={(checked) => handleNotificationChange('leaderboardUpdates', checked)}
+                  onCheckedChange={(checked) =>
+                    handleNotificationChange("leaderboardUpdates", checked)
+                  }
                 />
               </div>
 
@@ -216,7 +233,9 @@ export function SettingsPage() {
                 <Switch
                   id="promotionalEmails"
                   checked={settings.notifications.promotionalEmails}
-                  onCheckedChange={(checked) => handleNotificationChange('promotionalEmails', checked)}
+                  onCheckedChange={(checked) =>
+                    handleNotificationChange("promotionalEmails", checked)
+                  }
                 />
               </div>
 
@@ -230,7 +249,9 @@ export function SettingsPage() {
                 <Switch
                   id="weeklyDigest"
                   checked={settings.notifications.weeklyDigest}
-                  onCheckedChange={(checked) => handleNotificationChange('weeklyDigest', checked)}
+                  onCheckedChange={(checked) =>
+                    handleNotificationChange("weeklyDigest", checked)
+                  }
                 />
               </div>
             </div>
@@ -255,7 +276,9 @@ export function SettingsPage() {
               </div>
               <select
                 value={settings.privacy.profileVisibility}
-                onChange={(e) => handlePrivacyChange('profileVisibility', e.target.value)}
+                onChange={(e) =>
+                  handlePrivacyChange("profileVisibility", e.target.value)
+                }
                 className="flex h-10 w-[180px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <option value="public">Public</option>
@@ -274,7 +297,9 @@ export function SettingsPage() {
               <Switch
                 id="showEmail"
                 checked={settings.privacy.showEmail}
-                onCheckedChange={(checked) => handlePrivacyChange('showEmail', checked)}
+                onCheckedChange={(checked) =>
+                  handlePrivacyChange("showEmail", checked)
+                }
               />
             </div>
 
@@ -288,7 +313,9 @@ export function SettingsPage() {
               <Switch
                 id="showPhone"
                 checked={settings.privacy.showPhone}
-                onCheckedChange={(checked) => handlePrivacyChange('showPhone', checked)}
+                onCheckedChange={(checked) =>
+                  handlePrivacyChange("showPhone", checked)
+                }
               />
             </div>
           </CardContent>
@@ -306,7 +333,8 @@ export function SettingsPage() {
             <Alert>
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                These actions are permanent and cannot be undone. Please proceed with caution.
+                These actions are permanent and cannot be undone. Please proceed
+                with caution.
               </AlertDescription>
             </Alert>
 
@@ -317,8 +345,8 @@ export function SettingsPage() {
                   Permanently delete your account and all associated data
                 </p>
               </div>
-              <Button 
-                variant="destructive" 
+              <Button
+                variant="destructive"
                 onClick={() => setShowDeleteAccount(true)}
               >
                 <Trash2 className="w-4 h-4 mr-2" />
@@ -330,12 +358,12 @@ export function SettingsPage() {
       </div>
 
       {/* Dialogs */}
-      <ChangePasswordDialog 
+      <ChangePasswordDialog
         isOpen={showChangePassword}
         onClose={() => setShowChangePassword(false)}
       />
-      
-      <DeleteAccountDialog 
+
+      <DeleteAccountDialog
         isOpen={showDeleteAccount}
         onClose={() => setShowDeleteAccount(false)}
       />

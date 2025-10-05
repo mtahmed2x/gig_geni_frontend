@@ -1,14 +1,16 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useAppSelector } from "@/store";
-import { selectUser, selectIsAuthenticated } from "@/store/slices/authSlice";
+import { useAppSelector } from "@/store/store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, Lock, UserX } from "lucide-react";
 import { useAuth } from "@/contexts/AuthProvider";
 import { UserRole } from "@/types";
+import {
+  selectCurrentUser,
+  selectIsAuthenticated,
+} from "@/store/features/auth/authSlice";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -23,7 +25,7 @@ export function AuthGuard({
   allowedRoles = [],
   fallback,
 }: AuthGuardProps) {
-  const user = useAppSelector(selectUser);
+  const user = useAppSelector(selectCurrentUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -155,7 +157,7 @@ export function AuthGuard({
  * without needing the full AuthGuard wrapper.
  */
 export function useAuthGuard() {
-  const user = useAppSelector(selectUser);
+  const user = useAppSelector(selectCurrentUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
 
   const hasRole = (roles: UserRole[]) => {

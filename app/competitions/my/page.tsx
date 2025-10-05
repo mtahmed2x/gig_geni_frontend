@@ -21,48 +21,13 @@ import {
   CheckCircle,
   XCircle,
   MapPin,
+  AlertCircle,
 } from "lucide-react";
 import Link from "next/link";
-import { useAppDispatch, useAppSelector } from "@/store";
-import {
-  fetchJoinedCompetitions,
-  selectJoinedCompetitions,
-  selectCompetitionIsLoading,
-} from "@/store/slices/competitionSlice";
+import { useAppDispatch, useAppSelector } from "@/store/store";
+
 import { Competition } from "@/types";
-
-// NOTE: For participant-specific status (e.g., in_progress, eliminated),
-// your API response for each competition will need to include a field
-// like `participantStatus`. This is a placeholder for that future feature.
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "in_progress":
-      return "bg-blue-100 text-blue-800";
-    case "completed":
-      return "bg-green-100 text-green-800";
-    case "upcoming":
-      return "bg-yellow-100 text-yellow-800";
-    case "eliminated":
-      return "bg-red-100 text-red-800";
-    default:
-      return "bg-gray-100 text-gray-800";
-  }
-};
-
-const getStatusIcon = (status: string) => {
-  switch (status) {
-    case "in_progress":
-      return <Play className="h-4 w-4" />;
-    case "completed":
-      return <CheckCircle className="h-4 w-4" />;
-    case "upcoming":
-      return <Clock className="h-4 w-4" />;
-    case "eliminated":
-      return <XCircle className="h-4 w-4" />;
-    default:
-      return <Trophy className="h-4 w-4" />;
-  }
-};
+import { useFetchJoinedCompetitionsQuery } from "@/store/api/competitionApi";
 
 const CompetitionCardSkeleton = () => (
   <Card className="h-full animate-pulse">
@@ -81,23 +46,23 @@ const CompetitionCardSkeleton = () => (
 );
 
 function MyCompetitionsPageContent() {
-  const dispatch = useAppDispatch();
-  const joinedCompetitions = useAppSelector(selectJoinedCompetitions);
-  const isLoading = useAppSelector(selectCompetitionIsLoading);
+  const {
+    data: joinedCompetitions = [],
+    isLoading,
+    isError,
+  } = useFetchJoinedCompetitionsQuery();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-
-  useEffect(() => {
-    dispatch(fetchJoinedCompetitions());
-  }, [dispatch]);
 
   const filteredCompetitions = useMemo(() => {
     return joinedCompetitions.filter((competition) => {
       const matchesSearch = competition.title
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
-      // Add a status filter here once your API provides a participant-specific status
+      // The status filter logic will need to be updated when your API provides
+      // a participant-specific status (e.g., 'in_progress', 'completed').
+      // For now, it's a placeholder.
       // const matchesStatus = statusFilter === 'all' || competition.participantStatus === statusFilter;
       return matchesSearch;
     });
@@ -197,6 +162,19 @@ function MyCompetitionsPageContent() {
             <CompetitionCardSkeleton />
             <CompetitionCardSkeleton />
           </div>
+        ) : isError ? (
+          <Card>
+            <CardContent className="p-12 text-center text-destructive">
+              <AlertCircle className="h-12 w-12 mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">
+                Failed to Load Your Competitions
+              </h3>
+              <p>
+                There was an error fetching your data. Please refresh the page
+                or try again later.
+              </p>
+            </CardContent>
+          </Card>
         ) : filteredCompetitions.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {filteredCompetitions.map((competition, index) => (
@@ -211,10 +189,8 @@ function MyCompetitionsPageContent() {
                     <CardTitle className="text-xl mb-2">
                       {competition.title}
                     </CardTitle>
-                    {/* <Badge className={getStatusColor('in_progress')}>
-                      {getStatusIcon('in_progress')}
-                      <span className="ml-1">In Progress</span>
-                    </Badge> */}
+                    {/* Placeholder for participant-specific status */}
+                    <Badge>In Progress</Badge>
                   </CardHeader>
                   <CardContent>
                     <p className="text-gray-600 mb-4 line-clamp-2">
@@ -247,16 +223,12 @@ function MyCompetitionsPageContent() {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button asChild className="flex-1">
+                      <Button asChild variant="outline" className="flex-1">
                         <Link href={`/competitions/${competition._id}`}>
                           <Eye className="h-4 w-4 mr-2" /> View Details
                         </Link>
                       </Button>
-                      <Button
-                        asChild
-                        variant="default"
-                        className="flex-1 bg-primary"
-                      >
+                      <Button asChild className="flex-1 bg-primary">
                         <Link href={`/competitions/${competition._id}/journey`}>
                           <Play className="h-4 w-4 mr-2" />
                           Continue Journey
@@ -273,7 +245,7 @@ function MyCompetitionsPageContent() {
             <CardContent className="p-12 text-center">
               <Trophy className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                No competitions found
+                No Competitions Found
               </h3>
               <p className="text-gray-600 mb-4">
                 {searchQuery || statusFilter !== "all"

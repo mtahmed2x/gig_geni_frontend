@@ -20,8 +20,7 @@ import {
   AlertCircle,
   ArrowLeft,
 } from "lucide-react";
-import { useAppDispatch, useAppSelector } from "@/store";
-import { verifyOtp, selectIsLoading } from "@/store/slices/authSlice";
+import { useVerifyOtpMutation } from "@/store/api/authApi";
 
 interface EmailVerificationModalProps {
   isOpen: boolean;
@@ -39,8 +38,8 @@ export function EmailVerificationModal({
   onBackToAuth,
 }: EmailVerificationModalProps) {
   const router = useRouter();
-  const dispatch = useAppDispatch();
-  const isLoading = useAppSelector(selectIsLoading);
+
+  const [verifyOtp, { isLoading }] = useVerifyOtpMutation();
 
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const [countdown, setCountdown] = useState(60);
@@ -48,6 +47,7 @@ export function EmailVerificationModal({
   const [error, setError] = useState("");
   const [isVerified, setIsVerified] = useState(false);
 
+  // All useEffect hooks for local state management remain the same
   useEffect(() => {
     if (countdown > 0 && !canResend) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
@@ -67,6 +67,7 @@ export function EmailVerificationModal({
     }
   }, [isOpen]);
 
+  // UI interaction handlers remain the same
   const handleOtpChange = (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return; // Only allow digits
     const newOtp = [...otp];
@@ -88,6 +89,7 @@ export function EmailVerificationModal({
     }
   };
 
+  // --- STEP 3: Refactor the handleVerify function ---
   const handleVerify = async (otpCode?: string) => {
     const code = otpCode || otp.join("");
     if (code.length !== 6) {
@@ -100,13 +102,18 @@ export function EmailVerificationModal({
     }
     setError("");
 
-    const result = await dispatch(verifyOtp({ otp: code, tempToken }));
+    try {
+      // Use the 'verifyOtp' trigger from the hook and .unwrap() the result
+      const result = await verifyOtp({
+        payload: { otp: code },
+        tempToken,
+      }).unwrap();
 
-    if (verifyOtp.fulfilled.match(result)) {
+      // On success, 'result' is the fulfilled payload
       setIsVerified(true);
       setTimeout(() => {
         onClose();
-        const userRole = result.payload?.user.role;
+        const userRole = result.user.role;
         switch (userRole) {
           case "admin":
             router.push("/admin/dashboard");
@@ -121,14 +128,23 @@ export function EmailVerificationModal({
             router.push("/");
         }
       }, 2000);
-    } else if (verifyOtp.rejected.match(result)) {
-      setError((result.payload as string) || "Invalid verification code.");
+    } catch (err: any) {
+      // On failure, .unwrap() throws, and we catch the error here
+      setError(err.data?.message || "Invalid verification code.");
     }
   };
 
   const handleResend = async () => {
-    /* Implement resend logic here if backend supports it */
+    // Implement resend logic here. You would likely have another mutation
+    // like `useResendOtpMutation` and call it here in a try/catch block.
+    // For now, it resets the timer as a placeholder.
+    console.log("Resending OTP for:", email);
+    setCanResend(false);
+    setCountdown(60);
+    setError("");
   };
+
+  // --- No changes needed to the JSX, it already uses the 'isLoading' variable ---
 
   if (isVerified) {
     return (
@@ -192,6 +208,7 @@ export function EmailVerificationModal({
                 onKeyDown={(e) => handleKeyDown(index, e)}
                 className="w-12 h-14 text-center text-2xl font-semibold"
                 autoComplete="off"
+                disabled={isLoading}
               />
             ))}
           </div>
@@ -229,7 +246,11 @@ export function EmailVerificationModal({
           </div>
           {onBackToAuth && (
             <div className="text-center pt-4 border-t">
-              <Button variant="ghost" onClick={onBackToAuth}>
+              <Button
+                variant="ghost"
+                onClick={onBackToAuth}
+                disabled={isLoading}
+              >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Login
               </Button>

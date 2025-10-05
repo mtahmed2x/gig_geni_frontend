@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { ComponentType } from 'react';
-import { ProtectedRoute } from './ProtectedRoute';
+import { ComponentType } from "react";
+import { ProtectedRoute } from "./ProtectedRoute";
 
 export function withAuth<P extends object>(
   Component: ComponentType<P>,
@@ -15,7 +15,9 @@ export function withAuth<P extends object>(
     );
   };
 
-  AuthenticatedComponent.displayName = `withAuth(${Component.displayName || Component.name})`;
-  
+  AuthenticatedComponent.displayName = `withAuth(${
+    Component.displayName || Component.name
+  })`;
+
   return AuthenticatedComponent;
 }

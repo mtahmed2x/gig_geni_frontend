@@ -34,20 +34,18 @@ import {
   File,
   Image,
   Trash2,
+  Loader2,
 } from "lucide-react";
 import { categories, skillSuggestions } from "@/lib/mock-data";
-import { useAppDispatch, useAppSelector } from "@/store";
-import {
-  createCompetition,
-  selectCompetitionIsLoading,
-} from "@/store/slices/competitionSlice";
+import { useAppDispatch, useAppSelector } from "@/store/store";
+
 import { toast, Toaster } from "sonner";
 import { CreateCompetitionPayload } from "@/types";
+import { useCreateCompetitionMutation } from "@/store/api/competitionApi";
 
 function CreateCompetitionPageContent() {
   const router = useRouter();
-  const dispatch = useAppDispatch();
-  const isLoading = useAppSelector(selectCompetitionIsLoading);
+  const [createCompetition, { isLoading }] = useCreateCompetitionMutation();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     title: "",
@@ -220,17 +218,19 @@ function CreateCompetitionPageContent() {
       termsAndConditions: formData.termsAndConditions,
     };
 
-    const promise = dispatch(
-      createCompetition({ payload, bannerImage: formData.bannerImage })
-    ).unwrap();
+    const promise = createCompetition({
+      payload,
+      bannerImage: formData.bannerImage,
+    }).unwrap();
 
     toast.promise(promise, {
       loading: "Creating your competition...",
-      success: () => {
-        router.push("/competitions/manage");
+      success: (data) => {
+        // Redirect on success, using the ID from the response if needed
+        router.push(`/competitions/manage/${data.competition._id}`);
         return "Competition created successfully!";
       },
-      error: (err) => err.message || "An unknown error occurred.",
+      error: (err) => err.data?.message || "An unknown error occurred.",
     });
   };
 
@@ -1029,7 +1029,6 @@ function CreateCompetitionPageContent() {
             >
               Previous
             </Button>
-
             <div className="flex space-x-4">
               {currentStep === totalSteps ? (
                 <>
@@ -1044,10 +1043,13 @@ function CreateCompetitionPageContent() {
                   <Button
                     onClick={handleSubmit}
                     className="btn-primary px-8 py-2 text-sm"
-                    disabled={isLoading} // <-- Add this
+                    disabled={isLoading}
                   >
                     {isLoading ? (
-                      "Creating..."
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                        Creating...
+                      </>
                     ) : (
                       <>
                         <Trophy className="h-4 w-4 mr-2" />

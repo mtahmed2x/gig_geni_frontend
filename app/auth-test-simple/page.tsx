@@ -1,16 +1,21 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { logout, selectUser, selectIsAuthenticated } from '@/store/slices/authSlice';
-import Link from 'next/link';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useAppDispatch, useAppSelector } from "@/store/store";
+
+import Link from "next/link";
+import {
+  logout,
+  selectCurrentUser,
+  selectIsAuthenticated,
+} from "@/store/features/auth/authSlice";
 
 export default function AuthTestSimplePage() {
   const dispatch = useAppDispatch();
-  const user = useAppSelector(selectUser);
+  const user = useAppSelector(selectCurrentUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
-  
+
   const handleLogout = () => {
     dispatch(logout());
   };
@@ -24,7 +29,7 @@ export default function AuthTestSimplePage() {
         <CardContent className="space-y-4">
           <div>
             <h3 className="font-semibold mb-2">Authentication Status:</h3>
-            <p>Authenticated: {isAuthenticated ? '✅ Yes' : '❌ No'}</p>
+            <p>Authenticated: {isAuthenticated ? "✅ Yes" : "❌ No"}</p>
             {user && (
               <div className="mt-2 space-y-1">
                 <p>Name: {user.name}</p>
@@ -41,10 +46,14 @@ export default function AuthTestSimplePage() {
                 <Link href="/profile">Profile (All Users)</Link>
               </Button>
               <Button asChild variant="outline" size="sm">
-                <Link href="/competitions/my">My Competitions (Employee Only)</Link>
+                <Link href="/competitions/my">
+                  My Competitions (Employee Only)
+                </Link>
               </Button>
               <Button asChild variant="outline" size="sm">
-                <Link href="/competitions/create">Create Competition (Employer Only)</Link>
+                <Link href="/competitions/create">
+                  Create Competition (Employer Only)
+                </Link>
               </Button>
             </div>
           </div>

@@ -3,29 +3,10 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, CheckCircle, Clock, BarChart3 } from "lucide-react";
 import ManualQuestionEntry from "./quiz-manager/ManualQuestionEntry";
 import AIQuestionGenerator from "./quiz-manager/AIQuestionGenerator";
 import GoogleFormsIntegration from "./quiz-manager/GoogleFormsIntegration";
 import QuizSettings from "./quiz-manager/QuizSettings";
-
-export interface Question {
-  id: string;
-  question: string;
-  type:
-    | "single_answer"
-    | "multiple_answer"
-    | "short_descriptive"
-    | "true_false"
-    | "broad_question";
-  options?: string[];
-  correctAnswer: number | number[] | string;
-  points: number;
-  difficulty: "easy" | "medium" | "hard";
-  category: string;
-  wordLimit?: number;
-  explanation?: string;
-}
 
 interface QuizManagerProps {
   competitionId: string;
@@ -33,12 +14,6 @@ interface QuizManagerProps {
 
 export default function QuizManager({ competitionId }: QuizManagerProps) {
   const [activeTab, setActiveTab] = useState("manual");
-  const [quizSettings, setQuizSettings] = useState({
-    passingScore: 85,
-    timeLimit: 30,
-    randomizeQuestions: true,
-    showResults: false,
-  });
 
   return (
     <div className="space-y-6">
@@ -64,11 +39,7 @@ export default function QuizManager({ competitionId }: QuizManagerProps) {
         </TabsContent>
 
         <TabsContent value="settings" className="space-y-6">
-          <QuizSettings
-            questions={[]}
-            settings={quizSettings}
-            onSettingsChange={setQuizSettings}
-          />
+          <QuizSettings competitionId={competitionId} />
         </TabsContent>
       </Tabs>
     </div>

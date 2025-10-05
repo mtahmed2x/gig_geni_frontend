@@ -4,20 +4,14 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { useAppDispatch, useAppSelector } from "@/store";
-import { selectUser } from "@/store/slices/authSlice";
-import {
-  getUserProfile,
-  updateUserProfile,
-  selectUserProfile,
-  selectUserIsLoading,
-} from "@/store/slices/userSlice";
+import { useAppDispatch, useAppSelector } from "@/store/store";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Edit, X, Camera } from "lucide-react";
+import { Edit, X, Camera, AlertCircle, Loader2 } from "lucide-react";
 import { User } from "@/types";
 
 // Import all your tab components
@@ -29,12 +23,17 @@ import { ContactTab } from "./tabs/ContactTab";
 import { CompanyTab } from "./tabs/CompanyTab";
 import { ProfileCompletionModal } from "./ProfileCompletionModal";
 import { toast } from "sonner";
+import { selectCurrentUser } from "@/store/features/auth/authSlice";
+import {
+  useGetUserProfileQuery,
+  useUpdateUserProfileMutation,
+} from "@/store/api/userApi";
 
 export function ProfilePage() {
-  const dispatch = useAppDispatch();
-  const authUser = useAppSelector(selectUser);
-  const profile = useAppSelector(selectUserProfile);
-  const isLoading = useAppSelector(selectUserIsLoading);
+  const authUser = useAppSelector(selectCurrentUser);
+  const { data: profile, isLoading, isError } = useGetUserProfileQuery();
+  const [updateProfile, { isLoading: isUpdating }] =
+    useUpdateUserProfileMutation();
 
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
@@ -42,32 +41,28 @@ export function ProfilePage() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    // Fetch the detailed profile from the backend
-    dispatch(getUserProfile());
-
-    // Check URL params to trigger modals or edit mode
+    // The query hook handles fetching automatically. This effect is now only for UI logic.
     const shouldComplete = searchParams.get("complete") === "true";
-    if (shouldComplete && authUser && !authUser.isProfileComplete) {
+    if (shouldComplete && profile && !profile.isProfileComplete) {
       setShowCompletionModal(true);
     }
     const shouldEdit = searchParams.get("edit") === "true";
     if (shouldEdit) {
       setIsEditing(true);
     }
-  }, [dispatch, authUser, searchParams]);
+  }, [profile, searchParams]);
 
-  // This single function will be passed to all child tabs
   const handleUpdateProfile = async (updates: Partial<User>) => {
-    const promise = dispatch(updateUserProfile(updates)).unwrap();
+    const promise = updateProfile(updates).unwrap();
 
     toast.promise(promise, {
       loading: "Saving changes...",
-      success: "Profile updated successfully!",
-      error: (err) => err.message || "Failed to update profile.",
+      success: (updatedProfile) => {
+        setIsEditing(false); // Turn off editing mode on success
+        return "Profile updated successfully!";
+      },
+      error: (err) => err.data?.message || "Failed to update profile.",
     });
-
-    // We can optimistically turn off editing mode
-    setIsEditing(false);
   };
 
   const getTabsForRole = () => {
@@ -89,7 +84,7 @@ export function ProfilePage() {
     return commonTabs;
   };
 
-  if (isLoading && !profile) {
+  if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="animate-pulse space-y-8">
@@ -100,9 +95,13 @@ export function ProfilePage() {
     );
   }
 
-  if (!authUser || !profile) {
+  if (isError || !authUser || !profile) {
     return (
-      <div className="text-center py-12">Could not load user profile.</div>
+      <div className="container mx-auto px-4 py-8 text-center">
+        <AlertCircle className="mx-auto h-12 w-12 text-destructive mb-4" />
+        <h2 className="text-xl font-semibold">Could not load user profile.</h2>
+        <p className="text-muted-foreground">Please try refreshing the page.</p>
+      </div>
     );
   }
 
@@ -115,7 +114,11 @@ export function ProfilePage() {
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
               <div className="relative">
                 <Avatar className="w-24 h-24 border-4 border-white shadow-md">
-                  <AvatarImage src="https://cdn-icons-png.flaticon.com/512/149/149071.png" />
+                  <AvatarImage
+                    src={
+                      "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                    }
+                  />
                   <AvatarFallback className="text-3xl">
                     {authUser.name?.charAt(0) || "U"}
                   </AvatarFallback>
@@ -133,11 +136,11 @@ export function ProfilePage() {
               <div className="flex-1">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
-                    <h1 className="text-3xl font-bold">{authUser.name}</h1>
+                    <h1 className="text-3xl font-bold">{profile.name}</h1>
                     <p className="text-muted-foreground capitalize">
-                      {authUser.role}
+                      {profile.role}
                     </p>
-                    {authUser.role === "employer" && profile.company?.name && (
+                    {profile.role === "employer" && profile.company?.name && (
                       <p className="text-sm text-muted-foreground">
                         {profile.company.name}
                       </p>
@@ -155,8 +158,11 @@ export function ProfilePage() {
                     <Button
                       onClick={() => setIsEditing(!isEditing)}
                       variant={isEditing ? "outline" : "default"}
+                      disabled={isUpdating}
                     >
-                      {isEditing ? (
+                      {isUpdating ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : isEditing ? (
                         <>
                           <X className="w-4 h-4 mr-2" />
                           Cancel
@@ -196,40 +202,43 @@ export function ProfilePage() {
             </TabsTrigger>
           ))}
         </TabsList>
+
+        {/* Each tab now receives the authoritative `profile` from the query and the `isUpdating` state */}
         <TabsContent value="personal">
           <PersonalInfoTab
             profile={profile}
-            isEditing={isEditing}
             onUpdate={handleUpdateProfile}
+            isUpdating={isUpdating}
           />
         </TabsContent>
         <TabsContent value="contact">
           <ContactTab
             profile={profile}
-            isEditing={isEditing}
+            isEditing={isUpdating}
             onUpdate={handleUpdateProfile}
           />
         </TabsContent>
+
         {authUser.role === "employee" && (
           <>
             <TabsContent value="experience">
               <ExperienceTab
                 profile={profile}
-                isEditing={isEditing}
+                isEditing={isUpdating}
                 onUpdate={handleUpdateProfile}
               />
             </TabsContent>
             <TabsContent value="education">
               <EducationTab
                 profile={profile}
-                isEditing={isEditing}
+                isEditing={isUpdating}
                 onUpdate={handleUpdateProfile}
               />
             </TabsContent>
             <TabsContent value="skills">
               <SkillsTab
                 profile={profile}
-                isEditing={isEditing}
+                isEditing={isUpdating}
                 onUpdate={handleUpdateProfile}
                 userRole={authUser.role}
               />
@@ -237,26 +246,17 @@ export function ProfilePage() {
           </>
         )}
         {authUser.role === "employer" && (
-          <>
-            <TabsContent value="company">
-              <CompanyTab
-                profile={profile}
-                isEditing={isEditing}
-                onUpdate={handleUpdateProfile}
-              />
-            </TabsContent>
-            <TabsContent value="skills">
-              <SkillsTab
-                profile={profile}
-                isEditing={isEditing}
-                onUpdate={handleUpdateProfile}
-                userRole={authUser.role}
-              />
-            </TabsContent>
-          </>
+          <TabsContent value="company">
+            <CompanyTab
+              profile={profile}
+              isEditing={isUpdating}
+              onUpdate={handleUpdateProfile}
+            />
+          </TabsContent>
         )}
       </Tabs>
 
+      {/* Modal remains the same */}
       {showCompletionModal && (
         <ProfileCompletionModal
           isOpen={showCompletionModal}

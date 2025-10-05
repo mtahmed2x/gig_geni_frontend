@@ -6,13 +6,14 @@ import Link from "next/link";
 
 import { useSearchParams } from "next/navigation";
 
-import { useAppSelector } from "@/store";
-import { selectUser } from "@/store/slices/authSlice";
+import { useAppSelector } from "@/store/store";
+
 import { Badge } from "@/components/ui/badge";
+import { selectCurrentUser } from "@/store/features/auth/authSlice";
 
 export default function AccessDeniedPage() {
   const searchParams = useSearchParams();
-  const user = useAppSelector(selectUser);
+  const user = useAppSelector(selectCurrentUser);
 
   const requiredRole = searchParams.get("required_role");
   const userRole = searchParams.get("user_role");

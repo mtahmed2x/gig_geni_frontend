@@ -27,14 +27,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-// --- STEP 1: Import Redux hooks, actions, types and selectors ---
-import { useAppDispatch, useAppSelector } from "@/store";
-import {
-  fetchMyCompetitions,
-  selectMyCompetitions,
-  selectCompetitionIsLoading,
-} from "@/store/slices/competitionSlice";
 import { Competition } from "@/types";
+import { useFetchMyCompetitionsQuery } from "@/store/api/competitionApi";
 
 // --- Helper Functions ---
 const getStatusColor = (status: Competition["status"]) => {
@@ -85,20 +79,15 @@ const CompetitionCardSkeleton = () => (
 );
 
 function ManageCompetitionsPageContent() {
-  const dispatch = useAppDispatch();
-  // --- STEP 2: Get live data from the Redux store ---
-  const myCompetitions = useAppSelector(selectMyCompetitions);
-  const isLoading = useAppSelector(selectCompetitionIsLoading);
+  const {
+    data: myCompetitions = [], // Default to an empty array to prevent errors
+    isLoading,
+    isError,
+  } = useFetchMyCompetitionsQuery();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  // --- STEP 3: Fetch data when the component mounts ---
-  useEffect(() => {
-    dispatch(fetchMyCompetitions());
-  }, [dispatch]);
-
-  // --- STEP 4: Use live data for filtering and stats calculations ---
   const filteredCompetitions = useMemo(() => {
     return myCompetitions.filter((competition) => {
       const matchesSearch = competition.title
@@ -226,7 +215,21 @@ function ManageCompetitionsPageContent() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <CompetitionCardSkeleton />
             <CompetitionCardSkeleton />
+            <CompetitionCardSkeleton />
+            <CompetitionCardSkeleton />
           </div>
+        ) : isError ? (
+          <Card>
+            <CardContent className="p-12 text-center text-destructive">
+              <AlertCircle className="h-12 w-12 mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">
+                Failed to Load Competitions
+              </h3>
+              <p>
+                There was an error fetching your data. Please try again later.
+              </p>
+            </CardContent>
+          </Card>
         ) : filteredCompetitions.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {filteredCompetitions.map((competition, index) => (
@@ -234,7 +237,7 @@ function ManageCompetitionsPageContent() {
                 key={competition._id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: index * 0.05 }}
               >
                 <Card className="h-full hover:shadow-lg transition-shadow">
                   <CardHeader>
@@ -287,7 +290,7 @@ function ManageCompetitionsPageContent() {
                         </Link>
                       </Button>
                       <Button asChild>
-                        <Link href={`/competitions/${competition._id}/manage`}>
+                        <Link href={`/competitions/manage/${competition._id}`}>
                           <Settings className="h-4 w-4 mr-2" />
                           Manage
                         </Link>

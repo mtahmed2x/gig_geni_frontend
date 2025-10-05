@@ -22,17 +22,15 @@ import {
   Calendar,
   Users,
   Star,
+  AlertCircle,
 } from "lucide-react";
 import { categories } from "@/lib/mock-data";
 import Link from "next/link";
 
-import { useAppDispatch, useAppSelector } from "@/store";
-import {
-  fetchAllCompetitions,
-  selectAllCompetitions,
-  selectCompetitionIsLoading,
-} from "@/store/slices/competitionSlice";
+import { useAppDispatch, useAppSelector } from "@/store/store";
+
 import { Competition } from "@/types";
+import { useFetchAllCompetitionsQuery } from "@/store/api/competitionApi";
 
 const CompetitionCardSkeleton = () => (
   <Card className="h-full animate-pulse">
@@ -46,9 +44,11 @@ const CompetitionCardSkeleton = () => (
 );
 
 export default function CompetitionsPage() {
-  const dispatch = useAppDispatch();
-  const allCompetitions = useAppSelector(selectAllCompetitions);
-  const isLoading = useAppSelector(selectCompetitionIsLoading);
+  const {
+    data: allCompetitions = [], // Default to an empty array
+    isLoading,
+    isError,
+  } = useFetchAllCompetitionsQuery();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -56,10 +56,6 @@ export default function CompetitionsPage() {
   const [selectedLocation, setSelectedLocation] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
   const [showFilters, setShowFilters] = useState(true);
-
-  useEffect(() => {
-    dispatch(fetchAllCompetitions());
-  }, [dispatch]);
 
   const uniqueLocations = useMemo(() => {
     return Array.from(
@@ -83,14 +79,13 @@ export default function CompetitionsPage() {
     });
 
     filtered.sort((a, b) => {
-      if (sortBy === "newest") {
+      if (sortBy === "newest")
         return (
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
-      }
-      if (sortBy === "participants") {
+      if (sortBy === "participants")
         return (b.participants?.length || 0) - (a.participants?.length || 0);
-      }
+      // Add other sort conditions as needed
       return 0;
     });
 
@@ -250,108 +245,120 @@ export default function CompetitionsPage() {
         {/* --- THIS IS THE CORRECTED SEARCH & FILTER SECTION --- */}
 
         {/* Competitions Grid */}
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <CompetitionCardSkeleton />
-            <CompetitionCardSkeleton />
-            <CompetitionCardSkeleton />
-          </div>
-        ) : filteredAndSortedCompetitions.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredAndSortedCompetitions.map((competition, index) => {
-              const status = getStatusBadge(competition);
-              return (
-                <motion.div
-                  key={competition._id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                >
-                  <Card className="h-full flex flex-col hover:shadow-xl transition-all duration-300">
-                    <CardContent className="p-6 flex flex-col h-full">
-                      <div className="flex justify-between items-start mb-4">
-                        <Badge variant={status.variant}>{status.text}</Badge>
-                      </div>
-                      <div className="mb-4">
-                        <h3 className="text-xl font-bold line-clamp-2 h-[56px]">
-                          {competition.title}
-                        </h3>
-                        <p className="text-gray-600 font-medium text-sm">
-                          {competition.category}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <CompetitionCardSkeleton />
+              <CompetitionCardSkeleton />
+              <CompetitionCardSkeleton />
+            </div>
+          ) : isError ? (
+            <div className="text-center py-12 bg-white rounded-lg border border-destructive/50 text-destructive">
+              <AlertCircle className="h-12 w-12 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold">
+                Could Not Load Competitions
+              </h3>
+              <p className="mb-4">
+                There was an error fetching data. Please try again later.
+              </p>
+            </div>
+          ) : filteredAndSortedCompetitions.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredAndSortedCompetitions.map((competition, index) => {
+                const status = getStatusBadge(competition);
+                return (
+                  <motion.div
+                    key={competition._id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <Card className="h-full flex flex-col hover:shadow-xl transition-all duration-300">
+                      <CardContent className="p-6 flex flex-col h-full">
+                        <div className="flex justify-between items-start mb-4">
+                          <Badge variant={status.variant}>{status.text}</Badge>
+                        </div>
+                        <div className="mb-4">
+                          <h3 className="text-xl font-bold line-clamp-2 h-[56px]">
+                            {competition.title}
+                          </h3>
+                          <p className="text-gray-600 font-medium text-sm">
+                            {competition.category}
+                          </p>
+                        </div>
+                        <p className="text-gray-600 text-sm mb-4 line-clamp-3 flex-grow">
+                          {competition.description}
                         </p>
-                      </div>
-                      <p className="text-gray-600 text-sm mb-4 line-clamp-3 flex-grow">
-                        {competition.description}
-                      </p>
-                      <div className="mb-4">
-                        <div className="flex flex-wrap gap-1">
-                          {competition.skillsTested
-                            .split(",")
-                            .slice(0, 3)
-                            .map((skill) => (
-                              <span
-                                key={skill}
-                                className="text-xs bg-orange-50 text-orange-700 px-2 py-1 rounded"
-                              >
-                                {skill.trim()}
-                              </span>
-                            ))}
+                        <div className="mb-4">
+                          <div className="flex flex-wrap gap-1">
+                            {competition.skillsTested
+                              .split(",")
+                              .slice(0, 3)
+                              .map((skill) => (
+                                <span
+                                  key={skill}
+                                  className="text-xs bg-orange-50 text-orange-700 px-2 py-1 rounded"
+                                >
+                                  {skill.trim()}
+                                </span>
+                              ))}
+                          </div>
                         </div>
-                      </div>
-                      <div className="space-y-2 mb-4 text-sm text-gray-600">
-                        <div className="flex items-center">
-                          <MapPin className="h-4 w-4 mr-2" />
-                          {competition.location}
+                        <div className="space-y-2 mb-4 text-sm text-gray-600">
+                          <div className="flex items-center">
+                            <MapPin className="h-4 w-4 mr-2" />
+                            {competition.location}
+                          </div>
+                          <div className="flex items-center">
+                            <Calendar className="h-4 w-4 mr-2" />
+                            Ends on {formatDate(competition.endDate)}
+                          </div>
+                          <div className="flex items-center">
+                            <Users className="h-4 w-4 mr-2" />
+                            {competition.participants.length} participants
+                          </div>
+                          <div className="flex items-center font-semibold text-green-600">
+                            <Trophy className="h-4 w-4 mr-2" />
+                            {competition.prize}
+                          </div>
                         </div>
-                        <div className="flex items-center">
-                          <Calendar className="h-4 w-4 mr-2" />
-                          Ends on {formatDate(competition.endDate)}
+                        <div className="mt-auto">
+                          <Link
+                            href={`/competitions/${competition._id}`}
+                            className="block"
+                          >
+                            <Button className="w-full">
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Details
+                            </Button>
+                          </Link>
                         </div>
-                        <div className="flex items-center">
-                          <Users className="h-4 w-4 mr-2" />
-                          {competition.participants.length} participants
-                        </div>
-                        <div className="flex items-center font-semibold text-green-600">
-                          <Trophy className="h-4 w-4 mr-2" />
-                          {competition.prize}
-                        </div>
-                      </div>
-                      <div className="mt-auto">
-                        <Link
-                          href={`/competitions/${competition._id}`}
-                          className="block"
-                        >
-                          <Button className="w-full">
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Details
-                          </Button>
-                        </Link>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="text-center py-12 bg-white rounded-lg border">
-            <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold">No competitions found</h3>
-            <p className="text-gray-600 mb-4">
-              Try adjusting your search criteria or clearing your filters.
-            </p>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setSearchQuery("");
-                setSelectedCategory("all");
-                setSelectedLocation("all");
-              }}
-            >
-              Clear Filters
-            </Button>
-          </div>
-        )}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-white rounded-lg border">
+              <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold">No competitions found</h3>
+              <p className="text-gray-600 mb-4">
+                Try adjusting your search criteria or clearing your filters.
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSearchQuery("");
+                  setSelectedCategory("all");
+                  setSelectedLocation("all");
+                }}
+              >
+                Clear Filters
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,58 +16,50 @@ import {
   Award,
   Eye,
   AlertCircle,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
-import { useAppDispatch, useAppSelector } from "@/store";
-import {
-  fetchCompetitionById,
-  selectSelectedCompetition,
-  selectCompetitionIsLoading,
-  clearSelectedCompetition,
-} from "@/store/slices/competitionSlice";
 
-// You will eventually replace these with real data and components
 import QuizManager from "@/components/competitions/QuizManager";
 import VideoReviewManager from "@/components/competitions/VideoReviewManager";
 import ZoomScheduler from "@/components/competitions/ZoomScheduler";
 import FinalEvaluation from "@/components/competitions/FinalEvaluation";
-import ParticipantTracker from "@/components/competitions/ParticipantTracker";
+// import ParticipantTracker from "@/components/competitions/ParticipantTracker";
 import NotificationSystem from "@/components/competitions/NotificationSystem";
+import { useFetchCompetitionByIdQuery } from "@/store/api/competitionApi";
 
 function CompetitionManagePageContent() {
   const params = useParams();
-  const dispatch = useAppDispatch();
   const competitionId = params.id as string;
 
-  // Get data from the Redux store
-  const competition = useAppSelector(selectSelectedCompetition);
-  const isLoading = useAppSelector(selectCompetitionIsLoading);
+  // --- STEP 2: Replace useDispatch/useSelector with the RTK Query hook ---
+  const {
+    data: competition,
+    isLoading,
+    isError,
+  } = useFetchCompetitionByIdQuery(competitionId, {
+    skip: !competitionId, // Don't run the query if the ID isn't available yet
+  });
 
   const [activeTab, setActiveTab] = useState("overview");
 
-  useEffect(() => {
-    if (competitionId) {
-      dispatch(fetchCompetitionById(competitionId));
-    }
+  // The useEffect for fetching and cleanup is no longer needed.
+  // RTK Query handles the entire data lifecycle automatically.
 
-    // Clean up the selected competition when the component unmounts
-    return () => {
-      dispatch(clearSelectedCompetition());
-    };
-  }, [dispatch, competitionId]);
-
+  // --- STEP 3: Update Loading State ---
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading competition management...</p>
+        <div className="text-center flex flex-col items-center">
+          <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+          <p className="text-gray-600">Loading Competition Management...</p>
         </div>
       </div>
     );
   }
 
-  if (!competition) {
+  // --- STEP 4: Update Error/Not Found State ---
+  if (isError || !competition) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -77,7 +68,9 @@ function CompetitionManagePageContent() {
             Competition Not Found
           </h2>
           <p className="text-gray-600 mb-6">
-            The competition you're trying to manage doesn't exist.
+            {isError
+              ? "There was an error loading the competition."
+              : "The competition you're trying to manage doesn't exist."}
           </p>
           <Button asChild>
             <Link href="/employer/competitions/my">
@@ -90,6 +83,7 @@ function CompetitionManagePageContent() {
     );
   }
 
+  // The rest of the component logic and JSX remains the same
   const stats = competition.stats;
 
   return (
@@ -116,14 +110,16 @@ function CompetitionManagePageContent() {
           <Card>
             <CardContent className="p-6">
               <p className="text-sm text-gray-600">Participants</p>
-              <p className="text-2xl font-bold">{stats?.totalParticipants}</p>
+              <p className="text-2xl font-bold">
+                {stats?.totalParticipants ?? 0}
+              </p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-6">
               <p className="text-sm text-gray-600">Round 1 Passed</p>
               <p className="text-2xl font-bold text-green-600">
-                {stats?.round1Passed}
+                {stats?.round1Passed ?? 0}
               </p>
             </CardContent>
           </Card>
@@ -131,7 +127,7 @@ function CompetitionManagePageContent() {
             <CardContent className="p-6">
               <p className="text-sm text-gray-600">Videos Pending</p>
               <p className="text-2xl font-bold text-yellow-600">
-                {stats?.videosPending}
+                {stats?.videosPending ?? 0}
               </p>
             </CardContent>
           </Card>
@@ -139,7 +135,7 @@ function CompetitionManagePageContent() {
             <CardContent className="p-6">
               <p className="text-sm text-gray-600">Interviews Scheduled</p>
               <p className="text-2xl font-bold text-blue-600">
-                {stats?.interviewsScheduled}
+                {stats?.interviewsScheduled ?? 0}
               </p>
             </CardContent>
           </Card>
@@ -147,7 +143,7 @@ function CompetitionManagePageContent() {
             <CardContent className="p-6">
               <p className="text-sm text-gray-600">Completed</p>
               <p className="text-2xl font-bold text-purple-600">
-                {stats?.completed}
+                {stats?.completed ?? 0}
               </p>
             </CardContent>
           </Card>
@@ -158,8 +154,7 @@ function CompetitionManagePageContent() {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-7">
-            {/* Tabs Triggers */}
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-7">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="round1">Round 1: Quiz</TabsTrigger>
             <TabsTrigger value="round2">Round 2: Videos</TabsTrigger>
@@ -169,14 +164,14 @@ function CompetitionManagePageContent() {
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
           </TabsList>
 
-          {/* Tabs Content */}
           <TabsContent value="overview">
             <Card>
               <CardHeader>
-                <CardTitle>Participant Overview</CardTitle>
+                <CardTitle>Competition Overview</CardTitle>
               </CardHeader>
               <CardContent>
-                <p>No participants yet</p>
+                {/* This could be a dashboard component later */}
+                <p>An overview of competition progress will be shown here.</p>
               </CardContent>
             </Card>
           </TabsContent>
@@ -195,16 +190,16 @@ function CompetitionManagePageContent() {
           <TabsContent value="round4">
             <FinalEvaluation competitionId={competitionId} participants={[]} />
           </TabsContent>
-          <TabsContent value="participants">
+          {/* <TabsContent value="participants">
             <ParticipantTracker
               competitionId={competitionId}
-              participants={[]}
+              participants={competition.participants || []}
             />
-          </TabsContent>
+          </TabsContent> */}
           <TabsContent value="notifications">
             <NotificationSystem
               competitionId={competitionId}
-              participants={[]}
+              participants={competition.participants || []}
             />
           </TabsContent>
         </Tabs>
@@ -213,9 +208,10 @@ function CompetitionManagePageContent() {
   );
 }
 
+// The parent component with the AuthGuard remains unchanged
 export default function CompetitionManagePage() {
   return (
-    <AuthGuard requireAuth={true} allowedRoles={["employer"]}>
+    <AuthGuard requireAuth={true} allowedRoles={["employer", "admin"]}>
       <CompetitionManagePageContent />
     </AuthGuard>
   );

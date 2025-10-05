@@ -20,13 +20,13 @@ import { Gender, User } from "@/types";
 
 interface PersonalInfoTabProps {
   profile: User | null;
-  isEditing: boolean;
+  isUpdating: boolean;
   onUpdate: (updates: Partial<User>) => void;
 }
 
 export function PersonalInfoTab({
   profile,
-  isEditing,
+  isUpdating,
   onUpdate,
 }: PersonalInfoTabProps) {
   const [formData, setFormData] = useState({
@@ -112,7 +112,7 @@ export function PersonalInfoTab({
           <UserIcon className="w-5 h-5" />
           Personal Information
         </CardTitle>
-        {isEditing && (
+        {isUpdating && (
           <Button onClick={handleSave} disabled={isSaving}>
             <Save className="w-4 h-4 mr-2" />
             {isSaving ? "Saving..." : "Save Changes"}
@@ -123,7 +123,7 @@ export function PersonalInfoTab({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="name">Full Name</Label>
-            {isEditing ? (
+            {isUpdating ? (
               <Input
                 id="name"
                 value={formData.name}
@@ -138,7 +138,7 @@ export function PersonalInfoTab({
           </div>
           <div className="space-y-2">
             <Label htmlFor="dateOfBirth">Date of Birth</Label>
-            {isEditing ? (
+            {isUpdating ? (
               <Input
                 id="dateOfBirth"
                 type="date"
@@ -157,7 +157,7 @@ export function PersonalInfoTab({
           </div>
           <div className="space-y-2">
             <Label htmlFor="gender">Gender</Label>
-            {isEditing ? (
+            {isUpdating ? (
               <Select
                 value={formData.gender}
                 onValueChange={(value) => handleInputChange("gender", value)}
@@ -180,7 +180,7 @@ export function PersonalInfoTab({
           </div>
           <div className="space-y-2">
             <Label htmlFor="nationality">Nationality</Label>
-            {isEditing ? (
+            {isUpdating ? (
               <Input
                 id="nationality"
                 value={formData.nationality}
@@ -199,7 +199,7 @@ export function PersonalInfoTab({
 
         <div className="space-y-2">
           <Label htmlFor="aboutMe">About Me</Label>
-          {isEditing ? (
+          {isUpdating ? (
             <Textarea
               id="aboutMe"
               value={formData.aboutMe}
@@ -218,7 +218,7 @@ export function PersonalInfoTab({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="salaryExpectation">Salary Expectation</Label>
-              {isEditing ? (
+              {isUpdating ? (
                 <Input
                   id="salaryExpectation"
                   value={formData.salaryExpectation}
@@ -235,7 +235,7 @@ export function PersonalInfoTab({
             </div>
             <div className="space-y-2">
               <Label htmlFor="jobPreference">Job Preference</Label>
-              {isEditing ? (
+              {isUpdating ? (
                 <Select
                   value={formData.jobPreference}
                   onValueChange={(value) =>
@@ -271,7 +271,7 @@ export function PersonalInfoTab({
                 className="flex items-center gap-1"
               >
                 {language}
-                {isEditing && (
+                {isUpdating && (
                   <button
                     onClick={() => handleRemoveLanguage(index)}
                     className="ml-1 hover:text-destructive"
@@ -281,13 +281,13 @@ export function PersonalInfoTab({
                 )}
               </Badge>
             ))}
-            {formData.languages.length === 0 && !isEditing && (
+            {formData.languages.length === 0 && !isUpdating && (
               <p className="text-muted-foreground text-sm">
                 No languages added yet.
               </p>
             )}
           </div>
-          {isEditing && (
+          {isUpdating && (
             <div className="flex gap-2">
               <Input
                 value={formData.newLanguage}

@@ -23,13 +23,13 @@ import {
 import { NavLink } from "./NavLink";
 // --- STEP 1: Import the useAuth hook ---
 import { useAuth } from "@/contexts/AuthProvider";
-import { useAppDispatch, useAppSelector } from "@/store";
-import { logout, selectUser } from "@/store/slices/authSlice";
+import { useAppDispatch, useAppSelector } from "@/store/store";
+import { logout, selectCurrentUser } from "@/store/features/auth/authSlice";
 
 export function DesktopNav() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const user = useAppSelector(selectUser);
+  const user = useAppSelector(selectCurrentUser);
 
   // --- STEP 2: Get the modal control functions from the context ---
   const { openLoginModal, openSignupModal } = useAuth();

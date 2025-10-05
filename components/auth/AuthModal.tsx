@@ -13,13 +13,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Eye, EyeOff, Mail, Lock, User, Building } from "lucide-react";
-import { useAppDispatch, useAppSelector } from "@/store";
-import {
-  loginUser,
-  registerUser,
-  selectIsLoading,
-} from "@/store/slices/authSlice";
-import { RegisterPayload, LoginPayload, UserRole } from "@/types";
+import { LoginPayload, RegisterPayload, UserRole } from "@/types";
+import { useLoginMutation, useRegisterMutation } from "@/store/api/authApi";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -53,9 +48,10 @@ export function AuthModal({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
 
-  const dispatch = useAppDispatch();
-  const isLoading = useAppSelector(selectIsLoading);
   const router = useRouter();
+
+  const [login, { isLoading: isLoggingIn }] = useLoginMutation();
+  const [register, { isLoading: isRegistering }] = useRegisterMutation();
 
   const resetForm = () => {
     setFormData({
@@ -87,6 +83,7 @@ export function AuthModal({
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  // --- STEP 3: Refactor handleLoginSubmit ---
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -96,12 +93,12 @@ export function AuthModal({
       password: formData.password,
     };
 
-    const result = await dispatch(loginUser(payload));
+    try {
+      const response = await login(payload).unwrap();
 
-    if (loginUser.fulfilled.match(result)) {
       handleClose();
       setTimeout(() => {
-        const userRole = result.payload?.user.role;
+        const userRole = response.user.role;
         switch (userRole) {
           case "admin":
             router.push("/admin/dashboard");
@@ -116,10 +113,9 @@ export function AuthModal({
             router.push("/");
         }
       }, 100);
-    } else if (loginUser.rejected.match(result)) {
+    } catch (err: any) {
       setError(
-        (result.payload as string) ||
-          "Login failed. Please check your credentials."
+        err.data?.message || "Login failed. Please check your credentials."
       );
     }
   };
@@ -157,16 +153,19 @@ export function AuthModal({
         : {}),
     };
 
-    const result = await dispatch(registerUser(payload));
+    try {
+      const response = await register(payload).unwrap();
+      const tempAccessToken = response.accessToken;
 
-    if (registerUser.fulfilled.match(result)) {
-      const tempAccessToken = result.payload?.accessToken;
       if (tempAccessToken) {
-        // Pass both email and the temporary token
         onVerificationNeeded(formData.email, tempAccessToken);
       } else {
         setError("Could not get verification token. Please try again.");
       }
+    } catch (err: any) {
+      const errorMessage =
+        err.data?.message || "Registration failed. Please try again.";
+      setError(errorMessage);
     }
   };
 
@@ -197,7 +196,6 @@ export function AuthModal({
       className="space-y-6"
     >
       <form onSubmit={handleLoginSubmit} className="space-y-6">
-        {/* Email Input */}
         <div className="space-y-2">
           <label htmlFor="email">Email Address</label>
           <div className="relative">
@@ -214,7 +212,6 @@ export function AuthModal({
             />
           </div>
         </div>
-        {/* Password Input */}
         <div className="space-y-2">
           <label htmlFor="password">Password</label>
           <div className="relative">
@@ -238,9 +235,7 @@ export function AuthModal({
             </button>
           </div>
         </div>
-        {/* Actions */}
         <div className="flex items-center justify-between">
-          {/* --- FIX: Added spacing for "Remember me" --- */}
           <label className="flex items-center cursor-pointer">
             <input
               type="checkbox"
@@ -257,18 +252,15 @@ export function AuthModal({
             Forgot password?
           </button>
         </div>
-        {/* Error Display */}
         {error && (
           <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-        {/* Submit Button */}
-        <Button type="submit" disabled={isLoading} className="w-full h-12">
-          {isLoading ? "Signing in..." : "Sign In"}
+        <Button type="submit" disabled={isLoggingIn} className="w-full h-12">
+          {isLoggingIn ? "Signing in..." : "Sign In"}
         </Button>
       </form>
-      {/* Quick Login Section */}
       <div className="mt-6">
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
@@ -314,10 +306,13 @@ export function AuthModal({
           </Button>
         </div>
       </div>
-      {/* Switch to Signup */}
       <div className="text-center">
         <span className="text-sm">Don't have an account? </span>
-        <button type="button" onClick={() => handleModeSwitch("signup")}>
+        <button
+          type="button"
+          onClick={() => handleModeSwitch("signup")}
+          className="font-medium text-primary hover:underline"
+        >
           Sign up
         </button>
       </div>
@@ -333,7 +328,6 @@ export function AuthModal({
     >
       <h2 className="text-xl font-semibold text-center mb-6">I am a...</h2>
       <div className="space-y-4">
-        {/* Employee Button */}
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
@@ -350,11 +344,12 @@ export function AuthModal({
             />
             <div className="text-left">
               <h3>Job Seeker</h3>
-              <p>Find opportunities</p>
+              <p className="text-sm text-muted-foreground">
+                Find opportunities
+              </p>
             </div>
           </div>
         </motion.button>
-        {/* Employer Button */}
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
@@ -371,7 +366,9 @@ export function AuthModal({
             />
             <div className="text-left">
               <h3>Employer</h3>
-              <p>Post gigs and find talent</p>
+              <p className="text-sm text-muted-foreground">
+                Post gigs and find talent
+              </p>
             </div>
           </div>
         </motion.button>
@@ -390,7 +387,11 @@ export function AuthModal({
       </Button>
       <div className="text-center mt-4">
         <span className="text-sm">Already have an account? </span>
-        <button type="button" onClick={() => handleModeSwitch("login")}>
+        <button
+          type="button"
+          onClick={() => handleModeSwitch("login")}
+          className="font-medium text-primary hover:underline"
+        >
           Sign in
         </button>
       </div>
@@ -405,10 +406,13 @@ export function AuthModal({
       transition={{ duration: 0.3 }}
     >
       <form onSubmit={handleSignupSubmit} className="space-y-6">
-        <button type="button" onClick={() => setStep(1)}>
+        <button
+          type="button"
+          onClick={() => setStep(1)}
+          className="text-sm font-medium text-primary hover:underline"
+        >
           ← Back to account type
         </button>
-        {/* Full Name */}
         <div className="space-y-2">
           <label htmlFor="fullName">Full Name</label>
           <div className="relative">
@@ -425,7 +429,6 @@ export function AuthModal({
             />
           </div>
         </div>
-        {/* Company Name (Conditional) */}
         {userType === "employer" && (
           <div className="space-y-2">
             <label htmlFor="companyName">Company Name</label>
@@ -444,7 +447,6 @@ export function AuthModal({
             </div>
           </div>
         )}
-        {/* Email */}
         <div className="space-y-2">
           <label htmlFor="email">Email Address</label>
           <div className="relative">
@@ -461,7 +463,6 @@ export function AuthModal({
             />
           </div>
         </div>
-        {/* Password */}
         <div className="space-y-2">
           <label htmlFor="password">Password</label>
           <div className="relative">
@@ -485,7 +486,6 @@ export function AuthModal({
             </button>
           </div>
         </div>
-        {/* Confirm Password */}
         <div className="space-y-2">
           <label htmlFor="confirmPassword">Confirm Password</label>
           <div className="relative">
@@ -509,7 +509,6 @@ export function AuthModal({
             </button>
           </div>
         </div>
-        {/* Terms Agreement */}
         <div className="flex items-center">
           <label
             htmlFor="agreeToTerms"
@@ -544,7 +543,6 @@ export function AuthModal({
             </span>
           </label>
         </div>
-
         {error && (
           <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>
@@ -552,15 +550,19 @@ export function AuthModal({
         )}
         <Button
           type="submit"
-          disabled={isLoading || !formData.agreeToTerms}
+          disabled={isRegistering || !formData.agreeToTerms}
           className="w-full h-12"
         >
-          {isLoading ? "Creating account..." : "Create Account"}
+          {isRegistering ? "Creating account..." : "Create Account"}
         </Button>
       </form>
       <div className="text-center mt-4">
         <span className="text-sm">Already have an account? </span>
-        <button type="button" onClick={() => handleModeSwitch("login")}>
+        <button
+          type="button"
+          onClick={() => handleModeSwitch("login")}
+          className="font-medium text-primary hover:underline"
+        >
           Sign in
         </button>
       </div>

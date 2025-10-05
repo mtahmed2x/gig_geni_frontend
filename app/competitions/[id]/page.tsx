@@ -1,8 +1,6 @@
 "use client";
-
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,14 +10,12 @@ import {
   ArrowLeft,
   MapPin,
   Calendar,
-  DollarSign,
   Users,
-  Star,
   Trophy,
+  Star,
   Clock,
   FileText,
   CheckCircle,
-  Heart,
   Share2,
   Download,
   AlertCircle,
@@ -27,46 +23,42 @@ import {
   Award,
   Building,
   Bookmark,
-  Image,
   File,
   BookMarked,
+  Loader2,
+  DollarSign,
 } from "lucide-react";
-import { mockCompetitions } from "@/lib/mock-data";
-
 import Link from "next/link";
-import { useAppDispatch, useAppSelector } from "@/store";
-import {
-  clearSelectedCompetition,
-  fetchCompetitionById,
-  selectCompetitionIsLoading,
-  selectSelectedCompetition,
-} from "@/store/slices/competitionSlice";
+import { toast } from "sonner";
 import { Competition } from "@/types";
+import { useAppSelector } from "@/store/store";
+import { selectCurrentUser } from "@/store/features/auth/authSlice";
+import { useFetchCompetitionByIdQuery } from "@/store/api/competitionApi";
 
 export default function CompetitionDetailsPage() {
   const params = useParams();
-  const dispatch = useAppDispatch();
+  const router = useRouter();
   const competitionId = params.id as string;
 
-  const competition = useAppSelector(selectSelectedCompetition);
-  const isLoading = useAppSelector(selectCompetitionIsLoading);
+  const {
+    data: competition,
+    isLoading,
+    isError,
+  } = useFetchCompetitionByIdQuery(competitionId, { skip: !competitionId });
+  const currentUser = useAppSelector(selectCurrentUser);
+  // const [saveCompetition, { isLoading: isSaving }] = useSaveCompetitionMutation();
 
-  const router = useRouter();
+  // The 'isJoined' state is now derived from the fetched data
+  const isJoined = useMemo(() => {
+    if (!competition || !currentUser) return false;
+    return competition.participants.some((p) => {
+      if (typeof p.user === "string") return p.user === currentUser._id;
+      return p.user._id === currentUser._id;
+    });
+  }, [competition, currentUser]);
 
-  const [isJoined, setIsJoined] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
-  useEffect(() => {
-    if (competitionId) {
-      dispatch(fetchCompetitionById(competitionId));
-    }
-    // Clean up the selected competition from state when the component unmounts
-    return () => {
-      dispatch(clearSelectedCompetition());
-    };
-  }, [dispatch, competitionId]);
-
-  // --- Helper Functions ---
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return "TBD";
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -75,7 +67,6 @@ export default function CompetitionDetailsPage() {
       day: "numeric",
     });
   };
-
   const getStatusBadge = (comp: Competition) => {
     const now = new Date();
     const startDate = comp.startDate;
@@ -87,7 +78,6 @@ export default function CompetitionDetailsPage() {
       return { text: "Completed", color: "bg-gray-100 text-gray-500" };
     return { text: "Active", color: "bg-green-100 text-green-700" };
   };
-
   const formatShortDate = (date: Date | undefined) => {
     if (!date) return "TBD";
     return new Date(date).toLocaleDateString("en-US", {
@@ -98,13 +88,24 @@ export default function CompetitionDetailsPage() {
   };
 
   const handleJoin = () => {
-    setIsJoined(!isJoined);
+    // This is now just a simple navigation action
     router.push(`/competitions/${competitionId}/join`);
   };
 
-  const handleSave = () => {
-    setIsSaved(!isSaved);
-    // Here you would typically make an API call to save/unsave the competition
+  // --- STEP 3: Refactor handleSave to use the new mutation ---
+  const handleSave = async () => {
+    const newSaveState = !isSaved;
+    setIsSaved(newSaveState); // Optimistically update the UI
+
+    // try {
+    //   await saveCompetition({ competitionId, isSaved: newSaveState }).unwrap();
+    //   toast.success(
+    //     newSaveState ? "Competition saved!" : "Competition unsaved."
+    //   );
+    // } catch (err) {
+    //   setIsSaved(!newSaveState); // Revert UI on error
+    //   toast.error("Could not save competition. Please try again.");
+    // }
   };
 
   const handleShare = () => {
@@ -116,22 +117,22 @@ export default function CompetitionDetailsPage() {
       });
     } else {
       navigator.clipboard.writeText(window.location.href);
-      // You could show a toast notification here
     }
   };
 
+  // --- STEP 4: Update loading and error states ---
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+        <div className="text-center flex flex-col items-center">
+          <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
           <p className="text-gray-600">Loading competition details...</p>
         </div>
       </div>
     );
   }
 
-  if (!competition) {
+  if (isError || !competition) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -144,7 +145,7 @@ export default function CompetitionDetailsPage() {
             removed.
           </p>
           <Link href="/competitions">
-            <Button className="bg-orange-500 hover:bg-orange-600">
+            <Button>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Competitions
             </Button>

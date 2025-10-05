@@ -2,19 +2,22 @@
 
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { useAppSelector } from "@/store";
-// We now need `isAuthenticated` to know when login is complete
-import { selectUser, selectIsAuthenticated } from "@/store/slices/authSlice";
+import { useAppSelector } from "@/store/store";
+
 import { useRouteGuard } from "@/hooks/useRouteGuard";
 // --- STEP 1: Import the useAuth hook to control the modals ---
 import { useAuth } from "@/contexts/AuthProvider";
+import {
+  selectCurrentUser,
+  selectIsAuthenticated,
+} from "@/store/features/auth/authSlice";
 
 interface OnboardingProviderProps {
   children: React.ReactNode;
 }
 
 export function OnboardingProvider({ children }: OnboardingProviderProps) {
-  const user = useAppSelector(selectUser);
+  const user = useAppSelector(selectCurrentUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated); // Get the auth status
   const router = useRouter();
   const pathname = usePathname();

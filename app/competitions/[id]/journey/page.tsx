@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,46 +13,35 @@ import {
   Users,
   Calendar,
   MapPin,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import { AuthGuard } from "@/components/auth/AuthGuard";
-
-import { useAppDispatch, useAppSelector } from "@/store";
-import {
-  fetchCompetitionById,
-  selectSelectedCompetition,
-  selectCompetitionIsLoading,
-  clearSelectedCompetition,
-} from "@/store/slices/competitionSlice";
-import { selectUser } from "@/store/slices/authSlice";
 import { Competition, Participant } from "@/types";
-
 import CompetitionJourney from "@/components/competitions/CompetitionJourney";
+import { useFetchCompetitionByIdQuery } from "@/store/api/competitionApi";
+import { selectCurrentUser } from "@/store/features/auth/authSlice";
+import { useAppSelector } from "@/store/store";
 
 function CompetitionJourneyPageContent() {
   const params = useParams();
-  const dispatch = useAppDispatch();
   const competitionId = params.id as string;
 
-  const competition = useAppSelector(selectSelectedCompetition);
-  const isLoading = useAppSelector(selectCompetitionIsLoading);
-  const currentUser = useAppSelector(selectUser);
+  // --- STEP 2: Replace useDispatch/useSelector with RTK Query and correct user selector ---
+  const {
+    data: competition,
+    isLoading,
+    isError,
+  } = useFetchCompetitionByIdQuery(competitionId, { skip: !competitionId });
 
-  useEffect(() => {
-    if (competitionId) {
-      dispatch(fetchCompetitionById(competitionId));
-    }
-    // Clean up the selected competition from Redux state when the component unmounts
-    return () => {
-      dispatch(clearSelectedCompetition());
-    };
-  }, [dispatch, competitionId]);
+  const currentUser = useAppSelector(selectCurrentUser);
 
-  // Find the current user's specific participant data from the competition object
+  // The useEffect for fetching and cleanup is no longer needed.
+  // RTK Query handles the entire data lifecycle.
+
+  // This useMemo hook remains the same and works perfectly with the new data source
   const participantData = useMemo(() => {
     if (!competition || !currentUser) return undefined;
-    // The `user` field in participants can be a string (ID) or a populated object.
-    // This logic handles both cases.
     return competition.participants.find((p) => {
       if (typeof p.user === "string") {
         return p.user === currentUser._id;
@@ -81,11 +70,12 @@ function CompetitionJourneyPageContent() {
     return { text: "Active", color: "bg-green-100 text-green-700" };
   };
 
+  // --- STEP 3: Update Loading State ---
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+        <div className="text-center flex flex-col items-center">
+          <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
           <p className="text-muted-foreground">
             Loading competition journey...
           </p>
@@ -94,7 +84,8 @@ function CompetitionJourneyPageContent() {
     );
   }
 
-  if (!competition) {
+  // --- STEP 4: Update Error/Not Found State ---
+  if (isError || !competition) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -116,6 +107,7 @@ function CompetitionJourneyPageContent() {
 
   const status = getStatusBadge(competition);
 
+  // The rest of the component JSX remains unchanged
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -210,6 +202,7 @@ function CompetitionJourneyPageContent() {
   );
 }
 
+// The parent component with the AuthGuard remains unchanged
 export default function CompetitionJourneyPage() {
   return (
     <AuthGuard requireAuth={true} allowedRoles={["employee"]}>

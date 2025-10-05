@@ -310,6 +310,54 @@ export interface CompetitionHistory {
   status: "completed" | "ongoing" | "withdrawn";
 }
 
+export interface QuizSettings {
+  _id: string;
+  competitionId: string;
+  passingScore: number;
+  timeLimit: number;
+  randomizeQuestions: boolean;
+  showResults: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface QuizSettingsPayload {
+  competitionId: string;
+  passingScore: number;
+  timeLimit: number;
+  randomizeQuestions: boolean;
+  showResults: boolean;
+}
+
+export interface QuizAnswer {
+  _id: string;
+  userId: string;
+  competitionId: string;
+  questionId: string;
+  answer: any; // Can be string, string[], boolean, etc.
+  isCorrect: boolean;
+  pointsAwarded: number;
+  submittedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SubmitAnswerPayload {
+  competitionId: string;
+  questionId: string;
+  answer: any;
+}
+
+export interface EvaluateQuizPayload {
+  competitionId: string;
+}
+
+export interface EvaluateQuizResponse {
+  message: string;
+  totalPoints: number;
+  passingScore: number;
+}
+
 export interface RoundScore {
   roundNumber: number;
   roundType: string;
@@ -489,11 +537,11 @@ export interface UserSettings {
 // REDUX TYPES
 // ============================================================================
 
-export interface RootState {
-  quizQuestion: any;
-  auth: AuthState;
-  // Add other slices here as they are created
-}
+// export interface RootState {
+//   quizQuestion: any;
+//   auth: AuthState;
+//   // Add other slices here as they are created
+// }
 
 // ============================================================================
 // HTTP CLIENT TYPES
