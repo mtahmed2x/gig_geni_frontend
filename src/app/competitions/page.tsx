@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo} from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,14 +21,10 @@ import {
   MapPin,
   Calendar,
   Users,
-  Star,
   AlertCircle,
 } from "lucide-react";
 import { categories } from "@/lib/mock-data";
 import Link from "next/link";
-
-import { useAppDispatch, useAppSelector } from "@/store/store";
-
 import { Competition } from "@/types";
 import { useFetchAllCompetitionsQuery } from "@/store/api/competitionApi";
 
