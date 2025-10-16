@@ -14,7 +14,6 @@ import {
   GraduationCap,
   Calendar,
 } from "lucide-react";
-// --- STEP 1: Import the global types ---
 import { User, Education } from "@/types";
 
 interface EducationTabProps {
@@ -89,8 +88,7 @@ export function EducationTab({
       );
     } else {
       // Add new item
-      const newEducationEntry: Education = {
-        _id: `new_${Date.now()}`, // Temporary ID for client-side key
+      const newEducationEntry: Omit<Education, "_id"> = {
         ...formData,
       };
       updatedEducations = [...educations, newEducationEntry];

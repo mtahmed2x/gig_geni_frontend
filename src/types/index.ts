@@ -356,6 +356,15 @@ export interface EvaluateQuizPayload {
   competitionId: string;
 }
 
+export interface HomeResponse {
+  activeCompetitions: number;
+  completedCompetitions: number;
+  activeHirer: number;
+  activeTalent: number;
+}
+
+export type HomeResponseData = HomeResponse;
+
 export interface EvaluateQuizResponse {
   message: string;
   totalPoints: number;

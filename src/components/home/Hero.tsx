@@ -1,10 +1,9 @@
-// components/home/Hero.tsx
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import Link from 'next/link';
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 import {
   Trophy,
   Users,
@@ -13,81 +12,100 @@ import {
   Play,
   Sparkles,
   TrendingUp,
-} from 'lucide-react';
-import RecentWinnerCarousel from './RecentWinner';
-import { winnersData } from '@/lib/mock-data';
+} from "lucide-react";
+import RecentWinnerCarousel from "./RecentWinner";
+import { winnersData } from "@/lib/mock-data";
+import { useFetchHomeDataQuery } from "@/store/api/homeApi";
+import { HomeResponseData } from "@/types";
 
+interface HeroProps {
+  homeData?: HomeResponseData;
+}
 
+export function Hero({ homeData }: HeroProps) {
+  const stats = [
+    {
+      label: "Active Competitions",
+      value: homeData ? `${homeData.activeCompetitions}+` : "–",
+      icon: Target,
+    },
+    {
+      label: "Job Seekers",
+      value: homeData ? `${homeData.activeTalent}+` : "–",
+      icon: Users,
+    },
+    {
+      label: "Completed Competitions",
+      value: homeData ? `${homeData.completedCompetitions}+` : "–",
+      icon: Trophy,
+    },
+    {
+      label: "Active Hirer",
+      value: homeData ? `${homeData.activeHirer}+` : "–",
+      icon: TrendingUp,
+    },
+  ];
 
-const stats = [
-  { label: 'Active Competitions', value: '500+', icon: Trophy },
-  { label: 'Job Seekers', value: '10K+', icon: Users },
-  { label: 'Success Rate', value: '92%', icon: Target },
-  { label: 'Growth Rate', value: '250%', icon: TrendingUp },
-];
-
-export function Hero() {
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-orange-50/40 to-blue-50/30">
-
       {/* Enhanced Floating Elements with Animation - Mobile Responsive */}
-      <motion.div 
-        animate={{ 
+      <motion.div
+        animate={{
           y: [0, -20, 0],
           x: [0, 2, 0],
-          scale: [1, 1.1, 1]
+          scale: [1, 1.1, 1],
         }}
-        transition={{ 
+        transition={{
           duration: 8,
           repeat: Infinity,
-          ease: "easeInOut" 
+          ease: "easeInOut",
         }}
         className="absolute top-20 left-2 lg:left-10 w-12 h-12 lg:w-24 lg:h-24 bg-gradient-to-br from-[#FC5602]/20 to-[#FF7B02]/10 rounded-full blur-xl"
-        style={{ willChange: 'transform' }}
+        style={{ willChange: "transform" }}
       />
-      <motion.div 
-        animate={{ 
+      <motion.div
+        animate={{
           y: [0, 15, 0],
           x: [0, -4, 0],
-          scale: [1, 0.9, 1]
+          scale: [1, 0.9, 1],
         }}
-        transition={{ 
+        transition={{
           duration: 10,
           repeat: Infinity,
           ease: "easeInOut",
-          delay: 2
+          delay: 2,
         }}
         className="absolute top-40 right-2 lg:right-20 w-16 h-16 lg:w-36 lg:h-36 bg-gradient-to-br from-blue-500/15 to-purple-500/10 rounded-full blur-xl"
-        style={{ willChange: 'transform' }}
+        style={{ willChange: "transform" }}
       />
-      <motion.div 
-        animate={{ 
+      <motion.div
+        animate={{
           y: [0, -10, 0],
           x: [0, 4, 0],
-          scale: [1, 1.2, 1]
+          scale: [1, 1.2, 1],
         }}
-        transition={{ 
+        transition={{
           duration: 12,
           repeat: Infinity,
           ease: "easeInOut",
-          delay: 4
+          delay: 4,
         }}
         className="absolute bottom-20 left-2 lg:left-20 w-16 h-16 lg:w-28 lg:h-28 bg-gradient-to-br from-green-500/15 to-[#FC5602]/10 rounded-full blur-xl"
-        style={{ willChange: 'transform' }}
+        style={{ willChange: "transform" }}
       />
-      <motion.div 
-        animate={{ 
+      <motion.div
+        animate={{
           y: [0, 25, 0],
           x: [0, -2, 0],
-          rotate: [0, 180, 360]
+          rotate: [0, 180, 360],
         }}
-        transition={{ 
+        transition={{
           duration: 15,
           repeat: Infinity,
-          ease: "linear"
+          ease: "linear",
         }}
         className="absolute top-1/2 right-2 lg:right-10 w-12 h-12 lg:w-20 lg:h-20 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-full blur-lg"
-        style={{ willChange: 'transform' }}
+        style={{ willChange: "transform" }}
       />
 
       <div className="container section-padding relative">
@@ -105,7 +123,10 @@ export function Hero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.6 }}
             >
-              <Badge variant="outline" className="bg-[#FC5602]/10 text-[#FC5602] border-[#FC5602]/20 hover:bg-[#FC5602]/20 transition-colors">
+              <Badge
+                variant="outline"
+                className="bg-[#FC5602]/10 text-[#FC5602] border-[#FC5602]/20 hover:bg-[#FC5602]/20 transition-colors"
+              >
                 <Sparkles className="w-3 h-3 mr-1" />
                 🚀 The Future of Hiring is Here
               </Badge>
@@ -119,30 +140,31 @@ export function Hero() {
               className="space-y-4"
             >
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                Where{' '}
+                Where{" "}
                 <span className="relative">
                   <span className="gradient-text">Talent</span>
                   <motion.div
                     initial={{ width: 0 }}
-                    animate={{ width: '100%' }}
+                    animate={{ width: "100%" }}
                     transition={{ delay: 1, duration: 0.8 }}
                     className="absolute bottom-2 left-0 h-3 bg-[#FC5602]/20 -z-10"
                   />
-                </span>{' '}
-                Meets{' '}
+                </span>{" "}
+                Meets{" "}
                 <span className="relative">
                   <span className="gradient-text">Opportunity</span>
                   <motion.div
                     initial={{ width: 0 }}
-                    animate={{ width: '100%' }}
+                    animate={{ width: "100%" }}
                     transition={{ delay: 1.2, duration: 0.8 }}
                     className="absolute bottom-2 left-0 h-3 bg-[#FC5602]/20 -z-10"
                   />
                 </span>
               </h1>
-              
+
               <p className="text-xl md:text-2xl text-gray-600 leading-relaxed max-w-2xl">
-                Experience the most engaging and fair hiring process through competitive challenges.
+                Experience the most engaging and fair hiring process through
+                competitive challenges.
                 <span className="block mt-2 font-semibold text-[#FC5602]">
                   Prove your skills. Get hired. Win amazing prizes.
                 </span>
@@ -157,18 +179,18 @@ export function Hero() {
               className="flex flex-col sm:flex-row gap-4"
             >
               <Link href="/competitions">
-                <Button 
-                  size="lg" 
+                <Button
+                  size="lg"
                   className="btn-primary group w-full sm:w-auto text-lg px-8 py-4 border border-orange-500  hover:text-orange-500"
                 >
                   Join Competition
                   <Trophy className="ml-2 text-orange-600 h-5 w-5 group-hover:rotate-12 transition-transform duration-300 " />
                 </Button>
               </Link>
-              
-              <Link href="/employer/competitions/create">
-                <Button 
-                  size="lg" 
+
+              <Link href="/competitions/create">
+                <Button
+                  size="lg"
                   variant="outline"
                   className="btn-outline w-full sm:w-auto text-lg px-8 py-4 group"
                 >
@@ -203,14 +225,14 @@ export function Hero() {
             {/* Main Hero Card */}
             <div className="relative">
               <motion.div
-                animate={{ 
+                animate={{
                   y: [0, -10, 0],
-                  rotate: [0, 1, 0] 
+                  rotate: [0, 1, 0],
                 }}
-                transition={{ 
+                transition={{
                   duration: 6,
                   repeat: Infinity,
-                  ease: "easeInOut" 
+                  ease: "easeInOut",
                 }}
                 className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-gray-200/50 ring-1 ring-gray-100/50"
               >
@@ -256,36 +278,36 @@ export function Hero() {
                     </div>
                   </div>
                 </div> */}
-                <RecentWinnerCarousel winners={winnersData} interval={4000}/>
+                <RecentWinnerCarousel winners={winnersData} interval={4000} />
               </motion.div>
-              
+
               {/* Floating Elements */}
               <motion.div
-                animate={{ 
+                animate={{
                   y: [0, -15, 0],
-                  x: [0, 5, 0] 
+                  x: [0, 5, 0],
                 }}
-                transition={{ 
+                transition={{
                   duration: 4,
                   repeat: Infinity,
                   ease: "easeInOut",
-                  delay: 1
+                  delay: 1,
                 }}
                 className="absolute -top-4 -right-4 w-16 h-16 bg-[#FC5602] rounded-2xl flex items-center justify-center shadow-lg"
               >
                 <Users className="w-8 h-8 text-white" />
               </motion.div>
-              
+
               <motion.div
-                animate={{ 
+                animate={{
                   y: [0, 10, 0],
-                  x: [0, -5, 0] 
+                  x: [0, -5, 0],
                 }}
-                transition={{ 
+                transition={{
                   duration: 5,
                   repeat: Infinity,
                   ease: "easeInOut",
-                  delay: 2
+                  delay: 2,
                 }}
                 className="absolute -bottom-6 -left-6 w-20 h-20 bg-white rounded-2xl flex items-center justify-center shadow-xl border border-gray-100"
               >
@@ -316,7 +338,9 @@ export function Hero() {
                     <stat.icon className="w-6 h-6 text-[#FC5602]" />
                   </div>
                   <div>
-                    <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+                    <p className="text-3xl font-bold text-gray-900">
+                      {stat.value}
+                    </p>
                     <p className="text-sm text-gray-600">{stat.label}</p>
                   </div>
                 </motion.div>

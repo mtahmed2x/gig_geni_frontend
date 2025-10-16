@@ -224,21 +224,21 @@ export function ProfilePage() {
             <TabsContent value="experience">
               <ExperienceTab
                 profile={profile}
-                isEditing={isUpdating}
+                isEditing={isEditing}
                 onUpdate={handleUpdateProfile}
               />
             </TabsContent>
             <TabsContent value="education">
               <EducationTab
                 profile={profile}
-                isEditing={isUpdating}
+                isEditing={isEditing}
                 onUpdate={handleUpdateProfile}
               />
             </TabsContent>
             <TabsContent value="skills">
               <SkillsTab
                 profile={profile}
-                isEditing={isUpdating}
+                isEditing={isEditing}
                 onUpdate={handleUpdateProfile}
                 userRole={authUser.role}
               />

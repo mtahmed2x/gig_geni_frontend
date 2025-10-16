@@ -7,6 +7,7 @@ import { Briefcase, Users, ArrowRight, Star, CheckCircle } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
 import { employeeBenefits, employerBenefits } from "@/lib/mock-data";
 import { Card, CardContent } from "@/components/ui/card";
+import Link from "next/link";
 
 interface BenefitCardProps {
   benefit: {
@@ -342,26 +343,31 @@ export function BenefitsSection() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <motion.button
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-8 py-4 bg-white text-[#FC5602] font-semibold rounded-xl hover:bg-gray-50 transition-all duration-300 shadow-lg hover:shadow-xl"
-                >
-                  <span className="flex items-center justify-center">
-                    Start Competing
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </span>
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-8 py-4 border-2 border-white text-white font-semibold rounded-xl hover:bg-white hover:text-[#FC5602] transition-all duration-300"
-                >
-                  <span className="flex items-center justify-center">
-                    Post a Challenge
-                    <Briefcase className="w-4 h-4 ml-2" />
-                  </span>
-                </motion.button>
+                <Link href="/competitions" passHref>
+                  <motion.button
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="px-8 py-4 bg-white text-[#FC5602] font-semibold rounded-xl hover:bg-gray-50 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  >
+                    <span className="flex items-center justify-center">
+                      Start Competing
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </span>
+                  </motion.button>
+                </Link>
+
+                <Link href="/competitions/create" passHref>
+                  <motion.button
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="px-8 py-4 border-2 border-white text-white font-semibold rounded-xl hover:bg-white hover:text-[#FC5602] transition-all duration-300"
+                  >
+                    <span className="flex items-center justify-center">
+                      Post a Challenge
+                      <Briefcase className="w-4 h-4 ml-2" />
+                    </span>
+                  </motion.button>
+                </Link>
               </div>
             </div>
           </div>

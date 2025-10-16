@@ -138,15 +138,15 @@ export function Footer() {
               <div className="space-y-3">
                 <div className="flex items-center space-x-3 text-sm text-gray-400">
                   <MapPin className="h-4 w-4 text-[#FC5602]" />
-                  <span>123 Innovation Drive, Tech City, TC 12345</span>
+                  <span>Road Number 2B, Sector 4, Uttara, Dhaka 1230</span>
                 </div>
                 <div className="flex items-center space-x-3 text-sm text-gray-400">
                   <Phone className="h-4 w-4 text-[#FC5602]" />
-                  <span>+1 (555) 123-4567</span>
+                  <span>+880 161-4817206</span>
                 </div>
                 <div className="flex items-center space-x-3 text-sm text-gray-400">
                   <Mail className="h-4 w-4 text-[#FC5602]" />
-                  <span>hello@gigGeni.com</span>
+                  <span>giggenidev@gmail.com</span>
                 </div>
               </div>
 

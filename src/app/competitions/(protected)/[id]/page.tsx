@@ -587,7 +587,7 @@ export default function CompetitionDetailsPage() {
                 <CardContent className="space-y-4">
                   <div className="text-center">
                     <div className="text-3xl font-bold text-orange-600 mb-1">
-                      $5000 + Job Offer
+                      ৳5000 + Job Offer
                     </div>
                     <p className="text-sm text-gray-600">Total Prize Pool</p>
                   </div>

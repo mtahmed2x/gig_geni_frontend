@@ -88,8 +88,7 @@ export function ExperienceTab({
           : exp
       );
     } else {
-      const newExperienceEntry: Experience = {
-        _id: `new_${Date.now()}`, // Temporary client-side ID
+      const newExperienceEntry: Omit<Experience, "_id"> = {
         ...finalFormData,
       };
       updatedExperiences = [...experiences, newExperienceEntry];

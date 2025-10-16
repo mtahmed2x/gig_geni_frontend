@@ -1,14 +1,12 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { User, LoginResponseData } from "@/types";
-// --- REMOVED: No longer need to import authApi ---
-// import { authApi } from "@/store/api/authApi";
-import type { RootState } from "@/store/store"; // <-- Use 'import type' for robustness
-
+import { User, LoginResponseData, UserRole } from "@/types";
+import type { RootState } from "@/store/store";
 interface AuthState {
   user: User | null;
   accessToken: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
+  role: UserRole | null;
 }
 
 const initialState: AuthState = {
@@ -16,6 +14,7 @@ const initialState: AuthState = {
   accessToken: null,
   refreshToken: null,
   isAuthenticated: false,
+  role: null,
 };
 
 const authSlice = createSlice({
@@ -27,12 +26,14 @@ const authSlice = createSlice({
       state.user = action.payload.user;
       state.accessToken = action.payload.accessToken;
       state.refreshToken = action.payload.refreshToken;
+      state.role = action.payload.user.role;
     },
     logout: (state) => {
       state.user = null;
       state.accessToken = null;
       state.refreshToken = null;
       state.isAuthenticated = false;
+      state.role = null;
     },
     updateUser: (state, action: PayloadAction<Partial<User>>) => {
       if (state.user) {
@@ -40,8 +41,6 @@ const authSlice = createSlice({
       }
     },
   },
-  // --- REMOVED: The extraReducers are no longer needed ---
-  // The logic has been moved to onQueryStarted in authApi.ts
   extraReducers: (builder) => {},
 });
 
@@ -51,5 +50,6 @@ export const selectCurrentUser = (state: RootState) => state.auth.user;
 export const selectIsAuthenticated = (state: RootState) =>
   state.auth.isAuthenticated;
 export const selectCurrentToken = (state: RootState) => state.auth.accessToken;
+export const selectCurrentRole = (state: RootState) => state.auth.role;
 
 export default authSlice.reducer;

@@ -218,14 +218,14 @@ export function Roadmap() {
         </motion.div>
 
         {/* Future Vision */}
-        <motion.div
+        {/* <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.5 }}
           className="mt-20"
-        >
-          <Card className="bg-gradient-to-br from-[#FC5602] to-[#FF7B02] border-0 text-white overflow-hidden">
+        > */}
+        {/* <Card className="bg-gradient-to-br from-[#FC5602] to-[#FF7B02] border-0 text-white overflow-hidden">
             <CardContent className="p-12 relative">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32"></div>
               <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full translate-y-24 -translate-x-24"></div>
@@ -259,8 +259,8 @@ export function Roadmap() {
                 </div>
               </div>
             </CardContent>
-          </Card>
-        </motion.div>
+          </Card> */}
+        {/* </motion.div> */}
       </div>
     </section>
   );
