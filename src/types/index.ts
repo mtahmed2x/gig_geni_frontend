@@ -63,6 +63,8 @@ export interface User {
   role: UserRole;
   name: string;
   verified: boolean;
+  active: boolean;
+  suspended: boolean;
 
   // Optional profile details
   dateOfBirth?: string | null;
@@ -173,6 +175,8 @@ export interface CompetitionStats {
   completed: number;
 }
 
+export type ReviewStatus = "pending" | "approved" | "rejected";
+
 export interface Competition {
   _id: string;
   createdBy: string;
@@ -204,6 +208,8 @@ export interface Competition {
   totalParticipants: number;
   completionRate: number;
   views: number;
+  reviewStatus: ReviewStatus;
+  reviewFeedback?: string;
   createdAt: string;
   updatedAt: string;
 }
