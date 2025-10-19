@@ -1,71 +1,76 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Bell, 
-  BellOff, 
-  Check, 
-  CheckCheck, 
-  Trash2, 
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Bell,
+  BellOff,
+  Check,
+  CheckCheck,
+  Trash2,
   Filter,
   Trophy,
   Users,
   AlertCircle,
   Info,
   Settings,
-  ExternalLink
-} from 'lucide-react';
-import { Notification } from '@/lib/interface';
-import { NotificationItem } from './NotificationItem';
-import { useNotifications } from '@/hooks/useNotifications';
+  ExternalLink,
+} from "lucide-react";
+import { Notification } from "@/lib/interface";
+import { NotificationItem } from "./NotificationItem";
+import { useNotifications } from "@/hooks/useNotifications";
 
 export function NotificationsPage() {
-  const { 
-    notifications, 
-    unreadCount, 
-    markAsRead, 
-    markAllAsRead, 
-    deleteNotification, 
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
     deleteAllRead,
-    isLoading 
+    isLoading,
   } = useNotifications();
 
-  const [activeTab, setActiveTab] = useState('all');
-  const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
+  const [activeTab, setActiveTab] = useState("all");
+  const [filter, setFilter] = useState<"all" | "unread" | "read">("all");
 
   const getFilteredNotifications = () => {
     let filtered = notifications;
 
     // Filter by tab
-    if (activeTab !== 'all') {
-      filtered = filtered.filter(notification => notification.type === activeTab);
+    if (activeTab !== "all") {
+      filtered = filtered.filter(
+        (notification) => notification.type === activeTab
+      );
     }
 
     // Filter by read status
-    if (filter === 'unread') {
-      filtered = filtered.filter(notification => !notification.isRead);
-    } else if (filter === 'read') {
-      filtered = filtered.filter(notification => notification.isRead);
+    if (filter === "unread") {
+      filtered = filtered.filter((notification) => !notification.isRead);
+    } else if (filter === "read") {
+      filtered = filtered.filter((notification) => notification.isRead);
     }
 
-    return filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return filtered.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
   };
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case 'competition':
+      case "competition":
         return <Trophy className="w-4 h-4" />;
-      case 'system':
+      case "system":
         return <Settings className="w-4 h-4" />;
-      case 'success':
+      case "success":
         return <Check className="w-4 h-4" />;
-      case 'warning':
+      case "warning":
         return <AlertCircle className="w-4 h-4" />;
-      case 'error':
+      case "error":
         return <AlertCircle className="w-4 h-4" />;
       default:
         return <Info className="w-4 h-4" />;
@@ -75,9 +80,11 @@ export function NotificationsPage() {
   const getTabCounts = () => {
     const counts = {
       all: notifications.length,
-      competition: notifications.filter(n => n.type === 'competition').length,
-      system: notifications.filter(n => n.type === 'system').length,
-      info: notifications.filter(n => ['info', 'success', 'warning', 'error'].includes(n.type)).length,
+      competition: notifications.filter((n) => n.type === "competition").length,
+      system: notifications.filter((n) => n.type === "system").length,
+      info: notifications.filter((n) =>
+        ["info", "success", "warning", "error"].includes(n.type)
+      ).length,
     };
     return counts;
   };
@@ -115,12 +122,14 @@ export function NotificationsPage() {
               Stay updated with your latest activities and announcements
             </p>
           </div>
-          
+
           <div className="flex items-center gap-2">
             {/* Filter Dropdown */}
             <select
               value={filter}
-              onChange={(e) => setFilter(e.target.value as 'all' | 'unread' | 'read')}
+              onChange={(e) =>
+                setFilter(e.target.value as "all" | "unread" | "read")
+              }
               className="flex h-10 w-[120px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value="all">All</option>
@@ -134,7 +143,7 @@ export function NotificationsPage() {
                 Mark All Read
               </Button>
             )}
-            
+
             <Button onClick={deleteAllRead} variant="outline" size="sm">
               <Trash2 className="w-4 h-4 mr-2" />
               Clear Read
@@ -144,7 +153,11 @@ export function NotificationsPage() {
       </div>
 
       {/* Notification Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-6"
+      >
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="all" className="flex items-center gap-2">
             All
@@ -190,12 +203,11 @@ export function NotificationsPage() {
                 <BellOff className="w-12 h-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No notifications</h3>
                 <p className="text-muted-foreground text-center">
-                  {filter === 'unread' 
+                  {filter === "unread"
                     ? "You're all caught up! No unread notifications."
-                    : activeTab === 'all'
+                    : activeTab === "all"
                     ? "You don't have any notifications yet."
-                    : `No ${activeTab} notifications found.`
-                  }
+                    : `No ${activeTab} notifications found.`}
                 </p>
               </CardContent>
             </Card>
