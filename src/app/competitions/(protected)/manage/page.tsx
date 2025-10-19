@@ -25,9 +25,8 @@ import {
   BarChart3,
 } from "lucide-react";
 import Link from "next/link";
-
-import { Competition } from "@/types";
-import { useFetchMyCompetitionsQuery } from "@/store/api/competitionApi";
+import { Competition } from "@/lib/features/competition/types";
+import { useGetMyCompetitionsQuery } from "@/lib/api/competitionApi";
 
 // --- Helper Functions ---
 const getStatusColor = (status: Competition["status"]) => {
@@ -36,10 +35,7 @@ const getStatusColor = (status: Competition["status"]) => {
       return "bg-green-100 text-green-800";
     case "completed":
       return "bg-blue-100 text-blue-800";
-    case "draft":
-      return "bg-gray-100 text-gray-800";
-    case "paused":
-      return "bg-yellow-100 text-yellow-800";
+
     default:
       return "bg-gray-100 text-gray-800";
   }
@@ -51,10 +47,6 @@ const getStatusIcon = (status: Competition["status"]) => {
       return <Play className="h-4 w-4" />;
     case "completed":
       return <CheckCircle className="h-4 w-4" />;
-    case "draft":
-      return <Edit className="h-4 w-4" />;
-    case "paused":
-      return <Pause className="h-4 w-4" />;
     default:
       return <AlertCircle className="h-4 w-4" />;
   }
@@ -79,10 +71,12 @@ const CompetitionCardSkeleton = () => (
 
 function ManageCompetitionsPageContent() {
   const {
-    data: myCompetitions = [], // Default to an empty array to prevent errors
+    data: myCompetitionsData,
     isLoading,
     isError,
-  } = useFetchMyCompetitionsQuery();
+  } = useGetMyCompetitionsQuery();
+
+  const myCompetitions = myCompetitionsData?.data || [];
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -103,7 +97,7 @@ function ManageCompetitionsPageContent() {
       total: myCompetitions.length,
       active: myCompetitions.filter((c) => c.status === "active").length,
       completed: myCompetitions.filter((c) => c.status === "completed").length,
-      draft: myCompetitions.filter((c) => c.status === "draft").length,
+
       totalParticipants: myCompetitions.reduce(
         (sum, c) => sum + (c.participants?.length || 0),
         0
@@ -159,14 +153,7 @@ function ManageCompetitionsPageContent() {
               </p>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="p-6">
-              <p className="text-sm font-medium text-gray-600">Drafts</p>
-              <p className="text-2xl font-bold text-gray-600">
-                {isLoading ? "..." : stats.draft}
-              </p>
-            </CardContent>
-          </Card>
+
           <Card>
             <CardContent className="p-6">
               <p className="text-sm font-medium text-gray-600">
@@ -261,12 +248,12 @@ function ManageCompetitionsPageContent() {
                       </div>
                       <div className="flex items-center">
                         <Users className="h-4 w-4 mr-1" />
-                        {competition.participants.length} participants
+                        {competition.totalParticipants} participants
                       </div>
-                      <div className="flex items-center">
+                      {/* <div className="flex items-center">
                         <Eye className="h-4 w-4 mr-1" />
                         {competition.views || 0} views
-                      </div>
+                      </div> */}
                       <div className="flex items-center">
                         <Calendar className="h-4 w-4 mr-1" />
                         Ends{" "}

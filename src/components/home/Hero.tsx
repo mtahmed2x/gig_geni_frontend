@@ -15,11 +15,11 @@ import {
 } from "lucide-react";
 import RecentWinnerCarousel from "./RecentWinner";
 import { winnersData } from "@/lib/mock-data";
-import { useFetchHomeDataQuery } from "@/store/api/homeApi";
-import { HomeResponseData } from "@/types";
+import { useFetchHomeDataQuery } from "@/lib/api/homeApi";
+import { HomeResponse } from "@/types";
 
 interface HeroProps {
-  homeData?: HomeResponseData;
+  homeData?: HomeResponse;
 }
 
 export function Hero({ homeData }: HeroProps) {

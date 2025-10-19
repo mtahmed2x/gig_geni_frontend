@@ -1,8 +1,14 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { LoginResponseData, RefreshTokenPayload } from "@/types";
-import { logout, userLoggedIn } from "@/store/features/auth/authSlice";
-import type { RootState } from "./store";
+import {
+  BaseQueryFn,
+  createApi,
+  FetchArgs,
+  fetchBaseQuery,
+  FetchBaseQueryError,
+} from "@reduxjs/toolkit/query/react";
+import { LoginResponse, RefreshTokenPayload } from "@/types";
+import { logout, userLoggedIn } from "@/lib/features/auth/authSlice";
 import { BASE_URL } from "@/config/constants";
+import { RootState } from "../store";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: BASE_URL,
@@ -15,7 +21,11 @@ const baseQuery = fetchBaseQuery({
   },
 });
 
-const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
+const baseQueryWithReauth: BaseQueryFn<
+  string | FetchArgs,
+  unknown,
+  FetchBaseQueryError
+> = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
 
   if (result.error && result.error.status === 401) {
@@ -36,7 +46,7 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
     );
 
     if (refreshResult.data) {
-      const loginData = refreshResult.data as { data: LoginResponseData };
+      const loginData = refreshResult.data as { data: LoginResponse };
       api.dispatch(userLoggedIn(loginData.data));
       result = await baseQuery(args, api, extraOptions);
     } else {

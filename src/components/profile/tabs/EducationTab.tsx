@@ -14,7 +14,7 @@ import {
   GraduationCap,
   Calendar,
 } from "lucide-react";
-import { User, Education } from "@/types";
+import { Education, User } from "@/lib/features/user/types";
 
 interface EducationTabProps {
   profile: User | null;

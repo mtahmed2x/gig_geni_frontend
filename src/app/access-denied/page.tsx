@@ -6,10 +6,10 @@ import Link from "next/link";
 
 import { useSearchParams } from "next/navigation";
 
-import { useAppSelector } from "@/store/store";
+import { useAppSelector } from "@/lib/hooks";
 
 import { Badge } from "@/components/ui/badge";
-import { selectCurrentUser } from "@/store/features/auth/authSlice";
+import { selectCurrentUser } from "@/lib/features/auth/authSlice";
 
 export default function AccessDeniedPage() {
   const searchParams = useSearchParams();

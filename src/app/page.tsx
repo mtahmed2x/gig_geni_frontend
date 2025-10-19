@@ -5,7 +5,7 @@ import { Hero } from "@/components/home/Hero";
 import { Roadmap } from "@/components/home/RoadMap";
 import { UpcomingFeatures } from "@/components/home/UpcomingFeatures";
 import { WaitlistSection } from "@/components/home/WaitlistSection";
-import { useFetchHomeDataQuery } from "@/store/api/homeApi";
+import { useFetchHomeDataQuery } from "@/lib/api/homeApi";
 import type { Metadata } from "next";
 
 export default function HomePage() {
@@ -13,9 +13,9 @@ export default function HomePage() {
 
   return (
     <div className="">
-      <Hero homeData={homeData} />
+      <Hero homeData={homeData?.data} />
       <BenefitsSection />
-      <CompetitionFlow homeData={homeData} />
+      <CompetitionFlow homeData={homeData?.data} />
       <Roadmap />
       <UpcomingFeatures />
       <WaitlistSection />

@@ -30,10 +30,11 @@ import {
   DollarSign,
 } from "lucide-react";
 import Link from "next/link";
-import { Competition } from "@/types";
-import { useAppSelector } from "@/store/store";
-import { selectCurrentUser } from "@/store/features/auth/authSlice";
-import { useFetchCompetitionByIdQuery } from "@/store/api/competitionApi";
+
+import { selectCurrentUser } from "@/lib/features/auth/authSlice";
+import { useGetCompetitionQuery } from "@/lib/api/competitionApi";
+import { useAppSelector } from "@/lib/hooks";
+import { Competition } from "@/lib/features/competition/types";
 
 export default function CompetitionDetailsPage() {
   const params = useParams();
@@ -41,16 +42,16 @@ export default function CompetitionDetailsPage() {
   const competitionId = params.id as string;
 
   const {
-    data: competition,
+    data: competitionData,
     isLoading,
     isError,
-  } = useFetchCompetitionByIdQuery(competitionId, { skip: !competitionId });
+  } = useGetCompetitionQuery(competitionId, { skip: !competitionId });
   const currentUser = useAppSelector(selectCurrentUser);
+  const competition = competitionData?.data;
   // const [saveCompetition, { isLoading: isSaving }] = useSaveCompetitionMutation();
 
-  // The 'isJoined' state is now derived from the fetched data
   const isJoined = useMemo(() => {
-    if (!competition || !currentUser) return false;
+    if (!competition || !currentUser || !competition.participants) return false;
     return competition.participants.some((p) => {
       if (typeof p.user === "string") return p.user === currentUser._id;
       return p.user._id === currentUser._id;
@@ -272,7 +273,7 @@ export default function CompetitionDetailsPage() {
                   <div className="flex items-center text-sm text-gray-600">
                     <Users className="h-4 w-4 mr-2 text-gray-400" />
                     <span>
-                      {competition.participants.length || 0} participants
+                      {competition.totalParticipants || 0} participants
                     </span>
                   </div>
                   <div className="flex items-center text-sm text-gray-600">
@@ -598,7 +599,7 @@ export default function CompetitionDetailsPage() {
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Participants:</span>
                       <span className="font-medium">
-                        {competition.participants.length || 0}
+                        {competition.totalParticipants || 0}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">

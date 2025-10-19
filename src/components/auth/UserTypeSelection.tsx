@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { User, Building } from "lucide-react";
-import { UserRole } from "@/types";
+import { UserRole } from "@/lib/features/user/types";
 
 interface UserTypeSelectionProps {
   onSelect: (role: UserRole) => void;

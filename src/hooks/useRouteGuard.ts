@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { useAppSelector } from "@/store/store";
+import { useAppSelector } from "@/lib/hooks";
 import { checkRoutePermission } from "@/lib/auth";
 import {
   selectCurrentUser,
   selectIsAuthenticated,
-} from "@/store/features/auth/authSlice";
+} from "@/lib/features/auth/authSlice";
 
 export function useRouteGuard() {
   const user = useAppSelector(selectCurrentUser);

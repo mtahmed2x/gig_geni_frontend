@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Eye, EyeOff, Mail, Lock, User, Building } from "lucide-react";
-import { RegisterPayload, UserRole } from "@/types";
-import { useRegisterMutation } from "@/store/api/authApi";
+import { useRegisterMutation } from "@/lib/api/authApi";
+import { UserRole } from "@/lib/features/user/types";
+import { RegisterPayload } from "@/types";
 
 interface SignupFormProps {
   userType: UserRole;
@@ -68,7 +69,7 @@ export function SignupForm({
 
     try {
       const response = await register(payload).unwrap();
-      const tempAccessToken = response.accessToken;
+      const tempAccessToken = response.data!.accessToken;
 
       if (tempAccessToken) {
         onVerificationNeeded(formData.email, tempAccessToken);

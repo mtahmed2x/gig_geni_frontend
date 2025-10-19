@@ -21,8 +21,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { NavLink } from "./NavLink";
 import { useAuth } from "@/contexts/AuthProvider";
-import { useAppDispatch, useAppSelector } from "@/store/store";
-import { logout, selectCurrentUser } from "@/store/features/auth/authSlice";
+import { logout, selectCurrentUser } from "@/lib/features/auth/authSlice";
+import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 
 export function DesktopNav() {
   const router = useRouter();

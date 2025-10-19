@@ -36,11 +36,10 @@ import {
   Loader2,
 } from "lucide-react";
 import { categories, skillSuggestions } from "@/lib/mock-data";
-import { useAppDispatch, useAppSelector } from "@/store/store";
 
 import { toast, Toaster } from "sonner";
-import { CreateCompetitionPayload } from "@/types";
-import { useCreateCompetitionMutation } from "@/store/api/competitionApi";
+import { useCreateCompetitionMutation } from "@/lib/api/competitionApi";
+import { CreateCompetitionPayload } from "@/lib/features/competition/types";
 
 function CreateCompetitionPageContent() {
   const router = useRouter();
@@ -67,6 +66,12 @@ function CreateCompetitionPageContent() {
     attachments: [] as File[],
     fileLinks: [] as { name: string; url: string }[],
     bannerImage: null as File | null,
+    quizSettings: {
+      passingScore: 0,
+      timeLimit: 0,
+      randomizeQuestions: false,
+      showResults: false,
+    },
   });
 
   const [newSkill, setNewSkill] = useState("");
@@ -77,10 +82,24 @@ function CreateCompetitionPageContent() {
   const [newFileName, setNewFileName] = useState("");
   const [dragActive, setDragActive] = useState(false);
 
-  const totalSteps = 4;
+  const totalSteps = 5;
 
-  const handleInputChange = (field: string, value: string | string[]) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const handleInputChange = (
+    field: string,
+    value: string | string[] | boolean | number
+  ) => {
+    if (field.startsWith("quizSettings.")) {
+      const key = field.split(".")[1];
+      setFormData((prev) => ({
+        ...prev,
+        quizSettings: {
+          ...prev.quizSettings,
+          [key]: value,
+        },
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    }
   };
 
   const addToArray = (
@@ -194,7 +213,7 @@ function CreateCompetitionPageContent() {
     const payload: CreateCompetitionPayload = {
       title: formData.title,
       description: formData.description,
-      category: formData.category,
+      category: [formData.category],
       experienceLevel: formData.experienceLevel,
       location: formData.location,
       workType: formData.workType,
@@ -215,6 +234,12 @@ function CreateCompetitionPageContent() {
         description: link.name,
       })),
       termsAndConditions: formData.termsAndConditions,
+      quizSettings: {
+        passingScore: Number(formData.quizSettings.passingScore),
+        timeLimit: Number(formData.quizSettings.timeLimit),
+        randomizeQuestions: formData.quizSettings.randomizeQuestions,
+        showResults: formData.quizSettings.showResults,
+      },
     };
 
     const promise = createCompetition({
@@ -225,8 +250,7 @@ function CreateCompetitionPageContent() {
     toast.promise(promise, {
       loading: "Creating your competition...",
       success: (data) => {
-        // Redirect on success, using the ID from the response if needed
-        router.push(`/competitions/${data._id}/manage`);
+        router.push(`/competitions/${data.data?._id}/manage`);
         return "Competition created successfully!";
       },
       error: (err) => err.data?.message || "An unknown error occurred.",
@@ -734,8 +758,98 @@ function CreateCompetitionPageContent() {
             </div>
           </div>
         );
-
       case 4:
+        return (
+          <div className="space-y-10">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Quiz Settings
+              </h2>
+              <p className="text-gray-600">
+                Configure the settings for the quiz part of your competition.
+              </p>
+            </div>
+
+            <div className="space-y-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-2">
+                  <Label htmlFor="passingScore" className="text-sm font-medium">
+                    Passing Score (%)
+                  </Label>
+                  <Input
+                    id="passingScore"
+                    type="number"
+                    value={formData.quizSettings.passingScore}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "quizSettings.passingScore",
+                        e.target.value
+                      )
+                    }
+                    placeholder="e.g., 75"
+                    className="h-10"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="timeLimit" className="text-sm font-medium">
+                    Time Limit (minutes)
+                  </Label>
+                  <Input
+                    id="timeLimit"
+                    type="number"
+                    value={formData.quizSettings.timeLimit}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "quizSettings.timeLimit",
+                        e.target.value
+                      )
+                    }
+                    placeholder="e.g., 60"
+                    className="h-10"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id="randomizeQuestions"
+                    checked={formData.quizSettings.randomizeQuestions}
+                    onCheckedChange={(checked) =>
+                      handleInputChange(
+                        "quizSettings.randomizeQuestions",
+                        !!checked
+                      )
+                    }
+                  />
+                  <Label
+                    htmlFor="randomizeQuestions"
+                    className="text-base font-medium"
+                  >
+                    Randomize Questions
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id="showResults"
+                    checked={formData.quizSettings.showResults}
+                    onCheckedChange={(checked) =>
+                      handleInputChange("quizSettings.showResults", !!checked)
+                    }
+                  />
+                  <Label
+                    htmlFor="showResults"
+                    className="text-base font-medium"
+                  >
+                    Show Results to Participants Immediately
+                  </Label>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      case 5:
         return (
           <div className="space-y-10">
             <div className="text-center">

@@ -1,27 +1,27 @@
 import {
   RegisterPayload,
-  RegisterResponseData,
+  RegisterResponse,
   LoginPayload,
-  LoginResponseData,
+  LoginResponse,
   VerifyOtpPayload,
   RefreshTokenPayload,
+  ApiResponse,
 } from "@/types";
-import { baseApi } from "../baseApi";
-import { userLoggedIn } from "@/store/features/auth/authSlice";
+
+import { userLoggedIn } from "@/lib/features/auth/authSlice";
+import { baseApi } from "./baseApi";
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    register: builder.mutation<RegisterResponseData, RegisterPayload>({
+    register: builder.mutation<ApiResponse<RegisterResponse>, RegisterPayload>({
       query: (userData) => ({
         url: "/auth/register",
         method: "POST",
         body: userData,
       }),
-      transformResponse: (response: { data: RegisterResponseData }) =>
-        response.data,
     }),
     verifyOtp: builder.mutation<
-      LoginResponseData,
+      ApiResponse<LoginResponse>,
       { payload: VerifyOtpPayload; tempToken: string }
     >({
       query: ({ payload, tempToken }) => ({
@@ -33,15 +33,13 @@ export const authApi = baseApi.injectEndpoints({
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          dispatch(userLoggedIn(data));
+          dispatch(userLoggedIn(data.data!));
         } catch (error) {
           console.error("OTP Verification failed:", error);
         }
       },
-      transformResponse: (response: { data: LoginResponseData }) =>
-        response.data,
     }),
-    login: builder.mutation<LoginResponseData, LoginPayload>({
+    login: builder.mutation<ApiResponse<LoginResponse>, LoginPayload>({
       query: (credentials) => ({
         url: "/auth/login",
         method: "POST",
@@ -50,22 +48,21 @@ export const authApi = baseApi.injectEndpoints({
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          dispatch(userLoggedIn(data));
+          dispatch(userLoggedIn(data.data!));
         } catch (error) {
           console.error("Login failed:", error);
         }
       },
-      transformResponse: (response: { data: LoginResponseData }) =>
-        response.data,
     }),
-    refreshToken: builder.mutation<LoginResponseData, RefreshTokenPayload>({
+    refreshToken: builder.mutation<
+      ApiResponse<LoginResponse>,
+      RefreshTokenPayload
+    >({
       query: (payload) => ({
         url: "/auth/refresh",
         method: "POST",
         body: payload,
       }),
-      transformResponse: (response: { data: LoginResponseData }) =>
-        response.data,
     }),
   }),
 });

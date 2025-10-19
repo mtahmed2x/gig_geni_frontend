@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { LoginPayload } from "@/types";
-import { useLoginMutation } from "@/store/api/authApi";
+import { useLoginMutation } from "@/lib/api/authApi";
 
 interface LoginFormProps {
   onClose: () => void;
@@ -40,7 +40,7 @@ export function LoginForm({ onClose, onSwitchToSignup }: LoginFormProps) {
       const response = await login(payload).unwrap();
       onClose();
       setTimeout(() => {
-        const userRole = response.user.role;
+        const userRole = response.data!.user.role;
         switch (userRole) {
           case "admin":
             router.push("/admin/dashboard");

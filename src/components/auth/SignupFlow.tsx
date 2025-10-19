@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { UserRole } from "@/types";
 import { AnimatePresence, motion } from "framer-motion";
 import { UserTypeSelection } from "./UserTypeSelection";
 import { SignupForm } from "./SignupForm";
+import { UserRole } from "@/lib/features/user/types";
 
 interface SignupFlowProps {
   onVerificationNeeded: (email: string, tempAccessToken: string) => void;

@@ -1,14 +1,19 @@
-import { baseApi } from "../baseApi";
 import {
+  ApiResponse,
   CreateQuizQuestionPayload,
   GenerateQuizQuestionsPayload,
   QuizQuestion,
 } from "@/types";
+import { baseApi } from "./baseApi";
+import {
+  GetAllQuizQuestionResponse,
+  GetQuizQuestionResponse,
+} from "../features/quizQuestion/types";
 
 export const quizQuestionApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     createQuizQuestion: builder.mutation<
-      QuizQuestion[],
+      ApiResponse<GetAllQuizQuestionResponse>,
       CreateQuizQuestionPayload
     >({
       query: (payload) => ({
@@ -17,11 +22,10 @@ export const quizQuestionApi = baseApi.injectEndpoints({
         body: payload,
       }),
       invalidatesTags: ["QuizQuestion"],
-      transformResponse: (response: { data: QuizQuestion[] }) => response.data,
     }),
 
     addMultipleQuizQuestions: builder.mutation<
-      QuizQuestion[],
+      ApiResponse<GetAllQuizQuestionResponse>,
       { competitionId: string; questions: Partial<QuizQuestion>[] }
     >({
       query: (payload) => ({
@@ -30,17 +34,36 @@ export const quizQuestionApi = baseApi.injectEndpoints({
         body: payload,
       }),
       invalidatesTags: ["QuizQuestion"],
-      transformResponse: (response: { data: QuizQuestion[] }) => response.data,
     }),
 
-    fetchQuizQuestions: builder.query<QuizQuestion[], string>({
+    getAllQuizQuestion: builder.query<
+      ApiResponse<GetAllQuizQuestionResponse>,
+      string
+    >({
       query: (competitionId) => `/quiz-question?competition=${competitionId}`,
       providesTags: ["QuizQuestion"],
-      transformResponse: (response: { data: QuizQuestion[] }) => response.data,
+    }),
+
+    getQuizQuestion: builder.query<
+      ApiResponse<GetQuizQuestionResponse>,
+      string
+    >({
+      query: (id) => `/quiz-question/${id}`,
+    }),
+
+    updateQuizQuestion: builder.mutation<
+      ApiResponse<GetQuizQuestionResponse>,
+      Partial<QuizQuestion> & { id: string }
+    >({
+      query: ({ id, ...body }) => ({
+        url: `/quiz-question/update/${id}`,
+        method: "PATCH",
+        body,
+      }),
     }),
 
     generateQuizQuestions: builder.mutation<
-      QuizQuestion[],
+      ApiResponse<GetAllQuizQuestionResponse>,
       GenerateQuizQuestionsPayload
     >({
       query: (payload) => ({
@@ -48,7 +71,6 @@ export const quizQuestionApi = baseApi.injectEndpoints({
         method: "POST",
         body: payload,
       }),
-      transformResponse: (response: { data: QuizQuestion[] }) => response.data,
     }),
   }),
 });
@@ -56,6 +78,8 @@ export const quizQuestionApi = baseApi.injectEndpoints({
 export const {
   useCreateQuizQuestionMutation,
   useAddMultipleQuizQuestionsMutation,
-  useFetchQuizQuestionsQuery,
+  useGetAllQuizQuestionQuery,
+  useGetQuizQuestionQuery,
+  useUpdateQuizQuestionMutation,
   useGenerateQuizQuestionsMutation,
 } = quizQuestionApi;

@@ -36,35 +36,39 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { QuizQuestion } from "@/types";
-import { useFetchQuizQuestionsQuery } from "@/store/api/quizQuestionApi";
-import { useGetQuizSettingsQuery } from "@/store/api/quizSettingsApi";
-import {
-  useEvaluateQuizMutation,
-  useSubmitAnswerMutation,
-} from "@/store/api/quizAnswerApi";
+import { QuizQuestion } from "@/lib/features/quizQuestion/types";
+import { AnswerPayload } from "@/lib/features/quizAttempt/types";
+
+import { useGetCompetitionQuery } from "@/lib/api/competitionApi";
+
+import { useGetAllQuizQuestionQuery } from "@/lib/api/quizQuestionApi";
+import { useSubmitAnswerMutation } from "@/lib/api/quizAttemptApi";
 
 export default function QuizTakingPageContent() {
   const params = useParams();
   const router = useRouter();
   const competitionId = params.id as string;
 
+  // --- Corrected Data Fetching ---
   const {
-    data: questions = [],
-    isLoading: isLoadingQuestions,
-    isError: isQuestionsError,
-  } = useFetchQuizQuestionsQuery(competitionId, { skip: !competitionId });
-  const {
-    data: settings,
+    data: competitionData,
     isLoading: isLoadingSettings,
     isError: isSettingsError,
-  } = useGetQuizSettingsQuery(competitionId, { skip: !competitionId });
+  } = useGetCompetitionQuery(competitionId, { skip: !competitionId });
 
-  const [submitAnswer] = useSubmitAnswerMutation();
-  const [evaluateQuiz, { isLoading: isEvaluating }] = useEvaluateQuizMutation();
+  const {
+    data: questionsData,
+    isLoading: isLoadingQuestions,
+    isError: isQuestionsError,
+  } = useGetAllQuizQuestionQuery(competitionId, { skip: !competitionId });
 
-  const [timeLimit, setTimeLimit] = useState(0);
+  // The actual mutation for submitting the quiz
+  const [submitAnswer, { isLoading: isSubmitting }] = useSubmitAnswerMutation();
+
+  // --- State Management ---
+  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [timeLeft, setTimeLeft] = useState(0);
+  // Stores answers in the format: { questionId: answerValue }
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [quizState, setQuizState] = useState<"idle" | "active" | "finished">(
@@ -72,70 +76,86 @@ export default function QuizTakingPageContent() {
   );
   const [warningCount, setWarningCount] = useState(0);
   const [showWarningModal, setShowWarningModal] = useState(false);
-  const [finalScore, setFinalScore] = useState<number | null>(null);
   const [isSkipConfirmOpen, setIsSkipConfirmOpen] = useState(false);
-  const [passMessage, setPassMessage] = useState("");
 
+  // State for the final results screen
+  const [finalResult, setFinalResult] = useState<{
+    score: number;
+    message: string;
+    passed: boolean;
+  } | null>(null);
+
+  // --- Core Logic Refactor ---
+
+  // Memoized function to handle the final quiz submission
   const handleSubmitQuiz = useCallback(async () => {
-    if (isEvaluating) return;
+    if (isSubmitting) return;
 
-    const finalQuestionId = questions[currentQuestionIndex]?._id;
-    if (finalQuestionId) {
-      await submitAnswer({
-        competitionId,
-        questionId: finalQuestionId,
-        answer: answers[finalQuestionId] || null,
-      });
-    }
+    // 1. Format the answers from the state object into the array the API expects
+    const formattedAnswers: AnswerPayload[] = questions.map((q) => ({
+      questionId: q._id,
+      answer: answers[q._id] || null, // Send null if unanswered
+    }));
 
     try {
-      const result = await evaluateQuiz({ competitionId }).unwrap();
-      setFinalScore(result.totalPoints);
-      setPassMessage(result.message);
+      // 2. Call the single `submitAnswer` mutation with the complete payload
+      const result = await submitAnswer({
+        competitionId,
+        answers: formattedAnswers,
+      }).unwrap();
+
+      setFinalResult({
+        score: result!.data!.attempt.totalScore,
+        message: result!.data!.message,
+        passed: result!.data!.attempt.passed,
+      });
+
       setQuizState("finished");
       toast.success("Quiz submitted successfully!");
     } catch (err: any) {
       toast.error(
-        err.data?.message ||
-          "A network error occurred while submitting the quiz."
+        err.data?.message || "An error occurred while submitting the quiz."
       );
+      // Even on error, show a finished state
+      setFinalResult({
+        score: 0,
+        message:
+          "There was an error submitting your quiz. Please contact support.",
+        passed: false,
+      });
       setQuizState("finished");
-      setFinalScore(0);
-      setPassMessage(
-        "There was an error submitting your quiz. Please contact support."
-      );
     }
-  }, [
-    competitionId,
-    evaluateQuiz,
-    isEvaluating,
-    questions,
-    currentQuestionIndex,
-    answers,
-    submitAnswer,
-  ]);
+  }, [isSubmitting, questions, answers, submitAnswer, competitionId]);
 
+  // Effect to initialize the quiz questions and timer
   useEffect(() => {
-    if (questions.length > 0 && settings) {
-      const timeInSeconds = settings.timeLimit * 60;
-      setTimeLimit(timeInSeconds);
+    if (questionsData?.data) {
+      setQuestions(questionsData.data);
+    }
+    if (competitionData?.data?.quizSettings) {
+      const timeInSeconds = competitionData.data.quizSettings.timeLimit * 60;
       setTimeLeft(timeInSeconds);
     }
-  }, [questions, settings]);
+  }, [questionsData, competitionData]);
 
+  // Effect for the countdown timer
   useEffect(() => {
-    if (quizState !== "active") return;
-    if (timeLeft <= 0) {
-      toast.info("Time's up! Submitting your quiz automatically.");
-      handleSubmitQuiz();
+    if (quizState !== "active" || timeLeft <= 0) {
+      if (quizState === "active" && timeLeft <= 0) {
+        toast.info("Time's up! Submitting your quiz automatically.");
+        handleSubmitQuiz();
+      }
       return;
     }
+
     const timerInterval = setInterval(() => {
       setTimeLeft((prevTime) => prevTime - 1);
     }, 1000);
+
     return () => clearInterval(timerInterval);
   }, [quizState, timeLeft, handleSubmitQuiz]);
 
+  // Effect for anti-cheating tab switch warning
   useEffect(() => {
     if (quizState !== "active") return;
 
@@ -147,7 +167,6 @@ export default function QuizTakingPageContent() {
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
-
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
@@ -159,44 +178,25 @@ export default function QuizTakingPageContent() {
 
   const startQuiz = () => setQuizState("active");
 
-  const moveToNextQuestion = (options = { isSkipping: false }) => {
-    const { isSkipping } = options;
-    const currentQuestionId = questions[currentQuestionIndex]._id;
-
-    const answerToSubmit = isSkipping
-      ? null
-      : answers[currentQuestionId] || null;
-
-    if (isSkipping) {
-      setAnswers((prev) => {
-        const newAnswers = { ...prev };
-        delete newAnswers[currentQuestionId];
-        return newAnswers;
-      });
+  // Simplified navigation logic
+  const moveToNextQuestion = () => {
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex((prev) => prev + 1);
     }
-
-    submitAnswer({
-      competitionId,
-      questionId: currentQuestionId,
-      answer: answerToSubmit,
-    })
-      .unwrap()
-      .catch((err) => {
-        console.error("Failed to save answer on navigation:", err);
-        toast.error("Failed to save progress. Please check your connection.");
-      });
-
-    if (isSkipConfirmOpen) setIsSkipConfirmOpen(false);
-    setCurrentQuestionIndex((p) => Math.min(questions.length - 1, p + 1));
   };
 
-  const handleNextClick = () => {
+  const handleSkip = () => {
+    // Clear the answer for the current question before skipping
+    setAnswers((prev) => {
+      const newAnswers = { ...prev };
+      delete newAnswers[questions[currentQuestionIndex]._id];
+      return newAnswers;
+    });
     moveToNextQuestion();
+    setIsSkipConfirmOpen(false);
   };
 
-  const handleSkipClick = () => {
-    setIsSkipConfirmOpen(true);
-  };
+  // --- Render Logic ---
 
   if (isLoadingQuestions || isLoadingSettings) {
     return (
@@ -215,6 +215,9 @@ export default function QuizTakingPageContent() {
       </div>
     );
   }
+
+  const settings = competitionData?.data?.quizSettings;
+  const currentQuestion = questions[currentQuestionIndex];
 
   if (quizState === "idle") {
     return (
@@ -246,25 +249,25 @@ export default function QuizTakingPageContent() {
               <li>
                 You cannot go back to previous questions once you've moved on.
               </li>
-              <li>Attempting to leave the page will be flagged.</li>
             </ul>
           </div>
           <Button
             onClick={startQuiz}
             className="w-full"
             size="lg"
-            disabled={questions.length === 0}
+            disabled={!questions || questions.length === 0}
           >
-            {questions.length > 0 ? "Start Quiz" : "No Questions Available"}
+            {questions && questions.length > 0
+              ? "Start Quiz"
+              : "No Questions Available"}
           </Button>
         </CardContent>
       </Card>
     );
   }
 
-  if (quizState === "finished") {
-    const passed =
-      finalScore !== null && settings && finalScore >= settings.passingScore;
+  if (quizState === "finished" && finalResult) {
+    const { score, message, passed } = finalResult;
     return (
       <Card className="max-w-2xl mx-auto text-center">
         <CardHeader>
@@ -280,42 +283,46 @@ export default function QuizTakingPageContent() {
             )}
           </div>
           <CardTitle className="text-2xl">Quiz Completed!</CardTitle>
-          <CardDescription>Thank you for your submission.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-lg">Your final score is:</p>
+          <p className="text-lg font-bold">{message}</p>
           <p
             className={`text-5xl font-bold ${
               passed ? "text-green-600" : "text-red-600"
             }`}
           >
-            {finalScore ?? 0} / {settings?.passingScore ?? 100}
+            {score.toFixed(1)}
           </p>
-          <p className="text-muted-foreground">{passMessage}</p>
-          {/* --- MODIFIED: This button is now conditional --- */}
+          <p className="text-sm text-muted-foreground">
+            {passed
+              ? "Congratulations! You have advanced to the next stage."
+              : "Unfortunately, you did not meet the passing score for this round."}
+          </p>
           <Button
-            onClick={() => {
-              if (passed) {
-                router.push(`/competitions/${competitionId}/journey`);
-              } else {
-                router.push("/"); // Navigate to home page on failure
-              }
-            }}
+            onClick={() =>
+              router.push(
+                passed ? `/competitions/${competitionId}/journey` : "/"
+              )
+            }
           >
-            {passed ? "Return to Journey" : "Return to Home"}
+            {passed ? "Continue to Journey" : "Return to Home"}
           </Button>
         </CardContent>
       </Card>
     );
   }
 
-  const currentQuestion = questions[currentQuestionIndex];
   if (!currentQuestion) {
-    return <div>No questions loaded or you have finished the quiz.</div>;
+    return (
+      <div className="flex flex-col items-center justify-center h-48">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="mt-4 text-muted-foreground">Loading...</p>
+      </div>
+    );
   }
 
-  const timeProgress = (timeLeft / timeLimit) * 100;
-
+  const timeLimitInSeconds = (settings?.timeLimit || 0) * 60;
+  const timeProgress = (timeLeft / timeLimitInSeconds) * 100;
   const currentAnswer = answers[currentQuestion._id];
   const isAnswered =
     currentAnswer !== undefined &&
@@ -365,7 +372,7 @@ export default function QuizTakingPageContent() {
               <div className="space-y-4">
                 {currentQuestion.type === "single" && (
                   <RadioGroup
-                    value={answers[currentQuestion._id]}
+                    value={answers[currentQuestion._id] || ""}
                     onValueChange={(val) =>
                       handleAnswerChange(currentQuestion._id, val)
                     }
@@ -428,13 +435,13 @@ export default function QuizTakingPageContent() {
                 )}
                 {currentQuestion.type === "true_false" && (
                   <RadioGroup
-                    value={answers[currentQuestion._id]}
+                    value={String(answers[currentQuestion._id] ?? "")}
                     onValueChange={(val) =>
-                      handleAnswerChange(currentQuestion._id, val)
+                      handleAnswerChange(currentQuestion._id, val === "true")
                     }
                   >
                     <div className="flex items-center space-x-2 p-3 border rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary">
-                      <RadioGroupItem value="True" id="opt-true" />
+                      <RadioGroupItem value="true" id="opt-true" />
                       <Label
                         htmlFor="opt-true"
                         className="flex-1 cursor-pointer"
@@ -443,7 +450,7 @@ export default function QuizTakingPageContent() {
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2 p-3 border rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary">
-                      <RadioGroupItem value="False" id="opt-false" />
+                      <RadioGroupItem value="false" id="opt-false" />
                       <Label
                         htmlFor="opt-false"
                         className="flex-1 cursor-pointer"
@@ -473,7 +480,10 @@ export default function QuizTakingPageContent() {
       <div className="flex justify-between items-center mt-6">
         <div>
           {currentQuestionIndex < questions.length - 1 && (
-            <Button onClick={handleSkipClick} variant="outline">
+            <Button
+              onClick={() => setIsSkipConfirmOpen(true)}
+              variant="outline"
+            >
               Skip
             </Button>
           )}
@@ -483,15 +493,15 @@ export default function QuizTakingPageContent() {
             <Button
               onClick={handleSubmitQuiz}
               className="bg-green-600 hover:bg-green-700"
-              disabled={isEvaluating}
+              disabled={isSubmitting}
             >
-              {isEvaluating && (
+              {isSubmitting && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
               Submit Quiz
             </Button>
           ) : (
-            <Button onClick={handleNextClick} disabled={!isAnswered}>
+            <Button onClick={moveToNextQuestion} disabled={!isAnswered}>
               Next
             </Button>
           )}
@@ -530,9 +540,7 @@ export default function QuizTakingPageContent() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => moveToNextQuestion({ isSkipping: true })}
-            >
+            <AlertDialogAction onClick={handleSkip}>
               Confirm & Skip
             </AlertDialogAction>
           </AlertDialogFooter>

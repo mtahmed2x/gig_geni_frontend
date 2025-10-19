@@ -9,13 +9,12 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
-import { QuizQuestion } from "@/types";
-import { useFetchQuizQuestionsQuery } from "@/store/api/quizQuestionApi";
+import { QuizQuestion } from "@/lib/features/quizQuestion/types"; // Corrected type import path
+import { useGetAllQuizQuestionQuery } from "@/lib/api/quizQuestionApi";
 import {
-  useCreateQuizSettingsMutation,
-  useGetQuizSettingsQuery,
-  useUpdateQuizSettingsMutation,
-} from "@/store/api/quizSettingsApi";
+  useGetCompetitionQuery,
+  useUpdateCompetitionMutation,
+} from "@/lib/api/competitionApi"; // Corrected API hooks
 
 const initialSettings = {
   passingScore: 80,
@@ -29,49 +28,48 @@ interface QuizSettingsProps {
 }
 
 export default function QuizSettings({ competitionId }: QuizSettingsProps) {
-  const { data: questions = [] } = useFetchQuizQuestionsQuery(competitionId);
-  const { data: fetchedSettings, isLoading: isLoadingSettings } =
-    useGetQuizSettingsQuery(competitionId);
-  const [createSettings, { isLoading: isCreating }] =
-    useCreateQuizSettingsMutation();
-  const [updateSettings, { isLoading: isUpdating }] =
-    useUpdateQuizSettingsMutation();
+  // 1. Fetch the entire competition object to get its settings
+  const { data: competitionData, isLoading: isLoadingCompetition } =
+    useGetCompetitionQuery(competitionId);
+
+  // 2. Fetch the questions separately for the distribution display
+  const { data: questionsData } = useGetAllQuizQuestionQuery(competitionId, {
+    skip: !competitionId,
+  });
+  const questions: QuizQuestion[] = questionsData?.data || [];
+
+  // 3. Use the correct mutation to update the competition
+  const [updateCompetition, { isLoading: isUpdating }] =
+    useUpdateCompetitionMutation();
 
   const [localSettings, setLocalSettings] = useState(initialSettings);
 
+  // 4. Populate the local state from the fetched competition data
   useEffect(() => {
-    if (fetchedSettings) {
-      setLocalSettings({
-        passingScore: fetchedSettings.passingScore,
-        timeLimit: fetchedSettings.timeLimit,
-        randomizeQuestions: fetchedSettings.randomizeQuestions,
-        showResults: fetchedSettings.showResults,
-      });
+    // Check for the nested quizSettings object in the response
+    if (competitionData?.data?.quizSettings) {
+      setLocalSettings(competitionData.data.quizSettings);
     }
-  }, [fetchedSettings]);
+  }, [competitionData]);
 
   const handleSettingsChange = (
     field: keyof typeof initialSettings,
-    value: any
+    value: string | number | boolean
   ) => {
-    setLocalSettings((prev) => ({ ...prev, [field]: value }));
+    // Ensure numbers are parsed correctly
+    const parsedValue =
+      typeof initialSettings[field] === "number" ? Number(value) : value;
+    setLocalSettings((prev) => ({ ...prev, [field]: parsedValue }));
   };
 
-  // --- STEP 3: Implement the core create/update logic in the save handler ---
+  // 5. Implement the save handler using the updateCompetition mutation
   const handleSave = async () => {
-    const payload = {
-      ...localSettings,
-      competitionId,
-    };
-
     try {
-      // If fetchedSettings exists, it means we have an ID and should update.
-      if (fetchedSettings?._id) {
-        await updateSettings({ id: fetchedSettings._id, payload }).unwrap();
-      } else {
-        // Otherwise, we create new settings.
-        await createSettings(payload).unwrap();
-      }
+      // The payload is the competition ID and the nested quizSettings object
+      await updateCompetition({
+        id: competitionId,
+        quizSettings: localSettings,
+      }).unwrap();
       toast.success("Quiz settings saved successfully!");
     } catch (error) {
       toast.error("Failed to save settings. Please try again.");
@@ -87,10 +85,7 @@ export default function QuizSettings({ competitionId }: QuizSettingsProps) {
     [questions]
   );
 
-  // Combine loading states for the UI
-  const isSaving = isCreating || isUpdating;
-
-  if (isLoadingSettings) {
+  if (isLoadingCompetition) {
     return (
       <Card>
         <CardHeader>
@@ -124,10 +119,7 @@ export default function QuizSettings({ competitionId }: QuizSettingsProps) {
                 type="number"
                 value={localSettings.passingScore}
                 onChange={(e) =>
-                  handleSettingsChange(
-                    "passingScore",
-                    parseInt(e.target.value) || 0
-                  )
+                  handleSettingsChange("passingScore", e.target.value)
                 }
                 min="0"
                 max="100"
@@ -148,10 +140,7 @@ export default function QuizSettings({ competitionId }: QuizSettingsProps) {
                 type="number"
                 value={localSettings.timeLimit}
                 onChange={(e) =>
-                  handleSettingsChange(
-                    "timeLimit",
-                    parseInt(e.target.value) || 0
-                  )
+                  handleSettingsChange("timeLimit", e.target.value)
                 }
                 min="5"
                 max="180"
@@ -228,8 +217,8 @@ export default function QuizSettings({ competitionId }: QuizSettingsProps) {
               </div>
             </div>
           </div>
-          <Button onClick={handleSave} className="w-full" disabled={isSaving}>
-            {isSaving ? (
+          <Button onClick={handleSave} className="w-full" disabled={isUpdating}>
+            {isUpdating ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...
               </>

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Save, Plus, X, Code, Target, Users } from "lucide-react";
 // --- STEP 1: Import the global User type ---
-import { User } from "@/types";
+import { User } from "@/lib/features/user/types";
 
 interface SkillsTabProps {
   profile: User | null;

@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Save, Plus, X, Building, Users, Globe } from "lucide-react";
-import { User } from "@/types";
+import { User } from "@/lib/features/user/types";
 
 interface CompanyTabProps {
   profile: User | null;

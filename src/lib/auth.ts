@@ -1,4 +1,4 @@
-import { User } from "@/types";
+import { User } from "@/lib/features/user/types";
 
 export type UserRole = "admin" | "employer" | "employee";
 

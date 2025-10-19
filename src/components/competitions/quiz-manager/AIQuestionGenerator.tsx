@@ -29,7 +29,7 @@ import {
 import {
   useAddMultipleQuizQuestionsMutation,
   useGenerateQuizQuestionsMutation,
-} from "@/store/api/quizQuestionApi";
+} from "@/lib/api/quizQuestionApi";
 
 interface AIQuestionGeneratorProps {
   competitionId: string;
@@ -76,7 +76,7 @@ export default function AIQuestionGenerator({
     };
 
     try {
-      const result = await generateQuestions(payload).unwrap();
+      const result = (await generateQuestions(payload).unwrap()).data;
       if (result && result.length > 0) {
         setAiGeneratedQuestions(result);
         setShowAiPreview(true);

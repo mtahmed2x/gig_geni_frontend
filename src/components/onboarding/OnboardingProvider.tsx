@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { useAppSelector } from "@/store/store";
+import { useAppSelector } from "@/lib/hooks";
 
 import { useRouteGuard } from "@/hooks/useRouteGuard";
 // --- STEP 1: Import the useAuth hook to control the modals ---
@@ -10,7 +10,7 @@ import { useAuth } from "@/contexts/AuthProvider";
 import {
   selectCurrentUser,
   selectIsAuthenticated,
-} from "@/store/features/auth/authSlice";
+} from "@/lib/features/auth/authSlice";
 
 interface OnboardingProviderProps {
   children: React.ReactNode;

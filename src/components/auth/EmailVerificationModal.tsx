@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Clock, RefreshCw, AlertCircle, ArrowLeft } from "lucide-react";
-import { useVerifyOtpMutation } from "@/store/api/authApi";
+import { useVerifyOtpMutation } from "@/lib/api/authApi";
 import { OtpInput } from "./OtpInput";
 import { VerificationSuccess } from "./VerificationSuccess";
 import { useOtpTimer } from "@/hooks/useOtpTimer";
@@ -70,7 +70,7 @@ export function EmailVerificationModal({
       setTimeout(() => {
         onClose();
         // Role-based redirection
-        const userRole = result.user.role;
+        const userRole = result.data!.user.role;
         switch (userRole) {
           case "admin":
             router.push("/admin/dashboard");

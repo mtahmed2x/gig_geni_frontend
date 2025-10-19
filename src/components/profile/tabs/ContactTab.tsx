@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Save, Mail, Phone, Globe, MapPin } from "lucide-react";
-import { User } from "@/types";
+import { User } from "@/lib/features/user/types";
 
 interface ContactTabProps {
   profile: User | null;

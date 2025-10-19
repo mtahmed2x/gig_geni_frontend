@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { useAppSelector } from "@/store/store";
+import { useAppSelector } from "@/lib/hooks";
 import { checkRoutePermission } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { AlertTriangle, ArrowLeft, Home } from "lucide-react";
 import {
   selectCurrentUser,
   selectIsAuthenticated,
-} from "@/store/features/auth/authSlice";
+} from "@/lib/features/auth/authSlice";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;

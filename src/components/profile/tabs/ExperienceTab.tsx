@@ -9,8 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Save, Plus, Edit, Trash2, Briefcase, Calendar } from "lucide-react";
-// --- STEP 1: Import the global types ---
-import { User, Experience } from "@/types";
+import { Experience, User } from "@/lib/features/user/types";
 
 interface ExperienceTabProps {
   profile: User | null;

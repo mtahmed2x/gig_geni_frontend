@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { useAppDispatch, useAppSelector } from "@/store/store";
+import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Edit, X, Camera, AlertCircle, Loader2 } from "lucide-react";
-import { User } from "@/types";
 
 // Import all your tab components
 import { PersonalInfoTab } from "./tabs/PersonalInfoTab";
@@ -23,17 +22,20 @@ import { ContactTab } from "./tabs/ContactTab";
 import { CompanyTab } from "./tabs/CompanyTab";
 import { ProfileCompletionModal } from "./ProfileCompletionModal";
 import { toast } from "sonner";
-import { selectCurrentUser } from "@/store/features/auth/authSlice";
+import { selectCurrentUser } from "@/lib/features/auth/authSlice";
 import {
   useGetUserProfileQuery,
   useUpdateUserProfileMutation,
-} from "@/store/api/userApi";
+} from "@/lib/api/userApi";
+import { User } from "@/lib/features/user/types";
 
 export function ProfilePage() {
   const authUser = useAppSelector(selectCurrentUser);
-  const { data: profile, isLoading, isError } = useGetUserProfileQuery();
+  const { data: profileData, isLoading, isError } = useGetUserProfileQuery();
   const [updateProfile, { isLoading: isUpdating }] =
     useUpdateUserProfileMutation();
+
+  const profile = profileData?.data;
 
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");

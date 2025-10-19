@@ -16,11 +16,12 @@ import {
   Loader2,
 } from "lucide-react";
 import Link from "next/link";
-import { Competition, Participant } from "@/types";
+
 import CompetitionJourney from "@/components/competitions/CompetitionJourney";
-import { useFetchCompetitionByIdQuery } from "@/store/api/competitionApi";
-import { selectCurrentUser } from "@/store/features/auth/authSlice";
-import { useAppSelector } from "@/store/store";
+import { useGetCompetitionQuery } from "@/lib/api/competitionApi";
+import { selectCurrentUser } from "@/lib/features/auth/authSlice";
+import { useAppSelector } from "@/lib/hooks";
+import { Competition } from "@/lib/features/competition/types";
 
 function CompetitionJourneyPageContent() {
   const params = useParams();
@@ -28,19 +29,21 @@ function CompetitionJourneyPageContent() {
 
   // --- STEP 2: Replace useDispatch/useSelector with RTK Query and correct user selector ---
   const {
-    data: competition,
+    data: competitionData,
     isLoading,
     isError,
-  } = useFetchCompetitionByIdQuery(competitionId, { skip: !competitionId });
+  } = useGetCompetitionQuery(competitionId, { skip: !competitionId });
 
   const currentUser = useAppSelector(selectCurrentUser);
+  const competition = competitionData?.data;
 
   // The useEffect for fetching and cleanup is no longer needed.
   // RTK Query handles the entire data lifecycle.
 
   // This useMemo hook remains the same and works perfectly with the new data source
   const participantData = useMemo(() => {
-    if (!competition || !currentUser) return undefined;
+    if (!competition || !currentUser || !competition.participants)
+      return undefined;
     return competition.participants.find((p) => {
       if (typeof p.user === "string") {
         return p.user === currentUser._id;
@@ -139,9 +142,7 @@ function CompetitionJourneyPageContent() {
                     </div>
                     <div className="flex items-center">
                       <Users className="h-4 w-4 mr-2" />
-                      <span>
-                        {competition.participants.length} participants
-                      </span>
+                      <span>{competition.totalParticipants} participants</span>
                     </div>
                     <div className="flex items-center">
                       <Calendar className="h-4 w-4 mr-2" />

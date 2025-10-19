@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Circle, Lock, Play } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Participant } from "@/types";
+import { Participant } from "@/lib/features/participant/types";
 
 // The visual state of a single step
 interface JourneyStep {
@@ -36,7 +36,10 @@ export default function CompetitionJourney({
         "Test your foundational knowledge with a timed multiple-choice quiz.",
       // If the participant data shows the quiz is passed, it's 'completed'.
       // Otherwise, it is ALWAYS 'current'.
-      status: participantData?.round1 === "passed" ? "completed" : "current",
+      status:
+        participantData?.round1_quiz.status === "passed"
+          ? "completed"
+          : "current",
     },
     {
       round: 2,
@@ -44,7 +47,10 @@ export default function CompetitionJourney({
       description:
         "Record and submit a short video answering a behavioral question.",
       // This round is locked until round 1 is passed.
-      status: participantData?.round1 === "passed" ? "current" : "locked",
+      status:
+        participantData?.round2_video.status === "passed"
+          ? "current"
+          : "locked",
     },
     {
       round: 3,
@@ -52,7 +58,10 @@ export default function CompetitionJourney({
       description:
         "Schedule and attend a live virtual interview with the hiring manager.",
       // This round is locked until round 2 is approved.
-      status: participantData?.round2 === "approved" ? "current" : "locked",
+      status:
+        participantData?.round3_meeting.status === "approved"
+          ? "current"
+          : "locked",
     },
     {
       round: 4,
@@ -60,7 +69,10 @@ export default function CompetitionJourney({
       description:
         "Complete a take-home project to showcase your practical skills.",
       // This round is locked until round 3 is approved.
-      status: participantData?.round3 === "approved" ? "current" : "locked",
+      status:
+        participantData?.round4_task.status === "approved"
+          ? "current"
+          : "locked",
     },
   ];
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo} from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,8 +25,8 @@ import {
 } from "lucide-react";
 import { categories } from "@/lib/mock-data";
 import Link from "next/link";
-import { Competition } from "@/types";
-import { useFetchAllCompetitionsQuery } from "@/store/api/competitionApi";
+import { useGetAllCompetitionQuery } from "@/lib/api/competitionApi";
+import { Competition } from "@/lib/features/competition/types";
 
 const CompetitionCardSkeleton = () => (
   <Card className="h-full animate-pulse">
@@ -41,10 +41,12 @@ const CompetitionCardSkeleton = () => (
 
 export default function CompetitionsPage() {
   const {
-    data: allCompetitions = [], // Default to an empty array
+    data: allCompetitionsData, // Default to an empty array
     isLoading,
     isError,
-  } = useFetchAllCompetitionsQuery();
+  } = useGetAllCompetitionQuery();
+
+  const allCompetitions = allCompetitionsData?.data || [];
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -67,11 +69,12 @@ export default function CompetitionsPage() {
         (competition.description &&
           competition.description.toLowerCase().includes(lowerCaseSearch)) ||
         competition.skillsTested.toLowerCase().includes(lowerCaseSearch);
-      const matchesCategory =
-        selectedCategory === "all" || competition.category === selectedCategory;
+      // const matchesCategory =
+      //   selectedCategory === "all" || competition.category === selectedCategory;
       const matchesLocation =
         selectedLocation === "all" || competition.location === selectedLocation;
-      return matchesSearch && matchesCategory && matchesLocation;
+      return matchesSearch && matchesLocation;
+      // return matchesSearch && matchesCategory && matchesLocation;
     });
 
     filtered.sort((a, b) => {
@@ -88,7 +91,7 @@ export default function CompetitionsPage() {
     return filtered;
   }, [
     searchQuery,
-    selectedCategory,
+    // selectedCategory,
     selectedLocation,
     sortBy,
     allCompetitions,
@@ -311,7 +314,7 @@ export default function CompetitionsPage() {
                           </div>
                           <div className="flex items-center">
                             <Users className="h-4 w-4 mr-2" />
-                            {competition.participants.length} participants
+                            {competition.totalParticipants} participants
                           </div>
                           <div className="flex items-center font-semibold text-green-600">
                             <Trophy className="h-4 w-4 mr-2" />

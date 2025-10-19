@@ -15,8 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Save, Plus, X, User as UserIcon } from "lucide-react";
-// --- STEP 1: Import the global User type ---
-import { Gender, User } from "@/types";
+import { Gender, User } from "@/lib/features/user/types";
 
 interface PersonalInfoTabProps {
   profile: User | null;

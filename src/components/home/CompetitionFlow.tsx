@@ -23,11 +23,11 @@ import {
   HeartHandshake,
 } from "lucide-react";
 import { competitionTypes, flowSteps } from "@/lib/mock-data";
-import { HomeResponseData } from "@/types";
+import { HomeResponse } from "@/types";
 import Link from "next/link";
 
 interface CompetitionProps {
-  homeData?: HomeResponseData;
+  homeData?: HomeResponse;
 }
 
 // Function to get appropriate icon for each step

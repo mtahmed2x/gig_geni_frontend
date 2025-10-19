@@ -20,11 +20,11 @@ import {
   AlertTriangle,
   Save,
 } from "lucide-react";
-import { useAppSelector } from "@/store/store";
+import { useAppSelector } from "@/lib/hooks";
 
 import { ChangePasswordDialog } from "./ChangePasswordDialog";
 import { DeleteAccountDialog } from "./DeleteAccountDialog";
-import { selectCurrentUser } from "@/store/features/auth/authSlice";
+import { selectCurrentUser } from "@/lib/features/auth/authSlice";
 
 export function SettingsPage() {
   const user = useAppSelector(selectCurrentUser);

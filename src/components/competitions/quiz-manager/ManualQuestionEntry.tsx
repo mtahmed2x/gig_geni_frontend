@@ -13,17 +13,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus, Trash2, Edit, FileText, BarChart3 } from "lucide-react";
-import {
-  QuizQuestion,
-  CreateQuizQuestionPayload,
-  QuestionType,
-  QuestionDifficulty,
-} from "@/types";
+
 import { toast } from "sonner";
 import {
   useCreateQuizQuestionMutation,
-  useFetchQuizQuestionsQuery,
-} from "@/store/api/quizQuestionApi";
+  useGetAllQuizQuestionQuery,
+} from "@/lib/api/quizQuestionApi";
+import {
+  CreateQuizQuestionPayload,
+  QuestionDifficulty,
+  QuestionType,
+  QuizQuestion,
+} from "@/lib/features/quizQuestion/types";
 
 const defaultCategories = [
   "Programming",
@@ -47,7 +48,6 @@ const initialNewQuestionState = {
   correctAnswerIndexes: [0] as number[],
   points: 10,
   difficulty: "medium" as QuestionDifficulty,
-  category: "Programming",
   wordLimit: 100,
 };
 
@@ -55,13 +55,13 @@ export default function ManualQuestionEntry({
   competitionId,
 }: ManualQuestionEntryProps) {
   const {
-    data: questions = [],
+    data: questionsResponse,
     isLoading: isFetchingQuestions,
     isError,
-  } = useFetchQuizQuestionsQuery(competitionId, {
+  } = useGetAllQuizQuestionQuery(competitionId, {
     skip: !competitionId,
   });
-
+  const questions = questionsResponse?.data || [];
   const [createQuestion, { isLoading: isCreatingQuestion }] =
     useCreateQuizQuestionMutation();
 
@@ -91,7 +91,6 @@ export default function ManualQuestionEntry({
       type: newQuestion.type,
       points: newQuestion.points,
       difficulty: newQuestion.difficulty,
-      category: newQuestion.category,
     };
 
     if (["single", "multiple", "true_false"].includes(newQuestion.type)) {
@@ -385,7 +384,6 @@ export default function ManualQuestionEntry({
                   ))}
                 </div>
                 <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-                  <span>Category: {q.category}</span>
                   <span>Points: {q.points}</span>
                 </div>
               </div>

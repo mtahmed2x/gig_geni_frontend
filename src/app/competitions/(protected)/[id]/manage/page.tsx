@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,34 +6,29 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Eye, AlertCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
-
 import QuizManager from "@/components/competitions/QuizManager";
 import VideoReviewManager from "@/components/competitions/VideoReviewManager";
 import ZoomScheduler from "@/components/competitions/ZoomScheduler";
 import FinalEvaluation from "@/components/competitions/FinalEvaluation";
-// import ParticipantTracker from "@/components/competitions/ParticipantTracker";
 import NotificationSystem from "@/components/competitions/NotificationSystem";
-import { useFetchCompetitionByIdQuery } from "@/store/api/competitionApi";
+import { useGetCompetitionQuery } from "@/lib/api/competitionApi";
 
 function CompetitionManagePageContent() {
   const params = useParams();
   const competitionId = params.id as string;
 
-  // --- STEP 2: Replace useDispatch/useSelector with the RTK Query hook ---
   const {
-    data: competition,
+    data: competitionResponse,
     isLoading,
     isError,
-  } = useFetchCompetitionByIdQuery(competitionId, {
-    skip: !competitionId, // Don't run the query if the ID isn't available yet
+  } = useGetCompetitionQuery(competitionId, {
+    skip: !competitionId,
   });
 
   const [activeTab, setActiveTab] = useState("overview");
 
-  // The useEffect for fetching and cleanup is no longer needed.
-  // RTK Query handles the entire data lifecycle automatically.
+  const competition = competitionResponse?.data;
 
-  // --- STEP 3: Update Loading State ---
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -46,7 +40,6 @@ function CompetitionManagePageContent() {
     );
   }
 
-  // --- STEP 4: Update Error/Not Found State ---
   if (isError || !competition) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -111,14 +104,14 @@ function CompetitionManagePageContent() {
               </p>
             </CardContent>
           </Card>
-          <Card>
+          {/* <Card>
             <CardContent className="p-6">
               <p className="text-sm text-gray-600">Videos Pending</p>
               <p className="text-2xl font-bold text-yellow-600">
                 {stats?.videosPending ?? 0}
               </p>
             </CardContent>
-          </Card>
+          </Card> */}
           <Card>
             <CardContent className="p-6">
               <p className="text-sm text-gray-600">Interviews Scheduled</p>
@@ -127,14 +120,14 @@ function CompetitionManagePageContent() {
               </p>
             </CardContent>
           </Card>
-          <Card>
+          {/* <Card>
             <CardContent className="p-6">
               <p className="text-sm text-gray-600">Completed</p>
               <p className="text-2xl font-bold text-purple-600">
                 {stats?.completed ?? 0}
               </p>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
 
         <Tabs

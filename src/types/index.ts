@@ -1,101 +1,23 @@
-export interface ApiResponse<T = any> {
+import { User, UserRole } from "@/lib/features/user/types";
+import { Competition, Education, Experience } from "@/lib/interface";
+
+export interface PaginationParams {
+  page?: number;
+  limit?: number;
+}
+export interface Meta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPage: number;
+}
+export interface ApiResponse<T> {
   success: boolean;
   message?: string;
   data?: T;
   error?: string;
   errors?: Record<string, string[]>;
-  meta?: {
-    page: number;
-    limit: number;
-    total: number;
-  };
-}
-
-export type UserRole = "admin" | "employer" | "employee";
-
-export type Gender = "male" | "female" | "other" | "not-stated";
-
-export interface Address {
-  homeAddress?: string;
-  city?: string;
-  state?: string;
-  country?: string;
-  zipCode?: string;
-}
-
-export interface Experience {
-  _id?: string;
-  company: string;
-  jobTitle: string;
-  startDate: string;
-  endDate?: string;
-  currentlyWorking: boolean;
-  jobDescription?: string;
-}
-
-export interface Education {
-  _id?: string;
-  institution: string;
-  degree: string;
-  fieldOfStudy?: string;
-  grade?: string;
-  startYear: string;
-  endYear?: string;
-  description?: string;
-}
-
-export interface Company {
-  _id?: string;
-  name?: string;
-  industry?: string;
-  companySze?: string;
-  foundedYear?: string;
-  website?: string;
-  headQuarters?: string;
-  description?: string;
-  teamMembers?: string[];
-  totalCompetitions?: number;
-}
-
-export interface User {
-  _id: string;
-  email: string;
-  role: UserRole;
-  name: string;
-  verified: boolean;
-  active: boolean;
-  suspended: boolean;
-
-  // Optional profile details
-  dateOfBirth?: string | null;
-  gender?: Gender | null;
-  nationality?: string | null;
-  aboutMe?: string | null;
-
-  languages: string[];
-  skills: string[];
-
-  salaryExpectations?: string | null;
-  jobPreference?: string | null;
-
-  phoneNumber?: string | null;
-  linkedinProfile?: string | null;
-  personalWebsite?: string | null;
-
-  address?: Address;
-  company?: Company;
-  hiringPreferences?: string[];
-
-  experience: Experience[];
-  education: Education[];
-
-  deviceTokens: string[];
-
-  profileCompletionPercentage: number;
-  isProfileComplete: boolean;
-
-  createdAt: string;
-  updatedAt: string;
+  meta?: Meta;
 }
 
 export interface RegisterPayload {
@@ -108,7 +30,7 @@ export interface RegisterPayload {
   };
 }
 
-export interface RegisterResponseData {
+export interface RegisterResponse {
   user: User;
   accessToken: string;
   refreshToken: string;
@@ -119,7 +41,7 @@ export interface LoginPayload {
   password: string;
 }
 
-export interface LoginResponseData {
+export interface LoginResponse {
   user: User;
   accessToken: string;
   refreshToken: string;
@@ -133,112 +55,7 @@ export interface RefreshTokenPayload {
   token: string;
 }
 
-export type UpdateUserProfilePayload = Partial<User>;
-
 export type UserProfileResponseData = User;
-
-export interface AuthState {
-  user: User | null;
-  accessToken: string | null;
-  refreshToken: string | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  pendingEmailVerification: boolean;
-  error: string | null;
-}
-
-export type Round1Status = "not_started" | "pending" | "passed" | "failed";
-export type Round2Status = "not_started" | "pending" | "approved" | "rejected";
-export type Round3Status =
-  | "not_started"
-  | "scheduled"
-  | "approved"
-  | "rejected";
-export type Round4Status = "not_started" | "completed" | "failed";
-
-export interface Participant {
-  user: string | User;
-
-  round1: Round1Status;
-  round2: Round2Status;
-  round3: Round3Status;
-  round4: Round4Status;
-
-  joinedAt: string;
-}
-
-export interface CompetitionStats {
-  totalParticipants: number;
-  round1Passed: number;
-  videosPending: number;
-  interviewsScheduled: number;
-  completed: number;
-}
-
-export type ReviewStatus = "pending" | "approved" | "rejected";
-
-export interface Competition {
-  _id: string;
-  createdBy: string;
-  bannerImage: string;
-  title: string;
-  description: string;
-  category: string;
-  experienceLevel: string;
-  location: string;
-  workType: string;
-  skillsTested: string;
-  projectBrief: string;
-  evaluationCriteria: string;
-  startDate: string;
-  endDate: string;
-  resultDate?: string;
-  prize: string;
-  maxParticipants?: number;
-  registrationFee: "Free" | "Paid";
-  submissionFormats: string[];
-  additionalFiles: { link: string; description?: string }[];
-  termsAndConditions: string[];
-  participants: Participant[];
-  stats?: CompetitionStats;
-  status: "active" | "completed" | "draft" | "paused";
-  currentRound: number;
-  totalRounds: number;
-  totalApplicants: number;
-  totalParticipants: number;
-  completionRate: number;
-  views: number;
-  reviewStatus: ReviewStatus;
-  reviewFeedback?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateCompetitionPayload {
-  title: string;
-  description: string;
-  category: string;
-  experienceLevel: string;
-  location: string;
-  workType: string;
-  skillsTested: string; // Comma-separated string
-  projectBrief: string;
-  evaluationCriteria: string; // Comma-separated string
-  startDate: string;
-  endDate: string;
-  resultDate?: string;
-  prize: string;
-  maxParticipants?: number;
-  registrationFee: "Free" | "Paid";
-  submissionFormats: string[];
-  additionalFiles: { link: string; description?: string }[];
-  termsAndConditions: string[];
-}
-
-export type CreateCompetitionResponseData = Competition;
-
-export type FetchCompetitionsResponseData = Competition[];
-export type FetchCompetitionByIdResponseData = Competition;
 
 export type QuestionType =
   | "single"
@@ -263,7 +80,6 @@ export interface QuizQuestion {
   wordLimit?: number;
   points: number;
   difficulty: QuestionDifficulty;
-  category: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -276,7 +92,6 @@ export interface CreateQuizQuestionPayload {
   wordLimit?: number;
   points: number;
   difficulty: QuestionDifficulty;
-  category: string;
 }
 
 export type CreateQuizQuestionResponseData = QuizQuestion[];
@@ -299,8 +114,6 @@ export interface GenerateQuizQuestionsPayload {
   broadWordLimit: number;
   pointsPerQuestion: number;
 }
-
-export type JoinCompetitionResponseData = Competition;
 
 export interface CompetitionHistory {
   competitionId: string;
@@ -356,14 +169,12 @@ export interface EvaluateQuizPayload {
   competitionId: string;
 }
 
-export interface HomeResponse {
+export type HomeResponse = {
   activeCompetitions: number;
   completedCompetitions: number;
   activeHirer: number;
   activeTalent: number;
-}
-
-export type HomeResponseData = HomeResponse;
+};
 
 export interface EvaluateQuizResponse {
   message: string;

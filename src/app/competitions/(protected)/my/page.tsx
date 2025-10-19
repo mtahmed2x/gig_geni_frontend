@@ -23,10 +23,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import Link from "next/link";
-import { useAppDispatch, useAppSelector } from "@/store/store";
-
-import { Competition } from "@/types";
-import { useFetchJoinedCompetitionsQuery } from "@/store/api/competitionApi";
+import { useGetJoinedCompetitionsQuery } from "@/lib/api/competitionApi";
 
 const CompetitionCardSkeleton = () => (
   <Card className="h-full animate-pulse">
@@ -46,10 +43,12 @@ const CompetitionCardSkeleton = () => (
 
 function MyCompetitionsPageContent() {
   const {
-    data: joinedCompetitions = [],
+    data: joinedCompetitionsData,
     isLoading,
     isError,
-  } = useFetchJoinedCompetitionsQuery();
+  } = useGetJoinedCompetitionsQuery();
+
+  const joinedCompetitions = joinedCompetitionsData?.data || [];
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -209,7 +208,7 @@ function MyCompetitionsPageContent() {
                       </div>
                       <div className="flex items-center">
                         <Users className="h-4 w-4 mr-1" />
-                        {competition.participants.length} participants
+                        {competition.totalParticipants} participants
                       </div>
                       <div className="flex items-center">
                         <Calendar className="h-4 w-4 mr-1" />

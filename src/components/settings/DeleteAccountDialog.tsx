@@ -13,8 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AlertTriangle, Trash2 } from "lucide-react";
-import { useAppDispatch, useAppSelector } from "@/store/store";
-import { logout, selectCurrentUser } from "@/store/features/auth/authSlice";
+import { useAppDispatch, useAppSelector } from "@/lib/hooks";
+import { logout, selectCurrentUser } from "@/lib/features/auth/authSlice";
 
 interface DeleteAccountDialogProps {
   isOpen: boolean;

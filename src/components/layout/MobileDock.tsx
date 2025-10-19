@@ -23,8 +23,8 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { NavLink } from "./NavLink";
 // --- STEP 1: Import the useAuth hook ---
 import { useAuth } from "@/contexts/AuthProvider";
-import { useAppDispatch, useAppSelector } from "@/store/store";
-import { logout, selectCurrentUser } from "@/store/features/auth/authSlice";
+import { useAppDispatch, useAppSelector } from "@/lib/hooks";
+import { logout, selectCurrentUser } from "@/lib/features/auth/authSlice";
 
 export function MobileDock() {
   const router = useRouter();
