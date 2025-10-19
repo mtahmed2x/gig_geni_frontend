@@ -32,7 +32,6 @@ export function DesktopNav() {
 
   const handleLogout = () => {
     dispatch(logout());
-    // Optionally redirect to home page after logout for a better user experience
     router.push("/");
   };
 

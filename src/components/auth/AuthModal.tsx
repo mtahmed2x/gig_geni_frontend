@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { LoginForm } from "./LoginForm";
@@ -21,20 +21,22 @@ export function AuthModal({
 }: AuthModalProps) {
   const [mode, setMode] = useState<"login" | "signup">(defaultMode);
 
+  useEffect(() => {
+    setMode(defaultMode);
+  }, [defaultMode]);
+
   const handleModeSwitch = (newMode: "login" | "signup") => {
     setMode(newMode);
   };
 
-  // Reset mode to default when closing the modal to ensure it opens correctly next time
-  const handleClose = () => {
-    onClose();
-    setTimeout(() => {
-      setMode(defaultMode);
-    }, 300); // Delay allows for exit animation before state reset
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      onClose();
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md mx-auto p-0 overflow-hidden">
         <AnimatePresence mode="wait">
           {mode === "login" ? (
@@ -46,7 +48,7 @@ export function AuthModal({
               transition={{ duration: 0.3, ease: "easeInOut" }}
             >
               <LoginForm
-                onClose={handleClose}
+                onClose={onClose}
                 onSwitchToSignup={() => handleModeSwitch("signup")}
               />
             </motion.div>
