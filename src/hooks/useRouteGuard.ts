@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useAppSelector } from "@/lib/hooks";
 import { checkRoutePermission } from "@/lib/auth";
 import {
@@ -14,54 +14,23 @@ export function useRouteGuard() {
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+
   const [shouldShowLoginModal, setShouldShowLoginModal] = useState(false);
   const [intendedPath, setIntendedPath] = useState<string | null>(null);
 
   useEffect(() => {
-    // Handle redirect after login
-    const redirect = searchParams.get("redirect");
-    if (redirect && isAuthenticated) {
-      router.replace(redirect);
-      return;
-    }
-
-    // Handle error messages from middleware
-    const error = searchParams.get("error");
-    if (error) {
-      // Clear error params
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.delete("error");
-      newUrl.searchParams.delete("required_role");
-      newUrl.searchParams.delete("user_role");
-      newUrl.searchParams.delete("redirect");
-
-      window.history.replaceState({}, "", newUrl.toString());
-
-      // Show appropriate error message
-      if (error === "auth_required") {
-        console.log("Authentication required for this page");
-      } else if (error === "access_denied") {
-        const requiredRole = searchParams.get("required_role");
-        const userRole = searchParams.get("user_role");
-        console.log(
-          `Access denied. Required: ${requiredRole}, Current: ${userRole}`
-        );
-      }
-    }
-
-    // Client-side route protection check
     const permission = checkRoutePermission(pathname, user);
-    if (!permission.allowed && permission.redirectTo) {
-      // Check if this is a protected route that requires login
-      if (!isAuthenticated && permission.redirectTo.includes("login")) {
+    if (!permission.allowed) {
+      if (!isAuthenticated) {
         setIntendedPath(pathname);
         setShouldShowLoginModal(true);
       } else {
-        router.push(permission.redirectTo);
+        router.push(permission.redirectTo || "/access-denied");
       }
+    } else {
+      setShouldShowLoginModal(false);
     }
-  }, [pathname, user, isAuthenticated, router, searchParams]);
+  }, [pathname, user, isAuthenticated, router]);
 
   const handleLoginSuccess = () => {
     setShouldShowLoginModal(false);
@@ -74,12 +43,10 @@ export function useRouteGuard() {
   const handleLoginModalClose = () => {
     setShouldShowLoginModal(false);
     setIntendedPath(null);
+    router.push("/");
   };
 
   return {
-    isAllowed: checkRoutePermission(pathname, user).allowed,
-    user,
-    isAuthenticated,
     shouldShowLoginModal,
     intendedPath,
     handleLoginSuccess,

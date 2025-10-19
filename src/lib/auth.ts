@@ -15,15 +15,56 @@ export const ROUTE_PERMISSIONS: RoutePermission[] = [
     allowedRoles: ["admin", "employer", "employee"],
     requiresAuth: false,
   },
+
+  {
+    path: "/competitions/my",
+    allowedRoles: ["employee"],
+    requiresAuth: true,
+    redirectTo: "/",
+  },
+  {
+    path: "/competitions/join",
+    allowedRoles: ["employee"],
+    requiresAuth: true,
+    redirectTo: "/",
+  },
+  {
+    path: "/competitions/quiz",
+    allowedRoles: ["employee"],
+    requiresAuth: true,
+    redirectTo: "/",
+  },
+  {
+    path: "/competitions/[id]/journey",
+    allowedRoles: ["employee"],
+    requiresAuth: true,
+    redirectTo: "/",
+  },
+
+  // Employer-only routes
+  {
+    path: "/competitions/create",
+    allowedRoles: ["employer"],
+    requiresAuth: true,
+    redirectTo: "/",
+  },
+  {
+    path: "/competitions/manage",
+    allowedRoles: ["employer"],
+    requiresAuth: true,
+    redirectTo: "/",
+  },
+
   {
     path: "/competitions",
     allowedRoles: ["admin", "employer", "employee"],
-    requiresAuth: false,
+    requiresAuth: true,
   },
+
   {
     path: "/leaderboards",
     allowedRoles: ["admin", "employer", "employee"],
-    requiresAuth: false,
+    requiresAuth: true,
   },
   {
     path: "/contact",
@@ -31,7 +72,6 @@ export const ROUTE_PERMISSIONS: RoutePermission[] = [
     requiresAuth: false,
   },
 
-  // Private routes - General (all authenticated users)
   {
     path: "/profile",
     allowedRoles: ["admin", "employer", "employee"],
@@ -47,66 +87,6 @@ export const ROUTE_PERMISSIONS: RoutePermission[] = [
   {
     path: "/notifications",
     allowedRoles: ["admin", "employer", "employee"],
-    requiresAuth: true,
-    redirectTo: "/",
-  },
-
-  // Employee-only routes
-  {
-    path: "/competitions/my",
-    allowedRoles: ["employee"],
-    requiresAuth: true,
-    redirectTo: "/competitions",
-  },
-  {
-    path: "/competitions/join",
-    allowedRoles: ["employee"],
-    requiresAuth: true,
-    redirectTo: "/competitions",
-  },
-  {
-    path: "/competitions/quiz",
-    allowedRoles: ["employee"],
-    requiresAuth: true,
-    redirectTo: "/competitions",
-  },
-  {
-    path: "/competitions/[id]/journey",
-    allowedRoles: ["employee"],
-    requiresAuth: true,
-    redirectTo: "/competitions",
-  },
-  {
-    path: "/(dashboard)/employee",
-    allowedRoles: ["employee"],
-    requiresAuth: true,
-    redirectTo: "/",
-  },
-
-  // Employer-only routes
-  {
-    path: "/competitions/create",
-    allowedRoles: ["employer"],
-    requiresAuth: true,
-    redirectTo: "/competitions",
-  },
-  {
-    path: "/competitions/manage",
-    allowedRoles: ["employer"],
-    requiresAuth: true,
-    redirectTo: "/competitions",
-  },
-  {
-    path: "/(dashboard)/employer",
-    allowedRoles: ["employer"],
-    requiresAuth: true,
-    redirectTo: "/",
-  },
-
-  // Admin-only routes
-  {
-    path: "/(dashboard)/admin",
-    allowedRoles: ["admin"],
     requiresAuth: true,
     redirectTo: "/",
   },
@@ -163,7 +143,7 @@ export function checkRoutePermission(
 export function getRedirectPath(userRole: UserRole): string {
   switch (userRole) {
     case "admin":
-      return "/(dashboard)/admin";
+      return "/";
     case "employer":
       return "/competitions";
     case "employee":

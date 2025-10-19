@@ -1,12 +1,19 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useCallback,
+} from "react";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { EmailVerificationModal } from "@/components/auth/EmailVerificationModal";
 
 interface AuthContextType {
   openLoginModal: () => void;
   openSignupModal: () => void;
+  authModalState: { isOpen: boolean; mode: "login" | "signup" };
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,31 +29,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }>({ isOpen: false, email: "" });
   const [tempToken, setTempToken] = useState<string | null>(null);
 
-  const openLoginModal = () =>
+  // 2. Wrap your functions in useCallback
+  const openLoginModal = useCallback(() => {
     setAuthModalState({ isOpen: true, mode: "login" });
-  const openSignupModal = () =>
+  }, []); // Empty dependency array means this function is created only once
+
+  const openSignupModal = useCallback(() => {
     setAuthModalState({ isOpen: true, mode: "signup" });
+  }, []);
 
-  const closeModals = () => {
+  const closeModals = useCallback(() => {
     setAuthModalState({ isOpen: false, mode: "login" });
     setVerificationModalState({ isOpen: false, email: "" });
     setTempToken(null);
-  };
+  }, []);
 
-  const handleVerificationNeeded = (email: string, token: string) => {
-    setAuthModalState({ isOpen: false, mode: "login" });
-    setTempToken(token);
-    setVerificationModalState({ isOpen: true, email });
-  };
+  const handleVerificationNeeded = useCallback(
+    (email: string, token: string) => {
+      setAuthModalState({ isOpen: false, mode: "login" });
+      setTempToken(token);
+      setVerificationModalState({ isOpen: true, email });
+    },
+    []
+  );
 
-  const handleBackToAuth = () => {
+  const handleBackToAuth = useCallback(() => {
     setVerificationModalState({ isOpen: false, email: "" });
     setTempToken(null);
     setAuthModalState({ isOpen: true, mode: "login" });
+  }, []);
+
+  // 3. Pass the stable functions to the provider value
+  const contextValue = {
+    openLoginModal,
+    openSignupModal,
+    authModalState,
   };
 
   return (
-    <AuthContext.Provider value={{ openLoginModal, openSignupModal }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
       <AuthModal
         isOpen={authModalState.isOpen}
