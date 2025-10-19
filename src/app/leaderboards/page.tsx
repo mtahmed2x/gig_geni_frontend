@@ -307,35 +307,25 @@ export default function LeaderboardsPage() {
                     className="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200"
                   >
                     <td className="py-5 px-6">
-                      <div className="flex items-center gap-2">
+                      <div className="flex ">
                         {getRankIcon(participant.rank!)}
                       </div>
                     </td>
                     <td className="py-5 px-6">
-                      <div className="flex items-center gap-4">
-                        <div className="relative w-12 h-12 rounded-full overflow-hidden">
-                          <Image
-                            src={participant.profilePhoto}
-                            alt={participant.name}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-900">
-                            {participant.name}
-                          </p>
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {participant.skills.slice(0, 3).map((skill) => (
-                              <Badge
-                                key={skill}
-                                variant="secondary"
-                                className="text-xs"
-                              >
-                                {skill}
-                              </Badge>
-                            ))}
-                          </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">
+                          {participant.name}
+                        </p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {participant.skills.slice(0, 3).map((skill) => (
+                            <Badge
+                              key={skill}
+                              variant="secondary"
+                              className="text-xs"
+                            >
+                              {skill}
+                            </Badge>
+                          ))}
                         </div>
                       </div>
                     </td>

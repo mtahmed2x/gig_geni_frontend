@@ -77,20 +77,20 @@ export default function ContactPage() {
     {
       icon: <Mail className="w-6 h-6" />,
       title: "Email Us",
-      details: ["hello@giggeni.com", "support@giggeni.com"],
+      details: ["support@giggeni.com"],
       description: "Get in touch for general inquiries or support",
     },
     {
       icon: <Phone className="w-6 h-6" />,
       title: "Call Us",
-      details: ["+1 (555) 123-4567", "+1 (555) 987-6543"],
+      details: ["+880 161-4817206"],
       description: "Speak directly with our team",
     },
     {
       icon: <MapPin className="w-6 h-6" />,
       title: "Visit Us",
-      details: ["123 Innovation Drive", "Tech Valley, CA 94025"],
-      description: "Our headquarters in Silicon Valley",
+      details: ["Road Number 2B, Sector 4, Uttara, Dhaka 1230"],
+      description: "Our headquarters in Uttara, Dhaka",
     },
     {
       icon: <Clock className="w-6 h-6" />,
@@ -146,7 +146,7 @@ export default function ContactPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+        {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
           {stats.map((stat, index) => (
             <Card
               key={index}
@@ -163,7 +163,7 @@ export default function ContactPage() {
               </CardContent>
             </Card>
           ))}
-        </div>
+        </div> */}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Contact Form */}

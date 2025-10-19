@@ -146,7 +146,7 @@ export function Footer() {
                 </div>
                 <div className="flex items-center space-x-3 text-sm text-gray-400">
                   <Mail className="h-4 w-4 text-[#FC5602]" />
-                  <span>giggenidev@gmail.com</span>
+                  <span>support@giggeni.com</span>
                 </div>
               </div>
 

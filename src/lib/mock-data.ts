@@ -757,12 +757,12 @@ export const mockAchievements: Achievement[] = [
 export const mockLeaderboardData: LeaderboardParticipant[] = [
   {
     id: "p1",
-    name: "Sarah Johnson",
-    email: "sarah.johnson@email.com",
+    name: "Nusrat Jahan",
+    email: "nusrat.jahan@email.com",
     profilePhoto:
-      "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1610563166150-b34df4ff3a62?w=150&h=150&fit=crop&crop=face",
     role: "Senior Full Stack Developer",
-    company: "TechCorp Solutions",
+    company: "SoftCode Systems Ltd",
     totalPoints: 2850,
     competitionsParticipated: 12,
     competitionsWon: 5,
@@ -775,7 +775,7 @@ export const mockLeaderboardData: LeaderboardParticipant[] = [
     competitionHistory: [
       {
         competitionId: "1",
-        competitionTitle: "Full Stack Developer Challenge",
+        competitionTitle: "Bangladesh Full Stack Developer Challenge",
         category: "IT & Technology",
         participatedDate: new Date("2024-01-15"),
         finalRank: 1,
@@ -822,12 +822,12 @@ export const mockLeaderboardData: LeaderboardParticipant[] = [
   },
   {
     id: "p2",
-    name: "Michael Chen",
-    email: "michael.chen@email.com",
+    name: "Rafiul Islam",
+    email: "rafiul.islam@email.com",
     profilePhoto:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1603415526960-f7e0328a2a5b?w=150&h=150&fit=crop&crop=face",
     role: "Digital Marketing Specialist",
-    company: "Marketing Masters Inc",
+    company: "MarketPro Bangladesh",
     totalPoints: 2720,
     competitionsParticipated: 10,
     competitionsWon: 4,
@@ -839,7 +839,7 @@ export const mockLeaderboardData: LeaderboardParticipant[] = [
     competitionHistory: [
       {
         competitionId: "2",
-        competitionTitle: "Digital Marketing Campaign Contest",
+        competitionTitle: "Digital Marketing Strategy Contest BD",
         category: "Marketing & Sales",
         participatedDate: new Date("2024-02-10"),
         finalRank: 1,
@@ -874,17 +874,17 @@ export const mockLeaderboardData: LeaderboardParticipant[] = [
     joinedDate: new Date("2023-11-15"),
     lastActive: new Date("2024-12-14"),
     categories: ["Marketing & Sales"],
-    skills: ["SEO", "Google Analytics", "Social Media", "Content Strategy"],
+    skills: ["SEO", "Google Ads", "Social Media", "Content Strategy"],
     rank: 2,
   },
   {
     id: "p3",
-    name: "Emily Rodriguez",
-    email: "emily.rodriguez@email.com",
+    name: "Tasmia Rahman",
+    email: "tasmia.rahman@email.com",
     profilePhoto:
-      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=150&h=150&fit=crop&crop=face",
     role: "UX/UI Designer",
-    company: "Design Studio Pro",
+    company: "Design Hive Dhaka",
     totalPoints: 2650,
     competitionsParticipated: 8,
     competitionsWon: 3,
@@ -892,7 +892,7 @@ export const mockLeaderboardData: LeaderboardParticipant[] = [
     competitionHistory: [
       {
         competitionId: "4",
-        competitionTitle: "UX/UI Design Challenge",
+        competitionTitle: "UX/UI Design Challenge Bangladesh",
         category: "Design & Creative",
         participatedDate: new Date("2024-03-05"),
         finalRank: 2,
@@ -927,17 +927,17 @@ export const mockLeaderboardData: LeaderboardParticipant[] = [
     joinedDate: new Date("2024-01-10"),
     lastActive: new Date("2024-12-13"),
     categories: ["Design & Creative"],
-    skills: ["Figma", "User Research", "Prototyping", "Adobe Creative Suite"],
+    skills: ["Figma", "User Research", "Prototyping", "Adobe XD"],
     rank: 3,
   },
   {
     id: "p4",
-    name: "David Kim",
-    email: "david.kim@email.com",
+    name: "Tanvir Ahmed",
+    email: "tanvir.ahmed@email.com",
     profilePhoto:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1614282374312-7f6b97e22e55?w=150&h=150&fit=crop&crop=face",
     role: "Business Analyst",
-    company: "Strategic Solutions Ltd",
+    company: "Strategia Consulting",
     totalPoints: 2580,
     competitionsParticipated: 9,
     competitionsWon: 2,
@@ -945,7 +945,7 @@ export const mockLeaderboardData: LeaderboardParticipant[] = [
     competitionHistory: [
       {
         competitionId: "5",
-        competitionTitle: "Business Strategy Challenge",
+        competitionTitle: "Business Strategy Challenge Dhaka",
         category: "Business & Strategy",
         participatedDate: new Date("2024-04-01"),
         finalRank: 3,
@@ -983,19 +983,19 @@ export const mockLeaderboardData: LeaderboardParticipant[] = [
     skills: [
       "Business Analysis",
       "Strategic Planning",
-      "Data Analysis",
+      "Data Visualization",
       "Project Management",
     ],
     rank: 4,
   },
   {
     id: "p5",
-    name: "Lisa Thompson",
-    email: "lisa.thompson@email.com",
+    name: "Farhana Karim",
+    email: "farhana.karim@email.com",
     profilePhoto:
-      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&h=150&fit=crop&crop=face",
     role: "Sales Manager",
-    company: "SalesForce Elite",
+    company: "SalesHub Bangladesh",
     totalPoints: 2480,
     competitionsParticipated: 7,
     competitionsWon: 3,
@@ -1003,7 +1003,7 @@ export const mockLeaderboardData: LeaderboardParticipant[] = [
     competitionHistory: [
       {
         competitionId: "3",
-        competitionTitle: "Sales Excellence Championship",
+        competitionTitle: "Sales Excellence Championship Bangladesh",
         category: "Marketing & Sales",
         participatedDate: new Date("2024-05-10"),
         finalRank: 1,
@@ -1043,17 +1043,16 @@ export const mockLeaderboardData: LeaderboardParticipant[] = [
   },
 ];
 
-// Additional participants for pagination testing
 export const extendedLeaderboardData: LeaderboardParticipant[] = [
   ...mockLeaderboardData,
   {
     id: "p6",
-    name: "Alex Johnson",
-    email: "alex.johnson@email.com",
+    name: "Arif Chowdhury",
+    email: "arif.chowdhury@email.com",
     profilePhoto:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face",
     role: "DevOps Engineer",
-    company: "CloudTech Inc",
+    company: "CloudCore Technologies",
     totalPoints: 2350,
     competitionsParticipated: 6,
     competitionsWon: 2,
@@ -1067,12 +1066,12 @@ export const extendedLeaderboardData: LeaderboardParticipant[] = [
   },
   {
     id: "p7",
-    name: "Maria Garcia",
-    email: "maria.garcia@email.com",
+    name: "Meherun Nesa",
+    email: "meherun.nesa@email.com",
     profilePhoto:
-      "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=150&h=150&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=150&h=150&fit=crop&crop=face",
     role: "Product Manager",
-    company: "Innovation Labs",
+    company: "Innovate BD",
     totalPoints: 2280,
     competitionsParticipated: 5,
     competitionsWon: 1,
@@ -1086,12 +1085,12 @@ export const extendedLeaderboardData: LeaderboardParticipant[] = [
   },
   {
     id: "p8",
-    name: "James Wilson",
-    email: "james.wilson@email.com",
+    name: "Hasib Mahmud",
+    email: "hasib.mahmud@email.com",
     profilePhoto:
-      "https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?w=150&h=150&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=150&h=150&fit=crop&crop=face",
     role: "Data Scientist",
-    company: "Analytics Pro",
+    company: "DataWorks Bangladesh",
     totalPoints: 2150,
     competitionsParticipated: 4,
     competitionsWon: 1,
