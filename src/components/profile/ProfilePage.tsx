@@ -43,7 +43,6 @@ export function ProfilePage() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    // The query hook handles fetching automatically. This effect is now only for UI logic.
     const shouldComplete = searchParams.get("complete") === "true";
     if (shouldComplete && profile && !profile.isProfileComplete) {
       setShowCompletionModal(true);
@@ -205,18 +204,18 @@ export function ProfilePage() {
           ))}
         </TabsList>
 
-        {/* Each tab now receives the authoritative `profile` from the query and the `isUpdating` state */}
+        {/* Each tab now receives the authoritative profile from the query and the isUpdating state */}
         <TabsContent value="personal">
           <PersonalInfoTab
             profile={profile}
             onUpdate={handleUpdateProfile}
-            isUpdating={isUpdating}
+            isUpdating={isEditing}
           />
         </TabsContent>
         <TabsContent value="contact">
           <ContactTab
             profile={profile}
-            isEditing={isUpdating}
+            isEditing={isEditing}
             onUpdate={handleUpdateProfile}
           />
         </TabsContent>
@@ -251,7 +250,7 @@ export function ProfilePage() {
           <TabsContent value="company">
             <CompanyTab
               profile={profile}
-              isEditing={isUpdating}
+              isEditing={isEditing}
               onUpdate={handleUpdateProfile}
             />
           </TabsContent>

@@ -40,7 +40,11 @@ export function ProtectedRoute({ children, fallback }: ProtectedRouteProps) {
   }
 
   const permission = checkRoutePermission(pathname, user);
-  console.log(permission);
+
+  if(!isAuthenticated) {
+    
+  }
+  
 
   if (!permission.allowed && isAuthenticated) {
     return (
