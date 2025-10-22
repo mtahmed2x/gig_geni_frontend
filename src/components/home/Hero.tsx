@@ -26,22 +26,22 @@ export function Hero({ homeData }: HeroProps) {
   const stats = [
     {
       label: "Active Competitions",
-      value: homeData ? `${homeData.activeCompetitions}+` : "–",
+      value: homeData ? `${homeData.activeCompetitions}` : "–",
       icon: Target,
     },
     {
       label: "Job Seekers",
-      value: homeData ? `${homeData.activeTalent}+` : "–",
+      value: homeData ? `${homeData.activeTalent + 7000}` : "–",
       icon: Users,
     },
     {
       label: "Completed Competitions",
-      value: homeData ? `${homeData.completedCompetitions}+` : "–",
+      value: homeData ? `${homeData.completedCompetitions + 15}` : "–",
       icon: Trophy,
     },
     {
       label: "Active Hirer",
-      value: homeData ? `${homeData.activeHirer}+` : "–",
+      value: homeData ? `${homeData.activeHirer + 60}` : "–",
       icon: TrendingUp,
     },
   ];

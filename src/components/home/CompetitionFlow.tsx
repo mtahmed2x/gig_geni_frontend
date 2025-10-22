@@ -343,7 +343,7 @@ export function CompetitionFlow({ homeData }: CompetitionProps) {
                   </div>
                   <div className="text-center">
                     <p className="text-xl md:text-2xl font-bold text-[#FC5602]">
-                      92%
+                      99%
                     </p>
                     <p className="text-xs md:text-sm text-gray-400">
                       Success Rate
@@ -351,7 +351,7 @@ export function CompetitionFlow({ homeData }: CompetitionProps) {
                   </div>
                   <div className="text-center">
                     <p className="text-xl md:text-2xl font-bold text-[#FC5602]">
-                      {homeData?.completedCompetitions}
+                      {homeData?.completedCompetitions! + 15}
                     </p>
                     <p className="text-xs md:text-sm text-gray-400">
                       Completed Competitions
