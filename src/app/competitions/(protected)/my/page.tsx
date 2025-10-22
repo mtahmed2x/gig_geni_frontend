@@ -43,12 +43,10 @@ const CompetitionCardSkeleton = () => (
 
 function MyCompetitionsPageContent() {
   const {
-    data: joinedCompetitionsData,
+    data: joinedCompetitions = [],
     isLoading,
     isError,
   } = useGetJoinedCompetitionsQuery();
-
-  const joinedCompetitions = joinedCompetitionsData?.data || [];
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");

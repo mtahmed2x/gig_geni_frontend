@@ -61,6 +61,7 @@ export const baseApi = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithReauth,
   tagTypes: [
+    "Participant",
     "Home",
     "User",
     "Competition",

@@ -18,7 +18,7 @@ function CompetitionManagePageContent() {
   const competitionId = params.id as string;
 
   const {
-    data: competitionResponse,
+    data: competition,
     isLoading,
     isError,
   } = useGetCompetitionQuery(competitionId, {
@@ -26,8 +26,6 @@ function CompetitionManagePageContent() {
   });
 
   const [activeTab, setActiveTab] = useState("overview");
-
-  const competition = competitionResponse?.data;
 
   if (isLoading) {
     return (

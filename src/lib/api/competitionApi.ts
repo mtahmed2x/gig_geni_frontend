@@ -7,11 +7,12 @@ import {
   GetCompetitionResponse,
 } from "../features/competition/types";
 import { baseApi } from "./baseApi";
+import { unwrapResponse } from "../utils";
 
 export const competitionApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     createCompetition: builder.mutation<
-      ApiResponse<CreateCompetitionResponse>,
+      CreateCompetitionResponse,
       { payload: CreateCompetitionPayload; bannerImage: File }
     >({
       query: ({ payload, bannerImage }) => {
@@ -24,39 +25,35 @@ export const competitionApi = baseApi.injectEndpoints({
           body: formData,
         };
       },
+      transformResponse: unwrapResponse<CreateCompetitionResponse>,
       invalidatesTags: ["MyCompetitions"],
     }),
-    GetMyCompetitions: builder.query<
-      ApiResponse<GetAllCompetitionResponse>,
-      void
-    >({
+    GetMyCompetitions: builder.query<GetAllCompetitionResponse, void>({
       query: () => "/competition?user=true",
+      transformResponse: unwrapResponse<GetAllCompetitionResponse>,
       providesTags: ["MyCompetitions"],
     }),
 
-    GetJoinedCompetitions: builder.query<
-      ApiResponse<GetAllCompetitionResponse>,
-      void
-    >({
+    GetJoinedCompetitions: builder.query<GetAllCompetitionResponse, void>({
       query: () => "/competition?participant=true",
+      transformResponse: unwrapResponse<GetAllCompetitionResponse>,
       providesTags: ["JoinedCompetitions"],
     }),
 
-    GetAllCompetition: builder.query<
-      ApiResponse<GetAllCompetitionResponse>,
-      void
-    >({
+    GetAllCompetition: builder.query<GetAllCompetitionResponse, void>({
       query: () => "/competition",
+      transformResponse: unwrapResponse<GetAllCompetitionResponse>,
       providesTags: ["Competition"],
     }),
 
-    GetCompetition: builder.query<ApiResponse<GetCompetitionResponse>, string>({
+    GetCompetition: builder.query<GetCompetitionResponse, string>({
       query: (id) => `/competition/${id}`,
+      transformResponse: unwrapResponse<GetCompetitionResponse>,
       providesTags: (_result, _error, id) => [{ type: "Competition", id }],
     }),
 
     updateCompetition: builder.mutation<
-      ApiResponse<GetCompetitionResponse>,
+      GetCompetitionResponse,
       Partial<Competition> & { id: string }
     >({
       query: ({ id, ...body }) => ({
@@ -64,6 +61,7 @@ export const competitionApi = baseApi.injectEndpoints({
         method: "PATCH",
         body,
       }),
+      transformResponse: unwrapResponse<GetCompetitionResponse>,
     }),
   }),
 });

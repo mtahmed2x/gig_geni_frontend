@@ -28,35 +28,28 @@ interface QuizSettingsProps {
 }
 
 export default function QuizSettings({ competitionId }: QuizSettingsProps) {
-  // 1. Fetch the entire competition object to get its settings
-  const { data: competitionData, isLoading: isLoadingCompetition } =
+  const { data: competition, isLoading: isLoadingCompetition } =
     useGetCompetitionQuery(competitionId);
 
-  // 2. Fetch the questions separately for the distribution display
-  const { data: questionsData } = useGetAllQuizQuestionQuery(competitionId, {
+  const { data: questions = [] } = useGetAllQuizQuestionQuery(competitionId, {
     skip: !competitionId,
   });
-  const questions: QuizQuestion[] = questionsData?.data || [];
 
-  // 3. Use the correct mutation to update the competition
   const [updateCompetition, { isLoading: isUpdating }] =
     useUpdateCompetitionMutation();
 
   const [localSettings, setLocalSettings] = useState(initialSettings);
 
-  // 4. Populate the local state from the fetched competition data
   useEffect(() => {
-    // Check for the nested quizSettings object in the response
-    if (competitionData?.data?.quizSettings) {
-      setLocalSettings(competitionData.data.quizSettings);
+    if (competition?.quizSettings) {
+      setLocalSettings(competition.quizSettings);
     }
-  }, [competitionData]);
+  }, [competition]);
 
   const handleSettingsChange = (
     field: keyof typeof initialSettings,
     value: string | number | boolean
   ) => {
-    // Ensure numbers are parsed correctly
     const parsedValue =
       typeof initialSettings[field] === "number" ? Number(value) : value;
     setLocalSettings((prev) => ({ ...prev, [field]: parsedValue }));

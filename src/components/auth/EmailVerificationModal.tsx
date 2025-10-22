@@ -73,13 +73,13 @@ export function EmailVerificationModal({
         const userRole = result.data!.user.role;
         switch (userRole) {
           case "admin":
-            router.push("/admin/dashboard");
+            router.push("/");
             break;
           case "employer":
-            router.push("/employer/dashboard");
+            router.push("/profile");
             break;
           case "employee":
-            router.push("/employee/dashboard");
+            router.push("/profile");
             break;
           default:
             router.push("/");

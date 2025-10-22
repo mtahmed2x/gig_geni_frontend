@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,38 +18,55 @@ import Link from "next/link";
 
 import CompetitionJourney from "@/components/competitions/CompetitionJourney";
 import { useGetCompetitionQuery } from "@/lib/api/competitionApi";
-import { selectCurrentUser } from "@/lib/features/auth/authSlice";
-import { useAppSelector } from "@/lib/hooks";
 import { Competition } from "@/lib/features/competition/types";
+import { useGetParticipantQuery } from "@/lib/api/participantApi";
 
 function CompetitionJourneyPageContent() {
   const params = useParams();
+  const router = useRouter();
   const competitionId = params.id as string;
 
-  // --- STEP 2: Replace useDispatch/useSelector with RTK Query and correct user selector ---
   const {
-    data: competitionData,
+    data: participant,
     isLoading,
     isError,
-  } = useGetCompetitionQuery(competitionId, { skip: !competitionId });
+  } = useGetParticipantQuery(competitionId);
+  useGetCompetitionQuery(competitionId, { skip: !competitionId });
 
-  const currentUser = useAppSelector(selectCurrentUser);
-  const competition = competitionData?.data;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center flex flex-col items-center">
+          <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+          <p className="text-muted-foreground">
+            Loading competition journey...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
-  // The useEffect for fetching and cleanup is no longer needed.
-  // RTK Query handles the entire data lifecycle.
+  if (isError || !participant) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-2xl font-bold">Competition Not Found</h2>
+          <p className="text-muted-foreground mb-6">
+            This competition journey could not be loaded.
+          </p>
+          <Button asChild>
+            <Link href="/competitions/my">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to My Competitions
+            </Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
-  // This useMemo hook remains the same and works perfectly with the new data source
-  const participantData = useMemo(() => {
-    if (!competition || !currentUser || !competition.participants)
-      return undefined;
-    return competition.participants.find((p) => {
-      if (typeof p.user === "string") {
-        return p.user === currentUser._id;
-      }
-      return p.user._id === currentUser._id;
-    });
-  }, [competition, currentUser]);
+  const competition = participant.competition;
 
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return "TBD";
@@ -65,51 +81,14 @@ function CompetitionJourneyPageContent() {
     const now = new Date();
     const startDate = new Date(comp.startDate);
     const endDate = new Date(comp.endDate);
-    if (now < startDate)
-      return { text: "Upcoming", color: "bg-blue-100 text-blue-700" };
-    if (now > endDate)
+    if (comp.status === "completed") {
       return { text: "Completed", color: "bg-gray-100 text-gray-500" };
+    }
     return { text: "Active", color: "bg-green-100 text-green-700" };
   };
 
-  // --- STEP 3: Update Loading State ---
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center flex flex-col items-center">
-          <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
-          <p className="text-muted-foreground">
-            Loading competition journey...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // --- STEP 4: Update Error/Not Found State ---
-  if (isError || !competition) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-          <h2 className="text-2xl font-bold">Competition Not Found</h2>
-          <p className="text-muted-foreground mb-6">
-            This competition journey could not be loaded.
-          </p>
-          <Button asChild>
-            <Link href="/employee/competitions/my">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to My Competitions
-            </Link>
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   const status = getStatusBadge(competition);
 
-  // The rest of the component JSX remains unchanged
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -119,12 +98,15 @@ function CompetitionJourneyPageContent() {
           className="mb-8"
         >
           <div className="flex items-center justify-between mb-6">
-            <Button asChild variant="ghost">
-              <Link href={`/competitions/${competition._id}`}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Details
-              </Link>
-            </Button>
+            <motion.button
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => router.back()}
+              className="flex items-center gap-2 bg-white text-gray-700 px-8 py-3 rounded-full font-semibold border-2 border-gray-200 hover:border-[#FC5602]/30 shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              Go Back
+            </motion.button>
             <Badge className={status.color}>{status.text}</Badge>
           </div>
 
@@ -168,7 +150,7 @@ function CompetitionJourneyPageContent() {
         >
           <CompetitionJourney
             competitionId={competition._id}
-            participantData={participantData}
+            participantData={participant}
           />
         </motion.div>
 
@@ -188,7 +170,7 @@ function CompetitionJourneyPageContent() {
                   </Link>
                 </Button>
                 <Button asChild variant="outline">
-                  <Link href="/employee/competitions/my">My Competitions</Link>
+                  <Link href="/competitions/my">My Competitions</Link>
                 </Button>
                 <Button asChild variant="outline">
                   <Link href="/competitions">Browse More Competitions</Link>

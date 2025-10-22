@@ -27,6 +27,7 @@ export function SignupForm({
     email: "",
     password: "",
     confirmPassword: "",
+    phoneNumber: "",
     fullName: "",
     companyName: "",
     agreeToTerms: false,
@@ -60,6 +61,7 @@ export function SignupForm({
     const payload: RegisterPayload = {
       email: formData.email,
       password: formData.password,
+      phoneNumber: formData.phoneNumber,
       name: formData.fullName,
       role: userType,
       ...(userType === "employer"
@@ -145,6 +147,22 @@ export function SignupForm({
               value={formData.email}
               onChange={handleChange}
               placeholder="Enter your email"
+              className="pl-10 h-12"
+            />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="phoneNumber">Phone Number</label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Input
+              id="phoneNumber"
+              name="phoneNumber"
+              type="text"
+              required
+              value={formData.phoneNumber}
+              onChange={handleChange}
+              placeholder="Enter your Phone Number"
               className="pl-10 h-12"
             />
           </div>

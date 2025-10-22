@@ -55,6 +55,7 @@ export interface Participant {
 }
 
 export type GetParticipantsResponse = Participant[];
+export type GetParticipantResponse = Participant;
 export type CreateParticipantPayload = {
   competition: string;
 };

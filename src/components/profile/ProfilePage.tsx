@@ -2,14 +2,13 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, ChangeEvent } from "react";
 import { useSearchParams } from "next/navigation";
-import { useAppDispatch, useAppSelector } from "@/lib/hooks";
+import { useAppSelector } from "@/lib/hooks";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Edit, X, Camera, AlertCircle, Loader2 } from "lucide-react";
 
@@ -26,6 +25,7 @@ import { selectCurrentUser } from "@/lib/features/auth/authSlice";
 import {
   useGetUserProfileQuery,
   useUpdateUserProfileMutation,
+  useUpdateAvatarMutation, // --- STEP 1: Import the new mutation hook ---
 } from "@/lib/api/userApi";
 import { User } from "@/lib/features/user/types";
 
@@ -34,6 +34,10 @@ export function ProfilePage() {
   const { data: profileData, isLoading, isError } = useGetUserProfileQuery();
   const [updateProfile, { isLoading: isUpdating }] =
     useUpdateUserProfileMutation();
+
+  // --- STEP 2: Instantiate the avatar mutation hook ---
+  const [updateAvatar, { isLoading: isUploading }] = useUpdateAvatarMutation();
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const profile = profileData?.data;
 
@@ -58,12 +62,31 @@ export function ProfilePage() {
 
     toast.promise(promise, {
       loading: "Saving changes...",
-      success: (updatedProfile) => {
-        setIsEditing(false); // Turn off editing mode on success
+      success: () => {
+        setIsEditing(false);
         return "Profile updated successfully!";
       },
       error: (err) => err.data?.message || "Failed to update profile.",
     });
+  };
+
+  // --- STEP 3: Create a handler for the avatar file change ---
+  const handleAvatarChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const promise = updateAvatar({ avatar: file, payload: {} }).unwrap();
+
+    toast.promise(promise, {
+      loading: "Uploading new avatar...",
+      success: "Avatar updated successfully!",
+      error: (err) => err.data?.message || "Failed to update avatar.",
+    });
+
+    // Reset the input value to allow re-uploading the same file
+    if (avatarInputRef.current) {
+      avatarInputRef.current.value = "";
+    }
   };
 
   const getTabsForRole = () => {
@@ -113,10 +136,12 @@ export function ProfilePage() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+              {/* --- STEP 4: Update Avatar display and add hidden file input --- */}
               <div className="relative">
                 <Avatar className="w-24 h-24 border-4 border-white shadow-md">
                   <AvatarImage
                     src={
+                      profile.avatar ||
                       "https://cdn-icons-png.flaticon.com/512/149/149071.png"
                     }
                   />
@@ -125,13 +150,28 @@ export function ProfilePage() {
                   </AvatarFallback>
                 </Avatar>
                 {isEditing && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0"
-                  >
-                    <Camera className="w-4 h-4" />
-                  </Button>
+                  <>
+                    <input
+                      type="file"
+                      ref={avatarInputRef}
+                      onChange={handleAvatarChange}
+                      accept="image/png, image/jpeg, image/gif"
+                      style={{ display: "none" }}
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0"
+                      onClick={() => avatarInputRef.current?.click()}
+                      disabled={isUploading}
+                    >
+                      {isUploading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Camera className="w-4 h-4" />
+                      )}
+                    </Button>
+                  </>
                 )}
               </div>
               <div className="flex-1">
@@ -183,7 +223,7 @@ export function ProfilePage() {
         </Card>
       </div>
 
-      {/* Profile Tabs */}
+      {/* Profile Tabs (No changes needed below this line) */}
       <Tabs
         value={activeTab}
         onValueChange={setActiveTab}
@@ -204,7 +244,6 @@ export function ProfilePage() {
           ))}
         </TabsList>
 
-        {/* Each tab now receives the authoritative profile from the query and the isUpdating state */}
         <TabsContent value="personal">
           <PersonalInfoTab
             profile={profile}
@@ -257,18 +296,15 @@ export function ProfilePage() {
         )}
       </Tabs>
 
-      {/* Modal remains the same */}
-      {showCompletionModal && (
-        <ProfileCompletionModal
-          isOpen={showCompletionModal}
-          onClose={() => setShowCompletionModal(false)}
-          onComplete={() => {
-            setShowCompletionModal(false);
-            setIsEditing(true);
-          }}
-          onSkip={() => setShowCompletionModal(false)}
-        />
-      )}
+      <ProfileCompletionModal
+        isOpen={showCompletionModal}
+        onClose={() => setShowCompletionModal(false)}
+        onComplete={() => {
+          setShowCompletionModal(false);
+          setIsEditing(true);
+        }}
+        onSkip={() => setShowCompletionModal(false)}
+      />
     </div>
   );
 }

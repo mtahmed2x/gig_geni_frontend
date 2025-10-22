@@ -125,9 +125,11 @@ export function Hero({ homeData }: HeroProps) {
             >
               <Badge
                 variant="outline"
-                className="bg-[#FC5602]/10 text-[#FC5602] border-[#FC5602]/20 hover:bg-[#FC5602]/20 transition-colors"
+                className="bg-[#FC5602]/10 text-[#FC5602] border-[#FC5602]/20 
+             hover:bg-[#FC5602]/20 transition-colors 
+             px-4 py-2 text-lg rounded-xl"
               >
-                <Sparkles className="w-3 h-3 mr-1" />
+                <Sparkles className="w-4 h-4 mr-2" />
                 🚀 The Future of Hiring is Here
               </Badge>
             </motion.div>

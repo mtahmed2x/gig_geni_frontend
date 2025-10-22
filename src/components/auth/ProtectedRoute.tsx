@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAppSelector } from "@/lib/hooks";
 import { checkRoutePermission } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,6 +17,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, fallback }: ProtectedRouteProps) {
+  const router = useRouter();
   const user = useAppSelector(selectCurrentUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const pathname = usePathname();
@@ -41,10 +42,8 @@ export function ProtectedRoute({ children, fallback }: ProtectedRouteProps) {
 
   const permission = checkRoutePermission(pathname, user);
 
-  if(!isAuthenticated) {
-    
+  if (!isAuthenticated) {
   }
-  
 
   if (!permission.allowed && isAuthenticated) {
     return (
@@ -71,14 +70,11 @@ export function ProtectedRoute({ children, fallback }: ProtectedRouteProps) {
                   This page is restricted to specific user roles.
                 </p>
                 <div className="flex gap-2 justify-center">
-                  <Button
-                    variant="outline"
-                    onClick={() => window.history.back()}
-                  >
+                  <Button variant="outline" onClick={() => router.back()}>
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Go Back
                   </Button>
-                  <Button onClick={() => (window.location.href = "/")}>
+                  <Button onClick={() => router.push("/")}>
                     <Home className="w-4 h-4 mr-2" />
                     Go Home
                   </Button>

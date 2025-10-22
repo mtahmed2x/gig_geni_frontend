@@ -25,6 +25,7 @@ export interface RegisterPayload {
   password: string;
   role: UserRole;
   name: string;
+  phoneNumber: string;
   company?: {
     name?: string;
   };

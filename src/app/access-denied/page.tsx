@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { AlertTriangle, ArrowLeft, Home } from "lucide-react";
 import Link from "next/link";
 
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { useAppSelector } from "@/lib/hooks";
 
@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { selectCurrentUser } from "@/lib/features/auth/authSlice";
 
 export default function AccessDeniedPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const user = useAppSelector(selectCurrentUser);
 
@@ -72,7 +73,7 @@ export default function AccessDeniedPage() {
                 logging in with a different account.
               </p>
               <div className="flex gap-2 justify-center">
-                <Button variant="outline" onClick={() => window.history.back()}>
+                <Button variant="outline" onClick={() => router.back()}>
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Go Back
                 </Button>

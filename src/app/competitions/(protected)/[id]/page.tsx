@@ -1,5 +1,7 @@
+// src/app/competitions/(protected)/[id]/page.tsx
+
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,8 +30,16 @@ import {
   BookMarked,
   Loader2,
   DollarSign,
+  Link as LinkIcon,
+  MessageSquare,
 } from "lucide-react";
-import Link from "next/link";
+import { toast } from "sonner";
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 import { selectCurrentUser } from "@/lib/features/auth/authSlice";
 import { useGetCompetitionQuery } from "@/lib/api/competitionApi";
@@ -42,13 +52,11 @@ export default function CompetitionDetailsPage() {
   const competitionId = params.id as string;
 
   const {
-    data: competitionData,
+    data: competition,
     isLoading,
     isError,
   } = useGetCompetitionQuery(competitionId, { skip: !competitionId });
   const currentUser = useAppSelector(selectCurrentUser);
-  const competition = competitionData?.data;
-  // const [saveCompetition, { isLoading: isSaving }] = useSaveCompetitionMutation();
 
   const isJoined = useMemo(() => {
     if (!competition || !currentUser || !competition.participants) return false;
@@ -59,7 +67,22 @@ export default function CompetitionDetailsPage() {
   }, [competition, currentUser]);
 
   const [isSaved, setIsSaved] = useState(false);
+  const [isNativeShareSupported, setIsNativeShareSupported] = useState(false);
+  // --- STEP 1: Add state to control the Share Popover ---
+  const [isShareOpen, setIsShareOpen] = useState(false);
 
+  useEffect(() => {
+    if (
+      typeof navigator !== "undefined" &&
+      typeof navigator.canShare === "function"
+    ) {
+      if (navigator.canShare({ url: window.location.href })) {
+        setIsNativeShareSupported(true);
+      }
+    }
+  }, []);
+
+  // --- (Helper functions remain the same) ---
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return "TBD";
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -89,39 +112,46 @@ export default function CompetitionDetailsPage() {
   };
 
   const handleJoin = () => {
-    // This is now just a simple navigation action
     router.push(`/competitions/${competitionId}/join`);
   };
 
-  // --- STEP 3: Refactor handleSave to use the new mutation ---
   const handleSave = async () => {
-    const newSaveState = !isSaved;
-    setIsSaved(newSaveState); // Optimistically update the UI
-
-    // try {
-    //   await saveCompetition({ competitionId, isSaved: newSaveState }).unwrap();
-    //   toast.success(
-    //     newSaveState ? "Competition saved!" : "Competition unsaved."
-    //   );
-    // } catch (err) {
-    //   setIsSaved(!newSaveState); // Revert UI on error
-    //   toast.error("Could not save competition. Please try again.");
-    // }
+    setIsSaved(!isSaved);
+    toast.success(!isSaved ? "Competition saved!" : "Competition unsaved.");
   };
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: competition?.title,
-        text: competition?.description,
-        url: window.location.href,
+  // --- STEP 2: Update the copy handler to show toast and close the popover ---
+  const handleCopyToClipboard = () => {
+    navigator.clipboard
+      .writeText(window.location.href)
+      .then(() => {
+        toast.success("Link copied to clipboard!");
+        setIsShareOpen(false);
+      })
+      .catch((err) => {
+        console.error("Failed to copy link: ", err);
+        toast.error("Could not copy link.");
+        setIsShareOpen(false); // Also close on failure
       });
+  };
+
+  const handleNativeShare = () => {
+    if (navigator.share) {
+      navigator
+        .share({
+          title: competition?.title,
+          text: `Check out this competition: ${competition?.title}`,
+          url: window.location.href,
+        })
+        .catch((error) => console.log("Error sharing:", error))
+        // Close the popover after the share dialog is closed
+        .finally(() => setIsShareOpen(false));
     } else {
-      navigator.clipboard.writeText(window.location.href);
+      toast.error("Web sharing is not supported on this browser.");
     }
   };
 
-  // --- STEP 4: Update loading and error states ---
+  // --- (Loading and Error states remain the same) ---
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -142,28 +172,23 @@ export default function CompetitionDetailsPage() {
             Competition Not Found
           </h2>
           <p className="text-gray-600 mb-6">
-            The competition you're looking for doesn't exist or has been
+            The competition you are looking for does not exist or has been
             removed.
           </p>
-          {/* <Link href="/competitions">
-            <Button>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Competitions
-            </Button>
-          </Link> */}
         </div>
       </div>
     );
   }
 
   const status = getStatusBadge(competition);
+  const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+  const shareText = `Check out this competition: ${competition.title}\n${shareUrl}`;
 
   return (
-    <div className="min-h-screen  container">
-      {/* Header Buttons - Positioned above banner */}
-      <div className="relative z-20 bg-transparent mt-5 ">
-        <div className="absolute top-0 left-0 right-0 p-6 ">
-          <div className="flex items-center justify-between ">
+    <div className="min-h-screen container">
+      <div className="relative z-20 bg-transparent mt-5">
+        <div className="absolute top-0 left-0 right-0 p-6">
+          <div className="flex items-center justify-between">
             <Button
               variant="outline"
               size="sm"
@@ -171,18 +196,79 @@ export default function CompetitionDetailsPage() {
               onClick={() => router.back()}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Previous Page
+              Back
             </Button>
 
             <div className="flex items-center space-x-3">
-              <Button
-                variant="outline"
-                onClick={handleShare}
-                className="bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm"
-              >
-                <Share2 className="h-4 w-4 mr-2" />
-                Share
-              </Button>
+              {/* --- STEP 3: Control the Popover component with state --- */}
+              <Popover open={isShareOpen} onOpenChange={setIsShareOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm"
+                  >
+                    <Share2 className="h-4 w-4 mr-2" />
+                    Share
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-2" align="end">
+                  <div className="flex flex-col space-y-1">
+                    {isNativeShareSupported && (
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start"
+                        onClick={handleNativeShare}
+                      >
+                        <Share2 className="h-4 w-4 mr-2" />
+                        Share via...
+                      </Button>
+                    )}
+                    <Button
+                      asChild
+                      variant="ghost"
+                      className="w-full justify-start"
+                    >
+                      <a
+                        href={`https://wa.me/?text=${encodeURIComponent(
+                          shareText
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setIsShareOpen(false)} // Also close for social links
+                      >
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        Share on WhatsApp
+                      </a>
+                    </Button>
+                    <Button
+                      asChild
+                      variant="ghost"
+                      className="w-full justify-start"
+                    >
+                      <a
+                        href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+                          shareUrl
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setIsShareOpen(false)} // Also close for social links
+                      >
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        Share on Messenger
+                      </a>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={handleCopyToClipboard}
+                    >
+                      <LinkIcon className="h-4 w-4 mr-2" />
+                      Copy Link
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
               <Button
                 variant={isSaved ? "default" : "outline"}
                 onClick={handleSave}
@@ -204,8 +290,7 @@ export default function CompetitionDetailsPage() {
         </div>
       </div>
 
-      {/* Banner Image - Full Width */}
-
+      {/* --- (The rest of your page JSX remains the same) --- */}
       <div className="relative h-64 md:h-80 w-full rounded-xl overflow-hidden">
         <Image
           src={competition.bannerImage}
@@ -249,11 +334,6 @@ export default function CompetitionDetailsPage() {
                         4.8
                       </div>
                     </div>
-                    {/* <h1 className="text-3xl font-bold text-gray-900 mb-2">{competition.title}</h1> */}
-                    {/* <div className="flex items-center text-lg text-gray-600 mb-4">
-                      <Building className="h-5 w-5 mr-2" />
-                      {competition.organizer}
-                    </div> */}
                   </div>
                 </div>
 
@@ -364,18 +444,6 @@ export default function CompetitionDetailsPage() {
 
                   <TabsContent value="details" className="mt-6">
                     <div className="space-y-6">
-                      {/* {competition.projectBrief && (
-                        <div>
-                          <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                            <FileText className="h-5 w-5 mr-2 text-orange-500" />
-                            Project Brief
-                          </h4>
-                          <p className="text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-lg">
-                            {competition.projectBrief}
-                          </p>
-                        </div>
-                      )} */}
-
                       {competition.submissionFormats &&
                         competition.submissionFormats.length > 0 && (
                           <div>
@@ -575,7 +643,6 @@ export default function CompetitionDetailsPage() {
           </div>
 
           {/* Sidebar */}
-          {/* Sticky Sidebar with All Cards */}
           <div className="lg:col-span-1">
             <div className="space-y-6 sticky top-6">
               {/* Join Competition */}

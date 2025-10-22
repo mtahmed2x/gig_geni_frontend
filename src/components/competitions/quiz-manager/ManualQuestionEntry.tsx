@@ -55,13 +55,13 @@ export default function ManualQuestionEntry({
   competitionId,
 }: ManualQuestionEntryProps) {
   const {
-    data: questionsResponse,
+    data: questions = [],
     isLoading: isFetchingQuestions,
     isError,
   } = useGetAllQuizQuestionQuery(competitionId, {
     skip: !competitionId,
   });
-  const questions = questionsResponse?.data || [];
+
   const [createQuestion, { isLoading: isCreatingQuestion }] =
     useCreateQuizQuestionMutation();
 

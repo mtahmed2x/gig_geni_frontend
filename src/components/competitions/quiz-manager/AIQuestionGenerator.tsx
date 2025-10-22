@@ -76,7 +76,7 @@ export default function AIQuestionGenerator({
     };
 
     try {
-      const result = (await generateQuestions(payload).unwrap()).data;
+      const result = await generateQuestions(payload).unwrap();
       if (result && result.length > 0) {
         setAiGeneratedQuestions(result);
         setShowAiPreview(true);

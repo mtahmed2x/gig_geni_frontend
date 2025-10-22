@@ -52,7 +52,6 @@ const getStatusIcon = (status: Competition["status"]) => {
   }
 };
 
-// --- Skeleton Loader Component ---
 const CompetitionCardSkeleton = () => (
   <Card className="h-full animate-pulse">
     <CardHeader>
@@ -71,12 +70,10 @@ const CompetitionCardSkeleton = () => (
 
 function ManageCompetitionsPageContent() {
   const {
-    data: myCompetitionsData,
+    data: myCompetitions = [],
     isLoading,
     isError,
   } = useGetMyCompetitionsQuery();
-
-  const myCompetitions = myCompetitionsData?.data || [];
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");

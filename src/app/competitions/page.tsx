@@ -41,12 +41,10 @@ const CompetitionCardSkeleton = () => (
 
 export default function CompetitionsPage() {
   const {
-    data: allCompetitionsData, // Default to an empty array
+    data: allCompetitions = [], // Default to an empty array
     isLoading,
     isError,
   } = useGetAllCompetitionQuery();
-
-  const allCompetitions = allCompetitionsData?.data || [];
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
