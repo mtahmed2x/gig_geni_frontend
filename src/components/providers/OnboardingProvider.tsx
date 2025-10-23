@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { useAppSelector } from "@/lib/hooks";
 
 import { useRouteGuard } from "@/hooks/useRouteGuard";
-import { useAuth } from "@/contexts/AuthProvider";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { selectIsAuthenticated } from "@/lib/features/auth/authSlice";
 import { usePrevious } from "@/hooks/usePrevious";
 

@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { NavLink } from "./NavLink";
 // --- STEP 1: Import the useAuth hook ---
-import { useAuth } from "@/contexts/AuthProvider";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { logout, selectCurrentUser } from "@/lib/features/auth/authSlice";
 

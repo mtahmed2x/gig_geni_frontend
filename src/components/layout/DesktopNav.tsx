@@ -20,7 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { NavLink } from "./NavLink";
-import { useAuth } from "@/contexts/AuthProvider";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { logout, selectCurrentUser } from "@/lib/features/auth/authSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 

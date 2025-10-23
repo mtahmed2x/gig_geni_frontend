@@ -3,11 +3,12 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { DesktopNav } from "@/components/layout/DesktopNav";
 import { MobileDock } from "@/components/layout/MobileDock";
-import { AuthProvider } from "@/contexts/AuthProvider";
+import { AuthProvider } from "@/components/providers/AuthProvider";
 import ReduxProvider from "@/components/providers/ReduxProvider";
 
 import { Footer } from "@/components/layout/Footer";
-import { OnboardingProvider } from "@/contexts/OnboardingProvider";
+import { OnboardingProvider } from "@/components/providers/OnboardingProvider";
+import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -37,6 +38,8 @@ export default function RootLayout({
             </OnboardingProvider>
           </AuthProvider>
         </ReduxProvider>
+
+        <Toaster richColors position="top-center" />
       </body>
     </html>
   );
