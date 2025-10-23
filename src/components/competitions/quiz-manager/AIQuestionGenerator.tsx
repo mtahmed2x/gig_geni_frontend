@@ -27,7 +27,7 @@ import {
   QuizQuestion,
 } from "@/types";
 import {
-  useAddMultipleQuizQuestionsMutation,
+  useCreateMultipleQuizQuestionsMutation,
   useGenerateQuizQuestionsMutation,
 } from "@/lib/api/quizQuestionApi";
 
@@ -52,7 +52,7 @@ export default function AIQuestionGenerator({
   const [generateQuestions, { isLoading: isGenerating }] =
     useGenerateQuizQuestionsMutation();
   const [addQuestions, { isLoading: isAdding }] =
-    useAddMultipleQuizQuestionsMutation();
+    useCreateMultipleQuizQuestionsMutation();
 
   const [aiQuestionSet, setAiQuestionSet] = useState(initialAiState);
   const [aiGeneratedQuestions, setAiGeneratedQuestions] = useState<

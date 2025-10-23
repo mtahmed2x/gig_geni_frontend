@@ -1,26 +1,20 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+
 import { useAppSelector } from "@/lib/hooks";
 
 import { useRouteGuard } from "@/hooks/useRouteGuard";
 import { useAuth } from "@/contexts/AuthProvider";
-import {
-  selectCurrentUser,
-  selectIsAuthenticated,
-} from "@/lib/features/auth/authSlice";
+import { selectIsAuthenticated } from "@/lib/features/auth/authSlice";
+import { usePrevious } from "@/hooks/usePrevious";
 
 interface OnboardingProviderProps {
   children: React.ReactNode;
 }
 
 export function OnboardingProvider({ children }: OnboardingProviderProps) {
-  const user = useAppSelector(selectCurrentUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
-  const router = useRouter();
-  const pathname = usePathname();
-
   const { openLoginModal, authModalState } = useAuth();
 
   const {
@@ -29,6 +23,9 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
     handleLoginSuccess,
     handleLoginModalClose,
   } = useRouteGuard();
+
+  const isModalOpen = authModalState.isOpen;
+  const wasModalOpen = usePrevious(isModalOpen);
 
   useEffect(() => {
     if (shouldShowLoginModal) {
@@ -43,9 +40,10 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
   }, [isAuthenticated, intendedPath, handleLoginSuccess]);
 
   useEffect(() => {
-    if (shouldShowLoginModal && !authModalState.isOpen) {
+    if (wasModalOpen && !isModalOpen && !isAuthenticated) {
       handleLoginModalClose();
     }
-  }, [shouldShowLoginModal, authModalState.isOpen, handleLoginModalClose]);
+  }, [isModalOpen, wasModalOpen, isAuthenticated, handleLoginModalClose]);
+
   return <>{children}</>;
 }

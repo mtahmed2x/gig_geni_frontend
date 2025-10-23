@@ -41,7 +41,7 @@ const CompetitionCardSkeleton = () => (
 
 export default function CompetitionsPage() {
   const {
-    data: allCompetitions = [], // Default to an empty array
+    data: allCompetitions = [],
     isLoading,
     isError,
   } = useGetAllCompetitionQuery();

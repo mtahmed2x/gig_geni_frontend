@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/gig-geni.iml" filepath="$PROJECT_DIR$/.idea/gig-geni.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../gig-geni-backend/.idea/gig-geni-backend.iml" filepath="$PROJECT_DIR$/../gig-geni-backend/.idea/gig-geni-backend.iml" />
     </modules>
   </component>
 </project>

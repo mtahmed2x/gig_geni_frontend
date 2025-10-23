@@ -60,4 +60,5 @@ export interface GenerateQuizQuestionPayload {
   shortWordLimit: number;
   broadWordLimit: number;
   pointsPerQuestion: number;
+  isMarkdown: boolean;
 }

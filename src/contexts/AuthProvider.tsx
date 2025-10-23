@@ -29,10 +29,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }>({ isOpen: false, email: "" });
   const [tempToken, setTempToken] = useState<string | null>(null);
 
-  // 2. Wrap your functions in useCallback
   const openLoginModal = useCallback(() => {
     setAuthModalState({ isOpen: true, mode: "login" });
-  }, []); // Empty dependency array means this function is created only once
+  }, []);
 
   const openSignupModal = useCallback(() => {
     setAuthModalState({ isOpen: true, mode: "signup" });
@@ -59,7 +58,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAuthModalState({ isOpen: true, mode: "login" });
   }, []);
 
-  // 3. Pass the stable functions to the provider value
   const contextValue = {
     openLoginModal,
     openSignupModal,

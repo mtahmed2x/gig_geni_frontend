@@ -14,7 +14,7 @@ import { unwrapResponse } from "../utils";
 export const quizQuestionApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     createQuizQuestion: builder.mutation<
-      GetAllQuizQuestionResponse,
+      GetQuizQuestionResponse,
       CreateQuizQuestionPayload
     >({
       query: (payload) => ({
@@ -22,11 +22,11 @@ export const quizQuestionApi = baseApi.injectEndpoints({
         method: "POST",
         body: payload,
       }),
-      transformResponse: unwrapResponse<GetAllQuizQuestionResponse>,
+      transformResponse: unwrapResponse<GetQuizQuestionResponse>,
       invalidatesTags: ["QuizQuestion"],
     }),
 
-    addMultipleQuizQuestions: builder.mutation<
+    createMultipleQuizQuestions: builder.mutation<
       GetAllQuizQuestionResponse,
       { competitionId: string; questions: Partial<QuizQuestion>[] }
     >({
@@ -60,6 +60,7 @@ export const quizQuestionApi = baseApi.injectEndpoints({
         body,
       }),
       transformResponse: unwrapResponse<GetQuizQuestionResponse>,
+      invalidatesTags: ["QuizQuestion"],
     }),
 
     generateQuizQuestions: builder.mutation<
@@ -78,7 +79,7 @@ export const quizQuestionApi = baseApi.injectEndpoints({
 
 export const {
   useCreateQuizQuestionMutation,
-  useAddMultipleQuizQuestionsMutation,
+  useCreateMultipleQuizQuestionsMutation,
   useGetAllQuizQuestionQuery,
   useGetQuizQuestionQuery,
   useUpdateQuizQuestionMutation,

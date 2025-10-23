@@ -121,7 +121,6 @@ export default function ManualQuestionEntry({
   };
 
   const handleRemoveQuestion = (questionId: string) => {
-    // In the future, this would call a trigger from a useDeleteQuizQuestionMutation hook
     toast.error("Delete functionality is not yet implemented.");
     console.log("TODO: Implement delete for question ID:", questionId);
   };

@@ -5,8 +5,9 @@ import { DesktopNav } from "@/components/layout/DesktopNav";
 import { MobileDock } from "@/components/layout/MobileDock";
 import { AuthProvider } from "@/contexts/AuthProvider";
 import ReduxProvider from "@/components/providers/ReduxProvider";
-import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
+
 import { Footer } from "@/components/layout/Footer";
+import { OnboardingProvider } from "@/contexts/OnboardingProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 

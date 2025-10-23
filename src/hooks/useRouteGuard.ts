@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAppSelector } from "@/lib/hooks";
-import { checkRoutePermission } from "@/lib/auth";
+import { checkRoutePermission, getRedirectPath } from "@/lib/auth";
 import {
   selectCurrentUser,
   selectIsAuthenticated,
@@ -19,10 +19,15 @@ export function useRouteGuard() {
   const [intendedPath, setIntendedPath] = useState<string | null>(null);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     const permission = checkRoutePermission(pathname, user);
+
     if (!permission.allowed) {
       if (!isAuthenticated) {
-        setIntendedPath(pathname);
+        if (pathname !== "/") {
+          setIntendedPath(pathname);
+        }
         setShouldShowLoginModal(true);
       } else {
         router.push(permission.redirectTo || "/access-denied");
@@ -31,20 +36,26 @@ export function useRouteGuard() {
       setShouldShowLoginModal(false);
     }
   }, [pathname, user, isAuthenticated, router]);
-
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = useCallback(() => {
     setShouldShowLoginModal(false);
     if (intendedPath) {
       router.push(intendedPath);
       setIntendedPath(null);
+    } else if (user) {
+      const defaultPath = getRedirectPath(user.role);
+      router.push(defaultPath);
+    } else {
+      router.push("/");
     }
-  };
+  }, [intendedPath, user, router]);
 
-  const handleLoginModalClose = () => {
+  const handleLoginModalClose = useCallback(() => {
     setShouldShowLoginModal(false);
     setIntendedPath(null);
-    router.push("/");
-  };
+    if (pathname !== "/") {
+      router.push("/");
+    }
+  }, [pathname, router]);
 
   return {
     shouldShowLoginModal,

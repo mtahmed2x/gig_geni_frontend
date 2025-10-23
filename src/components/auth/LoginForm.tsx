@@ -39,22 +39,22 @@ export function LoginForm({ onClose, onSwitchToSignup }: LoginFormProps) {
     try {
       const response = await login(payload).unwrap();
       onClose();
-      setTimeout(() => {
-        const userRole = response.data!.user.role;
-        switch (userRole) {
-          case "admin":
-            router.push("/admin/dashboard");
-            break;
-          case "employer":
-            router.push("/competitions/manage");
-            break;
-          case "employee":
-            router.push("/competitions/my");
-            break;
-          default:
-            router.push("/");
-        }
-      }, 100);
+      // setTimeout(() => {
+      //   const userRole = response.data!.user.role;
+      //   switch (userRole) {
+      //     case "admin":
+      //       router.push("/admin/dashboard");
+      //       break;
+      //     case "employer":
+      //       router.push("/competitions/manage");
+      //       break;
+      //     case "employee":
+      //       router.push("/competitions/my");
+      //       break;
+      //     default:
+      //       router.push("/");
+      //   }
+      // }, 100);
     } catch (err: any) {
       setError(
         err.data?.message || "Login failed. Please check your credentials."
