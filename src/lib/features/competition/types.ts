@@ -30,7 +30,7 @@ export interface CompetitionStats {
 
 export interface Competition {
   _id: string;
-  createdBy: string | User;
+  createdBy: User;
   bannerImage: string;
   title: string;
   description: string;

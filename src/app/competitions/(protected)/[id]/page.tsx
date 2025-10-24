@@ -44,6 +44,7 @@ import { useGetCompetitionQuery } from "@/lib/api/competitionApi";
 import { useAppSelector } from "@/lib/hooks";
 import { Competition } from "@/lib/features/competition/types";
 import { useCheckParticipantMutation } from "@/lib/api/participantApi";
+import { User } from "@/lib/features/user/types";
 
 export default function CompetitionDetailsPage() {
   const params = useParams();
@@ -369,7 +370,7 @@ export default function CompetitionDetailsPage() {
           <h1 className="text-3xl md:text-4xl font-bold mb-2">
             {competition.title}
           </h1>
-          <p className="text-lg opacity-90">by {"TechCorp Solutions"}</p>
+          <p className="text-lg opacity-90">by {competition.createdBy.name}</p>
         </div>
       </div>
 
