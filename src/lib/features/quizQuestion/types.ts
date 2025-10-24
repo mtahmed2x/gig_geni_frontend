@@ -27,6 +27,7 @@ export interface QuizQuestion {
   wordLimit?: number;
   points: number;
   difficulty: QuestionDifficulty;
+  isMarkdown: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -39,6 +40,7 @@ export interface CreateQuizQuestionPayload {
   wordLimit?: number;
   points: number;
   difficulty: QuestionDifficulty;
+  isMarkdown: boolean;
 }
 
 export type GetAllQuizQuestionResponse = QuizQuestion[];

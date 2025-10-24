@@ -43,6 +43,9 @@ import { useGetCompetitionQuery } from "@/lib/api/competitionApi";
 import { useGetAllQuizQuestionQuery } from "@/lib/api/quizQuestionApi";
 import { useSubmitAnswerMutation } from "@/lib/api/quizAttemptApi";
 
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+
 export default function QuizTakingPageContent() {
   const params = useParams();
   const router = useRouter();
@@ -379,8 +382,17 @@ export default function QuizTakingPageContent() {
           <Card>
             <CardHeader>
               <div className="flex justify-between items-start">
+                {/* --- THIS IS THE UPDATED PART --- */}
                 <CardTitle className="text-xl">
-                  {currentQuestion.question}
+                  <div className="prose prose-lg max-w-none">
+                    {currentQuestion.isMarkdown ? (
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {currentQuestion.question}
+                      </ReactMarkdown>
+                    ) : (
+                      <p>{currentQuestion.question}</p>
+                    )}
+                  </div>
                 </CardTitle>
                 <Badge variant="secondary">
                   {currentQuestion.points} Points

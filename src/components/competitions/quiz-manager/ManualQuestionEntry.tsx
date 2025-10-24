@@ -13,6 +13,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus, Trash2, Edit, FileText, BarChart3 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 import { toast } from "sonner";
 import {
@@ -25,6 +27,8 @@ import {
   QuestionType,
   QuizQuestion,
 } from "@/lib/features/quizQuestion/types";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const defaultCategories = [
   "Programming",
@@ -49,6 +53,7 @@ const initialNewQuestionState = {
   points: 10,
   difficulty: "medium" as QuestionDifficulty,
   wordLimit: 100,
+  isMarkdown: false,
 };
 
 export default function ManualQuestionEntry({
@@ -91,6 +96,7 @@ export default function ManualQuestionEntry({
       type: newQuestion.type,
       points: newQuestion.points,
       difficulty: newQuestion.difficulty,
+      isMarkdown: newQuestion.isMarkdown,
     };
 
     if (["single", "multiple", "true_false"].includes(newQuestion.type)) {
@@ -183,6 +189,21 @@ export default function ManualQuestionEntry({
                 placeholder="Enter your question..."
                 rows={3}
               />
+            </div>
+            <div className="flex items-center space-x-2 mt-2">
+              <Checkbox
+                id="isMarkdown"
+                checked={newQuestion.isMarkdown}
+                onCheckedChange={(checked) =>
+                  setNewQuestion((p) => ({ ...p, isMarkdown: !!checked }))
+                }
+              />
+              <Label
+                htmlFor="isMarkdown"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Render question as Markdown
+              </Label>
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">
@@ -347,9 +368,21 @@ export default function ManualQuestionEntry({
             {questions.map((q: QuizQuestion, index) => (
               <div key={q._id} className="p-4 border rounded-lg bg-white">
                 <div className="flex items-start justify-between mb-2">
-                  <h4 className="font-medium text-sm pr-4">
-                    Q{index + 1}: {q.question}
-                  </h4>
+                  <div className="prose prose-sm max-w-none pr-4">
+                    <span className="font-medium">Q{index + 1}: </span>
+                    {q.isMarkdown ? (
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          p: ({ node, ...props }) => <span {...props} />,
+                        }}
+                      >
+                        {q.question}
+                      </ReactMarkdown>
+                    ) : (
+                      <span>{q.question}</span>
+                    )}
+                  </div>
                   <div className="flex items-center space-x-2 flex-shrink-0">
                     <Badge className={getDifficultyColor(q.difficulty)}>
                       {q.difficulty}
