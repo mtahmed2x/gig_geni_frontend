@@ -231,6 +231,43 @@ export default function ManualQuestionEntry({
                 </SelectContent>
               </Select>
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Difficulty
+                </label>
+                <Select
+                  value={newQuestion.difficulty}
+                  onValueChange={(value: QuestionDifficulty) =>
+                    setNewQuestion((p) => ({ ...p, difficulty: value }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="easy">Easy</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="hard">Hard</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Points</label>
+                <Input
+                  type="number"
+                  value={newQuestion.points}
+                  onChange={(e) =>
+                    setNewQuestion((p) => ({
+                      ...p,
+                      points: Math.max(0, parseInt(e.target.value, 10) || 0),
+                    }))
+                  }
+                  placeholder="e.g., 10"
+                  min="0"
+                />
+              </div>
+            </div>
 
             {["single", "multiple"].includes(newQuestion.type) && (
               <div>
