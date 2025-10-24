@@ -12,6 +12,7 @@ import ZoomScheduler from "@/components/competitions/ZoomScheduler";
 import FinalEvaluation from "@/components/competitions/FinalEvaluation";
 import NotificationSystem from "@/components/competitions/NotificationSystem";
 import { useGetCompetitionQuery } from "@/lib/api/competitionApi";
+import ParticipantTracker from "@/components/competitions/ParticipantTracker";
 
 function CompetitionManagePageContent() {
   const params = useParams();
@@ -169,12 +170,12 @@ function CompetitionManagePageContent() {
           <TabsContent value="round4">
             <FinalEvaluation competitionId={competitionId} participants={[]} />
           </TabsContent>
-          {/* <TabsContent value="participants">
+          <TabsContent value="participants">
             <ParticipantTracker
               competitionId={competitionId}
               participants={competition.participants || []}
             />
-          </TabsContent> */}
+          </TabsContent>
           <TabsContent value="notifications">
             <NotificationSystem
               competitionId={competitionId}
