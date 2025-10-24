@@ -1,6 +1,8 @@
 import { ApiResponse } from "@/types";
 import { baseApi } from "./baseApi";
 import {
+  CheckParticipantPayload,
+  CheckParticipantResponse,
   CreateParticipantPayload,
   GetParticipantResponse,
   GetParticipantsResponse,
@@ -11,7 +13,7 @@ import { unwrapResponse } from "../utils";
 export const participantApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     createParticipant: builder.mutation<
-      ApiResponse<GetParticipantsResponse>,
+      GetParticipantsResponse,
       CreateParticipantPayload
     >({
       query: (payload) => ({
@@ -19,6 +21,19 @@ export const participantApi = baseApi.injectEndpoints({
         method: "POST",
         body: payload,
       }),
+      transformResponse: unwrapResponse<GetParticipantsResponse>,
+    }),
+
+    checkParticipant: builder.mutation<
+      CheckParticipantResponse,
+      CheckParticipantPayload
+    >({
+      query: (payload) => ({
+        url: "participant/check-participant",
+        method: "POST",
+        body: payload,
+      }),
+      transformResponse: unwrapResponse<CheckParticipantResponse>,
     }),
 
     updateParticipant: builder.mutation<
@@ -55,6 +70,7 @@ export const participantApi = baseApi.injectEndpoints({
 
 export const {
   useCreateParticipantMutation,
+  useCheckParticipantMutation,
   useUpdateParticipantMutation,
   useGetParticipantQuery,
   useGetParticipantsQuery,

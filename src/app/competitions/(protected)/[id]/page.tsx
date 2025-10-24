@@ -1,7 +1,5 @@
-// src/app/competitions/(protected)/[id]/page.tsx
-
 "use client";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,6 +43,7 @@ import { selectCurrentUser } from "@/lib/features/auth/authSlice";
 import { useGetCompetitionQuery } from "@/lib/api/competitionApi";
 import { useAppSelector } from "@/lib/hooks";
 import { Competition } from "@/lib/features/competition/types";
+import { useCheckParticipantMutation } from "@/lib/api/participantApi";
 
 export default function CompetitionDetailsPage() {
   const params = useParams();
@@ -58,17 +57,41 @@ export default function CompetitionDetailsPage() {
   } = useGetCompetitionQuery(competitionId, { skip: !competitionId });
   const currentUser = useAppSelector(selectCurrentUser);
 
-  const isJoined = useMemo(() => {
-    if (!competition || !currentUser || !competition.participants) return false;
-    return competition.participants.some((p) => {
-      if (typeof p.user === "string") return p.user === currentUser._id;
-      return p.user._id === currentUser._id;
-    });
-  }, [competition, currentUser]);
+  const [participationStatus, setParticipationStatus] = useState<
+    "checking" | "joined" | "not_joined" | "error"
+  >("checking");
+
+  const [checkParticipant, { isLoading: isCheckLoading }] =
+    useCheckParticipantMutation();
+
+  useEffect(() => {
+    if (competition && currentUser && competitionId) {
+      const performCheck = async () => {
+        try {
+          const result = await checkParticipant({ competitionId }).unwrap();
+
+          if (result.canParticipate === false) {
+            setParticipationStatus("joined");
+          } else {
+            setParticipationStatus("not_joined");
+          }
+        } catch (err: any) {
+          if (err.status === 409) {
+            setParticipationStatus("joined");
+          } else {
+            console.error("Failed to check participation status:", err);
+            setParticipationStatus("error");
+            toast.error("Could not verify participation status.");
+          }
+        }
+      };
+
+      performCheck();
+    }
+  }, [competition, currentUser, competitionId, checkParticipant]);
 
   const [isSaved, setIsSaved] = useState(false);
   const [isNativeShareSupported, setIsNativeShareSupported] = useState(false);
-  // --- STEP 1: Add state to control the Share Popover ---
   const [isShareOpen, setIsShareOpen] = useState(false);
 
   useEffect(() => {
@@ -131,7 +154,7 @@ export default function CompetitionDetailsPage() {
       .catch((err) => {
         console.error("Failed to copy link: ", err);
         toast.error("Could not copy link.");
-        setIsShareOpen(false); // Also close on failure
+        setIsShareOpen(false);
       });
   };
 
@@ -144,14 +167,13 @@ export default function CompetitionDetailsPage() {
           url: window.location.href,
         })
         .catch((error) => console.log("Error sharing:", error))
-        // Close the popover after the share dialog is closed
+
         .finally(() => setIsShareOpen(false));
     } else {
       toast.error("Web sharing is not supported on this browser.");
     }
   };
 
-  // --- (Loading and Error states remain the same) ---
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -184,6 +206,41 @@ export default function CompetitionDetailsPage() {
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
   const shareText = `Check out this competition: ${competition.title}\n${shareUrl}`;
 
+  const getJoinButtonContent = () => {
+    switch (participationStatus) {
+      case "checking":
+        return (
+          <>
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            Checking Status...
+          </>
+        );
+      case "joined":
+        return (
+          <>
+            <CheckCircle className="h-4 w-4 mr-2" />
+            Already Joined
+          </>
+        );
+      case "not_joined":
+        return (
+          <>
+            <Trophy className="h-4 w-4 mr-2" />
+            Join Competition
+          </>
+        );
+      case "error":
+        return (
+          <>
+            <AlertCircle className="h-4 w-4 mr-2" />
+            Cannot Join
+          </>
+        );
+      default:
+        return "Join Competition";
+    }
+  };
+
   return (
     <div className="min-h-screen container">
       <div className="relative z-20 bg-transparent mt-5">
@@ -200,7 +257,6 @@ export default function CompetitionDetailsPage() {
             </Button>
 
             <div className="flex items-center space-x-3">
-              {/* --- STEP 3: Control the Popover component with state --- */}
               <Popover open={isShareOpen} onOpenChange={setIsShareOpen}>
                 <PopoverTrigger asChild>
                   <Button
@@ -689,24 +745,19 @@ export default function CompetitionDetailsPage() {
                     <Button
                       onClick={handleJoin}
                       className={`w-full ${
-                        isJoined
+                        participationStatus === "joined"
                           ? "bg-green-500 hover:bg-green-600"
                           : "bg-orange-600 hover:bg-orange-700"
                       } text-white`}
                       size="lg"
-                      disabled={status.text === "Completed"}
+                      disabled={
+                        status.text === "Completed" ||
+                        participationStatus === "checking" ||
+                        participationStatus === "joined" ||
+                        participationStatus === "error"
+                      }
                     >
-                      {isJoined ? (
-                        <>
-                          <CheckCircle className="h-4 w-4 mr-2" />
-                          Joined
-                        </>
-                      ) : (
-                        <>
-                          <Trophy className="h-4 w-4 mr-2" />
-                          Join Competition
-                        </>
-                      )}
+                      {getJoinButtonContent()}
                     </Button>
 
                     {status.text === "Completed" && (

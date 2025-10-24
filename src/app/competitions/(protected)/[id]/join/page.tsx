@@ -4,8 +4,9 @@ import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useCreateParticipantMutation } from "@/lib/api/participantApi";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Toaster } from "@/components/ui/sonner";
 
 function JoinCompetitionPageContent() {
   const params = useParams();

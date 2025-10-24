@@ -59,3 +59,11 @@ export type GetParticipantResponse = Participant;
 export type CreateParticipantPayload = {
   competition: string;
 };
+
+export type CheckParticipantPayload = {
+  competitionId: string;
+};
+
+export type CheckParticipantResponse = {
+  canParticipate: boolean;
+};
