@@ -420,7 +420,7 @@ export default function CompetitionDetailsPage() {
 
                   <div className="flex items-center text-sm font-semibold text-green-600">
                     <Trophy className="h-4 w-4 mr-2" />
-                    <span>$5000 + Job Offer</span>
+                    <span>{competition.prize}</span>
                   </div>
                 </div>
 
@@ -445,14 +445,8 @@ export default function CompetitionDetailsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-700 leading-relaxed mb-4">
-                  Build a comprehensive web application that demonstrates your
-                  skills in modern web development. The project should showcase
-                  clean code architecture, responsive design, and user-friendly
-                  interfaces.
-                </p>
                 <p className="text-gray-700 leading-relaxed">
-                  {competition.description}
+                  {competition.projectBrief}
                 </p>
               </CardContent>
             </Card>
@@ -538,26 +532,14 @@ export default function CompetitionDetailsPage() {
                           Evaluation Criteria
                         </h4>
                         <div className="space-y-3">
-                          {[
-                            "Innovation and Creativity",
-                            "Technical Implementation",
-                            "User Experience Design",
-                            "Code Quality and Documentation",
-                            "Problem-Solving Approach",
-                          ].map((criteria, index) => (
-                            <div
-                              key={index}
-                              className="flex items-center space-x-3"
-                            >
-                              <CheckCircle className="h-5 w-5 text-green-600" />
-                              <span className="text-gray-700">{criteria}</span>
-                            </div>
-                          ))}
+                          <div className="flex items-center space-x-3">
+                            {competition.evaluationCriteria}
+                          </div>
                         </div>
                       </div>
 
                       {/* Submission Requirements */}
-                      <div>
+                      {/* <div>
                         <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
                           <FileText className="h-5 w-5 mr-2 text-orange-500" />
                           Submission Requirements
@@ -577,8 +559,8 @@ export default function CompetitionDetailsPage() {
                               <span className="text-gray-700">{format}</span>
                             </div>
                           ))}
-                        </div>
-                      </div>
+                        </div> */}
+                      {/* </div> */}
                     </div>
                   </TabsContent>
 
@@ -712,7 +694,7 @@ export default function CompetitionDetailsPage() {
                 <CardContent className="space-y-4">
                   <div className="text-center">
                     <div className="text-3xl font-bold text-orange-600 mb-1">
-                      ৳5000 + Job Offer
+                      ৳{competition.prize}
                     </div>
                     <p className="text-sm text-gray-600">Total Prize Pool</p>
                   </div>
