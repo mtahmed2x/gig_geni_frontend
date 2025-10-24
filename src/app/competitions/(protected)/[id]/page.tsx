@@ -800,7 +800,7 @@ export default function CompetitionDetailsPage() {
                     </div>
                     <div>
                       <p className="font-semibold text-gray-900">
-                        TechCorp Solutions
+                        {competition.createdBy.name}
                       </p>
                       <p className="text-sm text-gray-600">Competition Host</p>
                     </div>
