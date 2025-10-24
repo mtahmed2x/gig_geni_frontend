@@ -407,12 +407,12 @@ export default function CompetitionDetailsPage() {
                       <span>{competition.location}</span>
                     </div>
                   )}
-                  <div className="flex items-center text-sm text-gray-600">
+                  {/* <div className="flex items-center text-sm text-gray-600">
                     <Users className="h-4 w-4 mr-2 text-gray-400" />
                     <span>
                       {competition.totalParticipants || 0} participants
                     </span>
-                  </div>
+                  </div> */}
                   <div className="flex items-center text-sm text-gray-600">
                     <DollarSign className="h-4 w-4 mr-2 text-gray-400" />
                     <span>{competition.registrationFee}</span>
@@ -702,12 +702,12 @@ export default function CompetitionDetailsPage() {
                   <Separator />
 
                   <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
+                    {/* <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Participants:</span>
                       <span className="font-medium">
                         {competition.totalParticipants || 0}
                       </span>
-                    </div>
+                    </div>  */}
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Registration:</span>
                       <span className="font-medium">
