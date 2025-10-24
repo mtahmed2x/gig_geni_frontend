@@ -382,7 +382,6 @@ export default function QuizTakingPageContent() {
           <Card>
             <CardHeader>
               <div className="flex justify-between items-start">
-                {/* --- THIS IS THE UPDATED PART --- */}
                 <CardTitle className="text-xl">
                   <div className="prose prose-lg max-w-none">
                     {currentQuestion.isMarkdown ? (
