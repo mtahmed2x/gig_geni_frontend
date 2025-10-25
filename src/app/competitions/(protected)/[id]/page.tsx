@@ -203,6 +203,23 @@ export default function CompetitionDetailsPage() {
     );
   }
 
+  const skillsString = competition.skillsTested;
+
+  const skillsArray = skillsString
+    .split(",")
+    .map((skill) => skill.trim())
+    .filter((skill) => skill.length > 0);
+
+  const criteriaString = competition.evaluationCriteria;
+
+  const criteriaArray = criteriaString
+    .split(",")
+    .map((criterion) => criterion.trim())
+    .filter((criterion) => criterion.length > 0);
+
+  const decodedHtml = atob(competition.projectBrief);
+  const projectBriefHtml = { __html: decodedHtml };
+
   const status = getStatusBadge(competition);
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
   const shareText = `Check out this competition: ${competition.title}\n${shareUrl}`;
@@ -445,42 +462,61 @@ export default function CompetitionDetailsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-700 leading-relaxed">
-                  {competition.projectBrief}
-                </p>
+                {/* The decoded HTML content is injected here */}
+                <div
+                  className="text-gray-700 leading-relaxed"
+                  dangerouslySetInnerHTML={projectBriefHtml}
+                />
+                {/* Note: We replaced the <p> tag with a generic <div> 
+            and applied the styling, as the decoded HTML might contain block-level 
+            elements (like h2, h3, ul) that shouldn't be nested inside a <p> tag.
+        */}
               </CardContent>
             </Card>
 
             {/* Resources & Downloads */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Download className="h-5 w-5" />
-                  <span>Resources</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="p-4 bg-gray-50 rounded-lg border hover:bg-gray-100 transition-colors">
-                  <div className="flex items-start space-x-3">
-                    <File className="h-5 w-5 text-blue-600 mt-0.5" />
-                    <div className="flex-1">
-                      <a
-                        href="https://drive.google.com/file/d/1abc123/view"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-medium text-blue-600 hover:text-blue-800 hover:underline"
+            {/* Check if the array exists AND has content before rendering the entire card */}
+            {competition.additionalFiles &&
+              competition.additionalFiles.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Download className="h-5 w-5" />
+                      <span>Resources</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {/* Map over the array to generate a resource block for each file */}
+                    {competition.additionalFiles.map((file, index) => (
+                      <div
+                        key={index} // Use a unique key for list items
+                        className="p-4 bg-gray-50 rounded-lg border hover:bg-gray-100 transition-colors mb-3 last:mb-0"
+                        // Added mb-3 to separate multiple file blocks
                       >
-                        Find Necessary Information
-                      </a>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Includes detailed specifications, assets, and references
-                        for the project.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                        <div className="flex items-start space-x-3">
+                          {/* Assuming the 'File' icon is standard, but you might want to use a dynamic icon based on file type */}
+                          <File className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1">
+                            <a
+                              href={file.link} // Use the file's dynamic URL
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                            >
+                              {/* Use the file's dynamic title/name */}
+                              {file.description || "Download Resource"}
+                            </a>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {/* Use the file's dynamic description */}
+                              {file.description || "No description provided."}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
 
             {/* Detailed Information Tabs */}
             <Card>
@@ -518,23 +554,38 @@ export default function CompetitionDetailsPage() {
                           </div>
                         )}
 
-                      <div>
+                      {/* <div>
                         <h4 className="text-lg font-semibold text-gray-900 mb-3">
                           Maximum File Size
                         </h4>
                         <p className="text-gray-700">10 MB</p>
-                      </div>
+                      </div> */}
 
                       {/* Evaluation Criteria */}
-                      <div>
+                      <div className="mt-6">
+                        {" "}
+                        {/* Assuming this section is not in a TabsContent like the last one, I'm adding a margin top for separation */}
                         <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
                           <Award className="h-5 w-5 mr-2 text-orange-500" />
                           Evaluation Criteria
                         </h4>
                         <div className="space-y-3">
-                          <div className="flex items-center space-x-3">
-                            {competition.evaluationCriteria}
-                          </div>
+                          {/* Dynamic rendering starts here:
+            Iterate over the criteriaArray and generate a div for each one.
+        */}
+                          {criteriaArray.map((criterion, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center space-x-3"
+                            >
+                              {/* Reusing the CheckCircle for a consistent "list item" look */}
+                              <CheckCircle className="h-4 w-4 text-orange-500 flex-shrink-0" />
+                              <span className="text-gray-800">
+                                {/* The individual criterion */}
+                                {criterion}
+                              </span>
+                            </div>
+                          ))}
                         </div>
                       </div>
 
@@ -571,10 +622,15 @@ export default function CompetitionDetailsPage() {
                         Skills Being Tested
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <CheckCircle className="h-4 w-4 text-orange-500 mr-3" />
-                        <span className="text-gray-800 font-medium">
-                          {competition.skillsTested}
-                        </span>
+                        {skillsArray.map((skill, index) => (
+                          <div key={index} className="flex items-center">
+                            <CheckCircle className="h-4 w-4 text-orange-500 mr-3" />
+                            <span className="text-gray-800 font-medium">
+                              {/* The individual, cleaned-up skill */}
+                              {skill}
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </TabsContent>
