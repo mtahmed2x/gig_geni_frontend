@@ -43,8 +43,27 @@ import { useGetCompetitionQuery } from "@/lib/api/competitionApi";
 import { useGetAllQuizQuestionQuery } from "@/lib/api/quizQuestionApi";
 import { useSubmitAnswerMutation } from "@/lib/api/quizAttemptApi";
 
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+// --- Base64 Helper Functions (RE-INTRODUCED) ---
+
+/**
+ * Decodes a Base64 string back to the original UTF-8 string (HTML/Markdown).
+ */
+const decodeFromBase64 = (base64: string): string => {
+  if (typeof window === "undefined") return base64;
+  try {
+    const binaryString = atob(base64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    const decoder = new TextDecoder("utf-8");
+    return decoder.decode(bytes);
+  } catch (error) {
+    console.warn("Base64 decoding failed. Returning raw content.", error);
+    return base64;
+  }
+};
+// ------------------------------
 
 export default function QuizTakingPageContent() {
   const params = useParams();
@@ -153,7 +172,7 @@ export default function QuizTakingPageContent() {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [quizState]);
 
-  // --- STEP 1: Add effect to disable right-click, copy, and paste ---
+  // Disable right-click, copy, and paste
   useEffect(() => {
     if (quizState !== "active") return;
 
@@ -347,7 +366,12 @@ export default function QuizTakingPageContent() {
     currentAnswer !== "" &&
     !(Array.isArray(currentAnswer) && currentAnswer.length === 0);
 
-  // --- STEP 2: Conditionally apply the `select-none` class ---
+  // --- Base64 Decoding for Display ---
+  const displayedQuestionContent = currentQuestion.isMarkdown
+    ? decodeFromBase64(currentQuestion.question) // Decode if it's Base64 content
+    : currentQuestion.question; // Use raw string if not markdown/Base64
+
+  // Apply select-none class for anti-cheating measures during quiz
   return (
     <div
       className={`max-w-4xl mx-auto ${
@@ -382,16 +406,22 @@ export default function QuizTakingPageContent() {
           <Card>
             <CardHeader>
               <div className="flex justify-between items-start">
+                {/* ⭐ MODIFIED QUESTION RENDERING LOGIC */}
                 <CardTitle className="text-xl">
-                  <div className="prose prose-lg max-w-none">
-                    {currentQuestion.isMarkdown ? (
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {currentQuestion.question}
-                      </ReactMarkdown>
-                    ) : (
-                      <p>{currentQuestion.question}</p>
-                    )}
-                  </div>
+                  {currentQuestion.isMarkdown ? (
+                    <div
+                      className="prose prose-lg max-w-none"
+                      // Render decoded HTML/Markdown content
+                      dangerouslySetInnerHTML={{
+                        __html: displayedQuestionContent,
+                      }}
+                    />
+                  ) : (
+                    <div className="prose prose-lg max-w-none">
+                      {/* Render as plain text */}
+                      <p>{displayedQuestionContent}</p>
+                    </div>
+                  )}
                 </CardTitle>
                 <Badge variant="secondary">
                   {currentQuestion.points} Points

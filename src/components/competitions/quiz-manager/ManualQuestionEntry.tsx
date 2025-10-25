@@ -21,25 +21,101 @@ import {
   useCreateQuizQuestionMutation,
   useGetAllQuizQuestionQuery,
 } from "@/lib/api/quizQuestionApi";
+import { QuestionType } from "@/lib/features/competition/types";
 import {
   CreateQuizQuestionPayload,
   QuestionDifficulty,
-  QuestionType,
   QuizQuestion,
 } from "@/lib/features/quizQuestion/types";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 
-const defaultCategories = [
-  "Programming",
-  "Web Development",
-  "Data Science",
-  "Mobile Development",
-  "DevOps",
-  "UI/UX Design",
-  "General Knowledge",
-  "Problem Solving",
-];
+// Removed unused imports
+
+// --- Base64 Helper Functions ---
+
+/**
+ * Encodes a string to a safe Base64 string for storage, handling UTF-8.
+ */
+const encodeToBase64 = (str: string): string => {
+  if (typeof window === "undefined") return str; // Skip on server rendering
+  const encoder = new TextEncoder();
+  const data = encoder.encode(str);
+
+  // Convert byte array to binary string and then to Base64
+  const binaryString = String.fromCharCode.apply(null, Array.from(data));
+  return btoa(binaryString);
+};
+
+/**
+ * Decodes a Base64 string back to the original UTF-8 string.
+ */
+const decodeFromBase64 = (base64: string): string => {
+  if (typeof window === "undefined") return base64; // Skip on server rendering
+  try {
+    const binaryString = atob(base64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    const decoder = new TextDecoder("utf-8");
+    return decoder.decode(bytes);
+  } catch (error) {
+    // Return original string if decoding fails
+    console.warn("Base64 decoding failed. Returning raw content.", error);
+    return base64;
+  }
+};
+// ------------------------------
+
+// --- IFRAME RENDERER FOR ISOLATED HTML ---
+interface HtmlRendererIframeProps {
+  htmlContent: string;
+  className?: string;
+}
+
+const HtmlRendererIframe: React.FC<HtmlRendererIframeProps> = ({
+  htmlContent,
+  className,
+}) => {
+  // Wrap the HTML content with basic styling for a clean, contained display.
+  const styledContent = `
+    <html>
+      <head>
+        <style>
+          body { 
+            margin: 0; 
+            padding: 0; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-size: 0.875rem; /* Matches text-sm */
+            line-height: 1.5; 
+            color: #1f2937; /* Default text color */
+          }
+          /* Reset common block/text elements to ensure question is legible */
+          h1, h2, h3, h4, p, ul, ol, li, pre, code { margin: 0; padding: 0; }
+        </style>
+      </head>
+      <body>
+        ${htmlContent}
+      </body>
+    </html>
+  `;
+
+  // Encode to a Data URL
+  const dataUrl = `data:text/html;charset=utf-8,${encodeURIComponent(
+    styledContent
+  )}`;
+
+  // Render the iframe
+  return (
+    <iframe
+      src={dataUrl}
+      className={`w-full border-0 overflow-hidden ${className}`}
+      // Setting a minimal height; in a production app, you'd use a ref/onload to calculate content height
+      style={{ height: "auto", minHeight: "100px" }}
+      title="Question Content"
+    />
+  );
+};
+// ------------------------------------------
 
 interface ManualQuestionEntryProps {
   competitionId: string;
@@ -51,9 +127,9 @@ const initialNewQuestionState = {
   options: ["", "", "", ""],
   correctAnswerIndexes: [0] as number[],
   points: 10,
-  difficulty: "medium" as QuestionDifficulty,
+  difficulty: QuestionDifficulty.Medium,
   wordLimit: 100,
-  isMarkdown: false,
+  isMarkdown: false, // Flag is now used for 'isHTML'
 };
 
 export default function ManualQuestionEntry({
@@ -90,9 +166,15 @@ export default function ManualQuestionEntry({
       return toast.error("Question text cannot be empty.");
     }
 
+    // BASE64 ENCODING LOGIC
+    let questionContentToSend = newQuestion.question;
+    if (newQuestion.isMarkdown) {
+      questionContentToSend = encodeToBase64(newQuestion.question);
+    }
+
     const payload: CreateQuizQuestionPayload = {
       competition: competitionId,
-      question: newQuestion.question,
+      question: questionContentToSend,
       type: newQuestion.type,
       points: newQuestion.points,
       difficulty: newQuestion.difficulty,
@@ -173,6 +255,9 @@ export default function ManualQuestionEntry({
         </Card>
       </div>
 
+      {/* ---------------------------------------------------------------------- */}
+      {/* ADD QUESTION FORM */}
+      {/* ---------------------------------------------------------------------- */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -181,13 +266,18 @@ export default function ManualQuestionEntry({
           <CardContent className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-2">Question</label>
+              {/* TEXTAREA REPLACEMENT */}
               <Textarea
                 value={newQuestion.question}
                 onChange={(e) =>
                   setNewQuestion((p) => ({ ...p, question: e.target.value }))
                 }
-                placeholder="Enter your question..."
-                rows={3}
+                placeholder={
+                  newQuestion.isMarkdown
+                    ? "Enter your question using HTML syntax..."
+                    : "Enter your question..."
+                }
+                rows={5}
               />
             </div>
             <div className="flex items-center space-x-2 mt-2">
@@ -202,7 +292,8 @@ export default function ManualQuestionEntry({
                 htmlFor="isMarkdown"
                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
-                Render question as Markdown
+                Render question as **HTML** (Content will be Base64 encoded for
+                storage)
               </Label>
             </div>
             <div>
@@ -383,6 +474,9 @@ export default function ManualQuestionEntry({
           </CardContent>
         </Card>
 
+        {/* ---------------------------------------------------------------------- */}
+        {/* QUESTION LIST DISPLAY */}
+        {/* ---------------------------------------------------------------------- */}
         <Card>
           <CardHeader>
             <CardTitle>Questions ({questions.length})</CardTitle>
@@ -402,61 +496,68 @@ export default function ManualQuestionEntry({
               </p>
             )}
 
-            {questions.map((q: QuizQuestion, index) => (
-              <div key={q._id} className="p-4 border rounded-lg bg-white">
-                <div className="flex items-start justify-between mb-2">
-                  <div className="prose prose-sm max-w-none pr-4">
-                    <span className="font-medium">Q{index + 1}: </span>
-                    {q.isMarkdown ? (
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        components={{
-                          p: ({ node, ...props }) => <span {...props} />,
-                        }}
-                      >
-                        {q.question}
-                      </ReactMarkdown>
-                    ) : (
-                      <span>{q.question}</span>
-                    )}
-                  </div>
-                  <div className="flex items-center space-x-2 flex-shrink-0">
-                    <Badge className={getDifficultyColor(q.difficulty)}>
-                      {q.difficulty}
-                    </Badge>
-                    <Button variant="ghost" size="icon" className="h-6 w-6">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 text-red-600 hover:text-red-700"
-                      onClick={() => handleRemoveQuestion(q._id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                <div className="space-y-1 text-sm">
-                  {q.options?.map((option, optIndex) => (
-                    <div
-                      key={option._id || optIndex}
-                      className={`p-2 rounded text-xs ${
-                        option.isCorrect
-                          ? "bg-green-100 text-green-800 font-semibold"
-                          : "bg-gray-100"
-                      }`}
-                    >
-                      {String.fromCharCode(65 + optIndex)}. {option.text}
-                      {option.isCorrect && " ✓"}
+            {questions.map((q: QuizQuestion, index) => {
+              // ⭐ BASE64 DECODING LOGIC
+              let displayedQuestion = q.question;
+              if (q.isMarkdown) {
+                // Decode from Base64 before displaying/rendering as HTML
+                displayedQuestion = decodeFromBase64(q.question);
+              }
+
+              return (
+                <div key={q._id} className="p-4 border rounded-lg bg-white">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="prose prose-sm max-w-none pr-4">
+                      <span className="font-medium">Q{index + 1}: </span>
+                      {q.isMarkdown ? (
+                        // ⭐ NEW ISOLATED HTML RENDERING WITH IFRAME
+                        <HtmlRendererIframe
+                          htmlContent={displayedQuestion}
+                          className="mt-1"
+                        />
+                      ) : (
+                        // Render as plain text
+                        <span>{displayedQuestion}</span>
+                      )}
                     </div>
-                  ))}
+                    <div className="flex items-center space-x-2 flex-shrink-0">
+                      <Badge className={getDifficultyColor(q.difficulty)}>
+                        {q.difficulty}
+                      </Badge>
+                      <Button variant="ghost" size="icon" className="h-6 w-6">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-red-600 hover:text-red-700"
+                        onClick={() => handleRemoveQuestion(q._id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="space-y-1 text-sm">
+                    {q.options?.map((option, optIndex) => (
+                      <div
+                        key={option._id || optIndex}
+                        className={`p-2 rounded text-xs ${
+                          option.isCorrect
+                            ? "bg-green-100 text-green-800 font-semibold"
+                            : "bg-gray-100"
+                        }`}
+                      >
+                        {String.fromCharCode(65 + optIndex)}. {option.text}
+                        {option.isCorrect && " ✓"}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+                    <span>Points: {q.points}</span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-                  <span>Points: {q.points}</span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </CardContent>
         </Card>
       </div>
